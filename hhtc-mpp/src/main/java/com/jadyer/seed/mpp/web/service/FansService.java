@@ -80,12 +80,27 @@ public class FansService {
         return fansInfoRepository.findByUid(uid);
     }
 
+    /**
+     * 查询粉丝的信息状态
+     * */
+    public char GetInforState(long uid, String openid){
+        return fansInfoRepository.findByUidAndOpenid(uid,openid).getInfor_state();
+    }
+
 
     /**
      * 查询某个粉丝的信息
      */
     public MppFansInfo getByUidAndOpenid(long uid, String openid){
         return fansInfoRepository.findByUidAndOpenid(uid, openid);
+    }
+
+    /**
+     * 更新粉丝的信息状态
+     */
+    @Transactional(rollbackFor=Exception.class)
+    public boolean unInforSate(char _inforSate,long uid, String openid){
+        return 1 == fansInfoRepository.updateInforSate(_inforSate, uid, openid);
     }
 
 
@@ -183,7 +198,8 @@ public class FansService {
             MppUserInfo mppUserInfo = mppUserInfoRepository.findByMptypeAndBindStatus(1, 1);
             WeixinFansInfo weixinFansInfo = WeixinHelper.getWeixinFansInfo(WeixinTokenHolder.getWeixinAccessToken(mppUserInfo.getAppid()), openid);
             mppFansInfo.setUid(mppUserInfo.getId());
-            mppFansInfo.setWxid(mppUserInfo.getMpid());
+            //TODO
+           //mppFansInfo.setWxid(mppUserInfo.getMpid());
             mppFansInfo.setOpenid(openid);
             mppFansInfo.setSubscribe(String.valueOf(weixinFansInfo.getSubscribe()));
             mppFansInfo.setNickname(JadyerUtil.escapeEmoji(weixinFansInfo.getNickname()));

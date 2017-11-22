@@ -1,5 +1,6 @@
 package com.jadyer.seed.mpp.web.controller.wx;
 
+import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.comm.constant.CommonResult;
 import com.jadyer.seed.mpp.web.service.FansService;
@@ -43,9 +44,9 @@ public class WxFansController {
     * 用户授权查询 查询该用户是否授权
     * */
     @PostMapping("/accredit/get")
-    public CommonResult IsAccredit(HttpSession session){
+    public CommonResult GetAccredit(HttpSession session){
         int ResultCode = 0;
-
+        ResultCode = fansService.GetInforState(2, hhtcHelper.getWxOpenidFromSession(session));
         return new CommonResult(ResultCode);
     }
 
@@ -54,8 +55,10 @@ public class WxFansController {
      * */
     @PostMapping("/accredit/allow")
     public CommonResult UserAccredit(HttpSession session){
-        //TODO 功能实现  现在没有实现
-        return new CommonResult(fansService.getByOpenid(hhtcHelper.getWxOpenidFromSession(session)));
+        if (fansService.unInforSate('1',2, hhtcHelper.getWxOpenidFromSession(session))){
+            return GetAccredit(session);
+        }
+        return new CommonResult(CodeEnum.SYSTEM_ERROR,"授权失败");
     }
 
     /**

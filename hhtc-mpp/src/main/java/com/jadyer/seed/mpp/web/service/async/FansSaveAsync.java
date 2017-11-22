@@ -36,7 +36,8 @@ public class FansSaveAsync {
             //if(1 == mppUserInfo.getMptype()){
                 WeixinFansInfo weixinFansInfo = WeixinHelper.getWeixinFansInfo(WeixinTokenHolder.getWeixinAccessToken(mppUserInfo.getAppid()), openid);
                 mppFansInfo.setUid(mppUserInfo.getId());
-                mppFansInfo.setWxid(mppUserInfo.getMpid());
+                //TODO
+               // mppFansInfo.setWxid(mppUserInfo.getMpid());
                 mppFansInfo.setOpenid(openid);
                 mppFansInfo.setSubscribe(String.valueOf(weixinFansInfo.getSubscribe()));
                 mppFansInfo.setSubscribeTime(DateFormatUtils.format(new Date(Long.parseLong(weixinFansInfo.getSubscribe_time())*1000), "yyyy-MM-dd HH:mm:ss"));
