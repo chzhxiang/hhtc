@@ -1,0 +1,106 @@
+management:
+  security:
+    enabled: false
+endpoints:
+  shutdown:
+    enabled: true
+multipart:
+  enabled: true
+  maxFileSize: 20Mb
+  maxRequestSize: 20Mb
+spring:
+  async:
+    corePoolSize: 100
+    maxPoolSize: 500
+    queueCapacity: 1000
+  datasource:
+    url: jdbc:mysql://${db.host}:${db.port}/${db.name}?useUnicode=true&characterEncoding=UTF8&failOverReadOnly=false&zeroDateTimeBehavior=convertToNull
+    username: ${db.username}
+    password: ${db.password}
+    druid:
+      filters: wall,mergeStat
+      initialSize: 5
+      minIdle: 5
+      maxActive: 100
+      maxWait: 60000
+      validationQuery: SELECT 1
+      minEvictableIdleTimeMillis: 300000
+      timeBetweenEvictionRunsMillis: 60000
+      poolPreparedStatements: true
+      maxPoolPreparedStatementPerConnectionSize: 20
+      WebStatFilter:
+        enabled: true
+        profileEnable: true
+        urlPattern: /*
+      StatViewServlet:
+        enabled: true
+        urlPattern: /druid/*
+        loginUsername: druid
+        loginPassword: http://jadyer.cn/
+  jpa:
+    showSql: false
+    database: MYSQL
+    generateDdl: false
+    databasePlatform: org.hibernate.dialect.MySQL5InnoDBDialect
+    properties:
+      hibernate:
+        format_sql: true
+auth:
+  unauthorizedUrl: /login.jsp
+  anonymousList:
+    - /
+    - /js/**
+    - /css/**
+    - /img/**
+    - /weixin/**
+    - /mpp/user/login
+    - /login.jsp
+    - /captcha.jsp
+    - /favicon.ico
+    - /wx/**
+    - /portal/**
+    - /MP_verify_rZmB6x3GB9xYo6R6.txt
+aliyun:
+  sms:
+    signName: 吼吼停车
+    validityMinute: 3
+hhtc:
+  publishTime:
+    day: 900
+    night: 1700 # 发布时间段中的日间和夜间分隔点
+  orderLock:
+    minute: 6   # 订单锁定时长（单位：分钟，微信要求必须大于5）
+  needExpire:
+    minute: 60  # 主动需求匹配过期的提前时长（假设配置30，表示起始时间的30分钟前仍未匹配到，则置其为过期）
+  portalUrl:
+    login: /portal/index.html#/login     # 微信端注册页面地址
+    center: /portal/index.html#/userinfo  # 微信端个人中心个人资料页面地址
+  wxtemplateUrl:
+    needsucc: /portal/index.html#/order_detail?orderId={orderId} # 微信模板消息之车主需求匹配的模板URL
+    needfail: /portal/index.html#/park?type={type}/beginDay={beginDay}/endDay={endDay}/beginTime={beginTime}/endTime={endTime}
+    regauditnotpass: /portal/index.html#/login?userType={userType}  # 微信模板消息之车主或车位主注册审核未通过的模板URL
+  contextpath: http://test2.houhousport.com
+  p12savepath: /app/p12/apiclient_cert.p12
+  picsavepath: /app/p12/upload
+logging:
+  path: /app/p12/log
+  config: classpath:config/logback-hhtc.xml
+jasypt:
+  file: file:/app/p12/config.properties
+
+---
+spring:
+  server:
+  port: 80
+jasypt:
+  file: classpath:config/config.properties
+
+---
+spring:
+  profiles: test
+
+---
+spring:
+  profiles: prod
+hhtc:
+  contextpath: http://hhtc.houhoutech.com

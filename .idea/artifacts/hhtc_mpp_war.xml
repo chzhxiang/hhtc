@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="hhtc-mpp:war">
+    <output-path>$PROJECT_DIR$/hhtc-mpp/target</output-path>
+    <root id="archive" name="ROOT.war">
+      <element id="artifact" artifact-name="hhtc-mpp:war exploded" />
+    </root>
+  </artifact>
+</component>

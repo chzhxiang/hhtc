@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<configuration>
+    <property name="PROJECT_NAME" value="hhtc"/>
+    <property name="LOG_HOME" value="${LOG_PATH}"/>
+    <contextName>${PROJECT_NAME}</contextName>
+
+    <appender name="DEFAULT_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${PROJECT_NAME}.log</file>
+        <encoder>
+            <pattern>[%d{yyMMddHHmmssSSS}][%t][%C{0}.%M]%m%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/archive/${PROJECT_NAME}.log.%d{yyyyMMdd}</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+    <appender name="QUARTZ_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/quartz.log</file>
+        <encoder>
+            <pattern>[%d{yyMMddHHmmssSSS}][%t][%C{0}.%M]%m%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/archive/quartz.log.%d{yyyyMMdd}</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+    <appender name="TASK_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/task.log</file>
+        <encoder>
+            <pattern>[%d{yyMMddHHmmssSSS}][%t][%C{0}.%M]%m%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/archive/task.log.%d{yyyyMMdd}</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+    <appender name="MQ_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/mq.log</file>
+        <encoder>
+            <pattern>[%d{yyMMddHHmmssSSS}][%t][%C{0}.%M]%m%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/archive/mq.log.%d{yyyyMMdd}</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%d{yyMMddHHmmssSSS}][%t][%C{0}.%M]%m%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.jboss" level="WARN"/>
+    <logger name="org.apache" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.thymeleaf" level="WARN"/>
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.springframework.boot.context.embedded.tomcat" level="INFO"/>
+
+    <logger name="defaultLogger" level="INFO" additivity="true">
+        <appender-ref ref="DEFAULT_LOG"/>
+    </logger>
+    <logger name="quartzLogger" level="INFO" additivity="true">
+        <appender-ref ref="QUARTZ_LOG"/>
+    </logger>
+    <logger name="taskLogger" level="INFO" additivity="true">
+        <appender-ref ref="TASK_LOG"/>
+    </logger>
+    <logger name="mqLogger" level="INFO" additivity="true">
+        <appender-ref ref="MQ_LOG"/>
+    </logger>
+
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

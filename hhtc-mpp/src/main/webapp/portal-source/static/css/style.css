@@ -1,0 +1,90 @@
+body,div,p,ol,ul,li,dl,dt,dd,span,img,h1,h2,h3,h4,h5,a,input,form{padding:0;margin:0;border:0;-webkit-tap-highlight-color: rgba(255, 255, 255, 0);outline: none;}
+input,textarea{outline:none;resize:none;border:0;-webkit-tap-highlight-color:rgba(255,0,0,0);}
+a{text-decoration:none;}
+ul{list-style:none;}
+img{display:block;}
+html,body{width:100%;height:100%;margin:0 auto;overflow:hidden;}
+body{-moz-user-select:none;font-size:0.24rem;background:#f5f5f5;font-family:Arial,"Lucida Grande","Microsoft Yahei","Hiragino Sans GB","Hiragino Sans GB W3","SimSun","STHeiti";overflow:hidden;}
+body *{-webkit-box-sizing:border-box;box-sizing:border-box;-webkit-overflow-scrolling: touch;}
+div::-webkit-scrollbar{ display: none;}
+div::-moz-scrollbar{width:0px;display:none;}
+div,ul{-webkit-overflow-scrolling:touch;}
+i,em{font-style:normal;}
+b,strong{font-weight:normal;}
+input,textarea{color:#434343; -webkit-appearance: none;}
+input::-webkit-input-placeholder, textarea::-webkit-input-placeholder {color: #b1b1b1;font-size:.28rem;font-family:Arial,"Lucida Grande","Microsoft Yahei","Hiragino Sans GB","Hiragino Sans GB W3","SimSun","STHeiti";}
+input:-moz-placeholder, textarea:-moz-placeholder {color: #b1b1b1;font-size:.28rem;font-family:Arial,"Lucida Grande","Microsoft Yahei","Hiragino Sans GB","Hiragino Sans GB W3","SimSun","STHeiti";}
+input::-moz-placeholder, textarea::-moz-placeholder {color: #b1b1b1;font-size:.28rem;font-family:Arial,"Lucida Grande","Microsoft Yahei","Hiragino Sans GB","Hiragino Sans GB W3","SimSun","STHeiti";}
+input:-ms-input-placeholder, textarea:-ms-input-placeholder {color: #b1b1b1;font-size:.28rem;font-family:Arial,"Lucida Grande","Microsoft Yahei","Hiragino Sans GB","Hiragino Sans GB W3","SimSun","STHeiti";}
+h2{font-size: .26rem;}
+samp{font-family:Arial,"Lucida Grande","Microsoft Yahei","Hiragino Sans GB","Hiragino Sans GB W3","SimSun","STHeiti";}
+.bgf{background-color:#fff;}
+.b{font-weight:bold;}
+.l{float:left;}
+.r{float:right;}
+.font14{font-size:0.14rem;}
+.font16{font-size:0.16rem;}
+.font18{font-size:0.18rem;}
+.font20{font-size:0.20rem;}
+.font21{font-size:0.21rem;}
+.font22{font-size:0.22rem;}
+.font24{font-size:0.24rem;}
+.font25{font-size:0.24rem;}
+.font28{font-size:0.28rem;}
+.font26{font-size:0.26rem;}
+.font27{font-size:0.27rem;}
+.font30{font-size:0.30rem;}
+.font32{font-size:0.32rem;}
+.font34{font-size:0.34rem;}
+.font36{font-size:0.36rem;}
+.font38{font-size:0.38rem;}
+.font40{font-size:0.40rem;}
+.font42{font-size:0.42rem;}
+.font54{font-size:0.42rem;}
+.font50{font-size:0.50rem;font-weight: bold;}
+.font46{font-size:0.46rem;}
+.font60{font-size:0.60rem;}
+.bold28{font-size:0.28rem;font-weight:bold;}
+.fcg00{color:#000;}
+.fcg22{color:#222;}
+.fcg30{color:#303030;}
+.fcga8{color:#a8a8a8;}
+.fcg60{color:#606060;}
+.fcg4d{color:#4d4d4d;}
+.fcg7c{color:#7c7c7c;}
+.fcgb2{color:#b2b2b2;}
+.fcgb1{color:#b1b1b1;}
+.fcf1{color:#f19c22;}
+.fce9{color:#e9333b;}
+.fcw{color:#fff;}
+.fcy{color:#e60118;}
+.fcb{color:#0098db;}
+.fce3{color:#e38b2e;}
+.fce6{color:#e68b30;}
+.fcec{color:#ec676d;}
+.fc00{color:#00ae66;}
+.fcf5{color:#f56666;}
+.fc7f{color:#7f5c20;}
+.fccb{color:#cbaf6f;}
+.fcff{color:#ffd300;}
+.fcgbe{color:#bebebe;}
+.fcgb6{color:#b62538;}
+.fcgd3{color:#d39499}
+.fcg48{color:#484848}
+.fcg43{color:#434343}
+.fcg95{color:#959595;}
+.fcgec{color:#ec6941;}
+.word_button:active{background-color:#f5f5f5 !important;}
+.word_button2:active{background-color:#ce0015 !important;}
+.centered{position:absolute;left:50%;top:50%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);}
+.centered_x{position:absolute;left:50%;-webkit-transform: translateX(-50%);transform: translateX(-50%);}
+.centered_y{position:absolute;top:50%;-webkit-transform: translateY(-50%);transform: translateY(-50%);}
+.coachdescription *{color:#fff !important;}
+#msg{width:160%;display:none;}
+#msg .word{background:rgba(0,0,0,.5);padding:0 .2rem;border-radius:.1rem;line-height:.5rem;bottom:1rem;text-align:center;color:#fff;}
+#education_list_dummy{opacity:0;position:absolute;top:0;z-index:-99;}
+#education_list2_dummy{opacity:0;position:absolute;top:0;z-index:-99;}
+#education_list3_dummy{opacity:0;position:absolute;top:0;z-index:-99;}
+#education_list4_dummy{opacity:0;position:absolute;top:0;z-index:-99;}
+#education_list5_dummy{opacity:0;position:absolute;top:0;z-index:-99;}
+#education_list6_dummy{opacity:0;position:absolute;top:0;-index:-99;}

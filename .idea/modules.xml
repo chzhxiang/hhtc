@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/hhtc.iml" filepath="$PROJECT_DIR$/hhtc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hhtc-comm/hhtc-comm.iml" filepath="$PROJECT_DIR$/hhtc-comm/hhtc-comm.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hhtc-mpp/hhtc-mpp.iml" filepath="$PROJECT_DIR$/hhtc-mpp/hhtc-mpp.iml" />
+    </modules>
+  </component>
+</project>
