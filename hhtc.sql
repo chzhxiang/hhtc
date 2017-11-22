@@ -583,3 +583,7 @@ INSERT INTO t_mpp_reply_info(uid, category, type, keyword, content) VALUES(2, 2,
 INSERT INTO t_mpp_user_info(id, pid, username, password, type, mptype, bind_status) VALUES(1, 0, 'admin', 'admin', 0, 0, 0);
 INSERT INTO t_mpp_user_info(id, pid, username, password, type, uuid, mptype, bind_status) VALUES(2, 1, 'hhyy', '5cd57d747b5b7632efa82e67ea3c4e43', 1, REPLACE(UUID(),'-',''), 1, 0);
 
+
+
+
+

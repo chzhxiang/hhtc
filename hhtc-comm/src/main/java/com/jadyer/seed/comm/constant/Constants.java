@@ -11,4 +11,7 @@ public interface Constants {
 
     String SECURITY_SUSPEND_MSG  = "http://jadyer.cn/x";
     String SECURITY_SHUTDOWN_MSG = "http://jadyer.cn/MMd0";
+
+    boolean ISSMS = false;
+
 }

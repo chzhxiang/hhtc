@@ -1,6 +1,7 @@
 package com.jadyer.seed.mpp.web.service;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.jpa.Condition;
 import com.jadyer.seed.comm.util.JadyerUtil;
@@ -358,7 +359,7 @@ public class FansService {
             fansInfo.setCarParkAuditRemark(auditRemark);
         }
         if(status == 2){
-            if(type == 1){
+            if(type == 1 && Constants.ISSMS){
                 //模版CODE: SMS_86570144（車主）
                 //模版内容: 尊敬的手机尾号为${phone}的用户：您好！感谢您注册吼吼停车，您提交的车主资料已通过物业审核。请登录吼吼停车微信公众号开始抢车位吧！
                 Map<String, String> paramMap = new HashMap<>();
@@ -442,6 +443,7 @@ public class FansService {
                     }
                 }
             }
+            if (Constants.ISSMS) {
             /*
             {{first.DATA}}
             审核姓名：{{keyword1.DATA}}
@@ -453,17 +455,18 @@ public class FansService {
             拒绝原因：身份证照片模糊不清
             请填写正确的有效信息，重新申请。如有问题请点击查看司导填写教程
             */
-            WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
-            dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的" + (type==1?"车主":"车位主") + "，您的注册未审核通过！"));
-            dataItem.put("keyword1", new WeixinTemplateMsg.DItem(fansInfo.getPhoneNo().substring(0, 3) + "***" + fansInfo.getPhoneNo().substring(8)));
-            dataItem.put("keyword2", new WeixinTemplateMsg.DItem(auditRemark));
-            dataItem.put("remark", new WeixinTemplateMsg.DItem("请填写正确的有效信息，重新申请，谢谢！"));
-            WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
-            templateMsg.setTemplate_id("337mC1vqm0l4bxf8WdEKfiNYO9BOjKCWlJus7hw2bPI");
-            templateMsg.setUrl(this.hhtcContextPath + this.templateUrlRegAuditNotpass.replace("{userType}", type+""));
-            templateMsg.setTouser(fansInfo.getOpenid());
-            templateMsg.setData(dataItem);
-            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(appid), templateMsg);
+                WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
+                dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的" + (type == 1 ? "车主" : "车位主") + "，您的注册未审核通过！"));
+                dataItem.put("keyword1", new WeixinTemplateMsg.DItem(fansInfo.getPhoneNo().substring(0, 3) + "***" + fansInfo.getPhoneNo().substring(8)));
+                dataItem.put("keyword2", new WeixinTemplateMsg.DItem(auditRemark));
+                dataItem.put("remark", new WeixinTemplateMsg.DItem("请填写正确的有效信息，重新申请，谢谢！"));
+                WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
+                templateMsg.setTemplate_id("337mC1vqm0l4bxf8WdEKfiNYO9BOjKCWlJus7hw2bPI");
+                templateMsg.setUrl(this.hhtcContextPath + this.templateUrlRegAuditNotpass.replace("{userType}", type + ""));
+                templateMsg.setTouser(fansInfo.getOpenid());
+                templateMsg.setData(dataItem);
+                WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(appid), templateMsg);
+            }
         }
         fansInfoRepository.saveAndFlush(fansInfo);
     }

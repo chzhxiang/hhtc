@@ -1,6 +1,7 @@
 package com.jadyer.seed.mpp.web.service;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.jpa.Condition;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
@@ -158,7 +159,8 @@ public class GoodsService {
         goodsInfo.setCarAuditTime(new Date());
         goodsInfo.setCarAuditUid(userInfo.getId());
         goodsInfo = goodsRepository.saveAndFlush(goodsInfo);
-        if(goodsInfo.getCarAuditStatus() == 2){
+
+        if(goodsInfo.getCarAuditStatus() == 2 && Constants.ISSMS){
             /*
             {{first.DATA}}
             手机号：{{keyword1.DATA}}
@@ -184,7 +186,7 @@ public class GoodsService {
             templateMsg.setData(dataItem);
             WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(goodsInfo.getAppid()), templateMsg);
         }
-        if(goodsInfo.getCarAuditStatus() == 3){
+        if(goodsInfo.getCarAuditStatus() == 3 && Constants.ISSMS){
             /*
             {{first.DATA}}
             审核姓名：{{keyword1.DATA}}

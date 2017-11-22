@@ -39,6 +39,25 @@ public class WxFansController {
     }
 
 
+    /*
+    * 用户授权查询 查询该用户是否授权
+    * */
+    @PostMapping("/accredit/get")
+    public CommonResult IsAccredit(HttpSession session){
+        int ResultCode = 0;
+
+        return new CommonResult(ResultCode);
+    }
+
+    /**
+     * 用户同意授权
+     * */
+    @PostMapping("/accredit/allow")
+    public CommonResult UserAccredit(HttpSession session){
+        //TODO 功能实现  现在没有实现
+        return new CommonResult(fansService.getByOpenid(hhtcHelper.getWxOpenidFromSession(session)));
+    }
+
     /**
      * 车主注册
      */
