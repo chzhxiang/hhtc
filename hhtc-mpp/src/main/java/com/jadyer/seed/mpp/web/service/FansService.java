@@ -123,6 +123,29 @@ public class FansService {
 
 
     /**
+     * TOKGO电话号码验证
+     * */
+    @Transactional(rollbackFor=Exception.class)
+    public char PhoneNOCheck(String phoneNO ,String verifyCod, String openid){
+        //检查是否用户授权
+        if(GetInforState(2, openid)< '1')
+            throw  new HHTCException(CodeEnum.HHTC_INFOR_ACCREDIT);
+        MppFansInfo fansInfo = this.verifyBeforeReg(phoneNO, verifyCod, 2, openid);
+        fansInfo.setPhoneNo(phoneNO);
+     //   fansInfo.setCarParkCommunityId(carParkCommunityId);
+      //  fansInfo.setCarParkCommunityName(communityInfo.getName());
+        fansInfo.setCarParkStatus(1);
+        fansInfo.setCarParkAuditStatus(1);
+        fansInfo.setCarParkRegTime(new Date());
+        fansInfo = fansInfoRepository.saveAndFlush(fansInfo);
+
+
+     //       return new CommonResult(CodeEnum.HHTC_INFOR_ACCREDIT);
+        return 0;
+    }
+
+
+    /**
      * 分页查询待审核的粉丝信息（车主或车位主）
      * @param type：1--车主，2--车位主
      */

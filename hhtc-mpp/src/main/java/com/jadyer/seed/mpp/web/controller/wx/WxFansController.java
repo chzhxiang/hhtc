@@ -11,7 +11,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
-
+/**
+ * 微信中 个人信息的相关操作
+ *
+ * */
 @RestController
 @RequestMapping(value="/wx/fans")
 public class WxFansController {
@@ -41,25 +44,39 @@ public class WxFansController {
 
 
     /*
-    * 用户授权查询 查询该用户是否授权
+    * TOKGO用户授权查询 查询该用户是否授权
     * */
     @PostMapping("/accredit/get")
     public CommonResult GetAccredit(HttpSession session){
-        int ResultCode = 0;
+        char ResultCode = 0;
         ResultCode = fansService.GetInforState(2, hhtcHelper.getWxOpenidFromSession(session));
         return new CommonResult(ResultCode);
     }
 
     /**
-     * 用户同意授权
+     * TOKGO用户同意授权
      * */
     @PostMapping("/accredit/allow")
     public CommonResult UserAccredit(HttpSession session){
         if (fansService.unInforSate('1',2, hhtcHelper.getWxOpenidFromSession(session))){
             return GetAccredit(session);
         }
-        return new CommonResult(CodeEnum.SYSTEM_ERROR,"授权失败");
+        return new CommonResult(CodeEnum.SYSTEM_ERROR);
     }
+
+    /**
+     * TOKGO用户电话录入
+     * */
+    @PostMapping("/phoneNO")
+    public CommonResult SetUserPhoneNO(String phoneNO ,String verifyCod, HttpSession session){
+        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        //return new CommonResult(fansService.PhoneNOCheck(phoneNO,verifyCod,openid));
+        return new CommonResult(fansService.PhoneNOCheck(phoneNO,verifyCod,"ojZ6h1dw3Pd6gEosXuZx7A1QeUsY"));
+    }
+
+
+
+
 
     /**
      * 车主注册

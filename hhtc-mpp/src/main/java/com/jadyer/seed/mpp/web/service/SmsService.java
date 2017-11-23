@@ -49,7 +49,7 @@ public class SmsService {
 
     /**
      * 短信验证
-     * @param type 短信类型：1—车主注册，2—车位主注册，3—车主提现，4—车位主提现
+     * @param type 短信类型：1—电话号码验证，2—车位主注册，3—车主提现，4—车位主提现
      */
     @Transactional(rollbackFor=Exception.class)
     public boolean smsVerify(String phoneNo, String verifyCode, int type){

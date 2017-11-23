@@ -566,7 +566,7 @@ CREATE TABLE t_sms_info(
 id          INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
 phone_no    CHAR(11)   NOT NULL COMMENT '手机号',
 verify_code VARCHAR(8) NOT NULL COMMENT '验证码',
-type        TINYINT(1) NOT NULL COMMENT '短信类型：0--通用，1--车主注册，2--车位主注册，3--车主提现，4--车位主提现',
+type        TINYINT(1) NOT NULL COMMENT '短信类型：0--通用，1--电话号码验证，2--车位主注册，3--车主提现，4--车位主提现',
 is_used     TINYINT(1) NOT NULL COMMENT '是否使用：0--未使用，1--已使用',
 used_result TINYINT(1) COMMENT '使用结果：0--未验证通过，1--已验证通过',
 used_time   DATETIME   COMMENT '使用时间',
