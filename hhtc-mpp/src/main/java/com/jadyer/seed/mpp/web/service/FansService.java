@@ -10,17 +10,8 @@ import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
 import com.jadyer.seed.mpp.sdk.weixin.model.WeixinFansInfo;
 import com.jadyer.seed.mpp.sdk.weixin.model.template.WeixinTemplateMsg;
 import com.jadyer.seed.mpp.web.HHTCHelper;
-import com.jadyer.seed.mpp.web.model.AdviceInfo;
-import com.jadyer.seed.mpp.web.model.CommunityInfo;
-import com.jadyer.seed.mpp.web.model.GoodsInfo;
-import com.jadyer.seed.mpp.web.model.MppFansInfo;
-import com.jadyer.seed.mpp.web.model.MppUserInfo;
-import com.jadyer.seed.mpp.web.repository.AdviceRepository;
-import com.jadyer.seed.mpp.web.repository.FansInfoRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsPublishOrderRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsPublishRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsRepository;
-import com.jadyer.seed.mpp.web.repository.MppUserInfoRepository;
+import com.jadyer.seed.mpp.web.model.*;
+import com.jadyer.seed.mpp.web.repository.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -72,6 +63,9 @@ public class FansService {
     private GoodsPublishOrderRepository goodsPublishOrderRepository;
     @Resource
     private MppUserInfoRepository mppUserInfoRepository;
+    @Resource
+    private AuditService auditService;
+
 
     /**
      * 查询平台某用户的所有粉丝信息
@@ -83,7 +77,7 @@ public class FansService {
     /**
      * 查询粉丝的信息状态
      * */
-    public char GetInforState(long uid, String openid){
+    public String GetInforState(long uid, String openid){
         return fansInfoRepository.findByUidAndOpenid(uid,openid).getInfor_state();
     }
 
@@ -96,11 +90,20 @@ public class FansService {
     }
 
     /**
-     * 更新粉丝的信息状态
+     * TOKGO 更新粉丝的信息状态
+     * @param NO 0--是否授权，1--是否验证电话，2--是否验证住址，3--是否验证车位 4--是否验证车牌
+     * @param Sate '0' 未做 '1 '完成  '2' 审核中
      */
     @Transactional(rollbackFor=Exception.class)
-    public boolean unInforSate(char _inforSate,long uid, String openid){
-        return 1 == fansInfoRepository.updateInforSate(_inforSate, uid, openid);
+    public boolean UpdatedataInforSate(int NO,char Sate,long uid, String openid){
+        MppFansInfo mppFansInfo= fansInfoRepository.findByUidAndOpenid(uid, openid);
+        if (mppFansInfo==null)
+            return false;
+        StringBuilder sb = new StringBuilder(mppFansInfo.getInfor_state());
+        sb.setCharAt(NO,Sate);
+        mppFansInfo.setInfor_state(sb.toString());
+        fansInfoRepository.saveAndFlush(mppFansInfo);
+        return true;
     }
 
 
@@ -126,23 +129,98 @@ public class FansService {
      * TOKGO电话号码验证
      * */
     @Transactional(rollbackFor=Exception.class)
-    public char PhoneNOCheck(String phoneNO ,String verifyCod, String openid){
+    public String PhoneNOCheck(String phoneNO ,String verifyCode, String openid){
         //检查是否用户授权
-        if(GetInforState(2, openid)< '1')
+        if(GetInforState(2, openid).charAt(0) == '0')
             throw  new HHTCException(CodeEnum.HHTC_INFOR_ACCREDIT);
-        MppFansInfo fansInfo = this.verifyBeforeReg(phoneNO, verifyCod, 2, openid);
+        //短信验证
+        if(!smsService.smsVerify(phoneNO, verifyCode, 1))
+            throw new HHTCException(CodeEnum.HHTC_SMS_VERIFY_FAIL);
+        //验证成功 进行电话写入，并修改状态
+        MppFansInfo fansInfo = fansInfoRepository.findByOpenid(openid);
         fansInfo.setPhoneNo(phoneNO);
-     //   fansInfo.setCarParkCommunityId(carParkCommunityId);
-      //  fansInfo.setCarParkCommunityName(communityInfo.getName());
-        fansInfo.setCarParkStatus(1);
-        fansInfo.setCarParkAuditStatus(1);
-        fansInfo.setCarParkRegTime(new Date());
+        StringBuilder sb = new StringBuilder(fansInfo.getInfor_state());
+        sb.setCharAt(1,'1');
+        fansInfo.setInfor_state(sb.toString());
         fansInfo = fansInfoRepository.saveAndFlush(fansInfo);
-
-
-     //       return new CommonResult(CodeEnum.HHTC_INFOR_ACCREDIT);
-        return 0;
+        //TODO  是否删除历史验证码
+        //返回当前状态码
+        return fansInfo.getInfor_state();
     }
+
+    /**
+     * TOKGO地址号审核
+     * */
+    @Transactional(rollbackFor=Exception.class)
+    public String CommunityCheck(String FansCommunity ,String houseNumber, String openid){
+        MppFansInfo mppFansInfo=fansInfoRepository.findByOpenid(openid);
+        //检查是否用户验证电话
+        if(GetInforState(mppFansInfo.getUid(), openid).charAt(1) == '0')
+            throw  new HHTCException(CodeEnum.HHTC_INFOR_PHOMENO);
+        //检测用户是否已经提交房屋验证
+        List<FansInforAudit> fansInforAudits = auditService.GetAudit(mppFansInfo.getUid(),openid,1);
+        if (fansInforAudits.size() > 0){
+            for (FansInforAudit fansInforAudit :fansInforAudits)
+                if (fansInforAudit.getState()==0)
+                    throw  new HHTCException(CodeEnum.HHTC_INFOR_COMMUNITY);
+        }
+        //重组信息
+        String infor = FansCommunity+":"+houseNumber;
+        //写入审核
+        auditService.AddAudit(mppFansInfo.getUid(),openid,1,infor);
+        UpdatedataInforSate(2,'2',mppFansInfo.getUid(),openid);
+        //返回当前状态码
+        return  fansInfoRepository.findByOpenid(openid).getInfor_state();
+    }
+
+    /**
+     * TOKGO车牌号验证
+     * *//*
+    @Transactional(rollbackFor=Exception.class)
+    public String PhoneNOCheck(String phoneNO ,String verifyCode, String openid){
+        //检查是否用户授权
+        if(GetInforState(2, openid).charAt(0) == '0')
+            throw  new HHTCException(CodeEnum.HHTC_INFOR_ACCREDIT);
+        //短信验证
+        if(!smsService.smsVerify(phoneNO, verifyCode, 1))
+            throw new HHTCException(CodeEnum.HHTC_SMS_VERIFY_FAIL);
+        //验证成功 进行电话写入，并修改状态
+        MppFansInfo fansInfo = fansInfoRepository.findByOpenid(openid);
+        fansInfo.setPhoneNo(phoneNO);
+        StringBuilder sb = new StringBuilder(fansInfo.getInfor_state());
+        sb.setCharAt(1,'1');
+        fansInfo.setInfor_state(sb.toString());
+        fansInfo = fansInfoRepository.saveAndFlush(fansInfo);
+        //TODO  是否删除历史验证码
+        //返回当前状态码
+        return fansInfo.getInfor_state();
+    }*/
+
+    /**
+     * TOKGO车位验证
+     * *//*
+    @Transactional(rollbackFor=Exception.class)
+    public String PhoneNOCheck(String phoneNO ,String verifyCode, String openid){
+        //检查是否用户授权
+        if(GetInforState(2, openid).charAt(0) == '0')
+            throw  new HHTCException(CodeEnum.HHTC_INFOR_ACCREDIT);
+        //短信验证
+        if(!smsService.smsVerify(phoneNO, verifyCode, 1))
+            throw new HHTCException(CodeEnum.HHTC_SMS_VERIFY_FAIL);
+        //验证成功 进行电话写入，并修改状态
+        MppFansInfo fansInfo = fansInfoRepository.findByOpenid(openid);
+        fansInfo.setPhoneNo(phoneNO);
+        StringBuilder sb = new StringBuilder(fansInfo.getInfor_state());
+        sb.setCharAt(1,'1');
+        fansInfo.setInfor_state(sb.toString());
+        fansInfo = fansInfoRepository.saveAndFlush(fansInfo);
+        //TODO  是否删除历史验证码
+        //返回当前状态码
+        return fansInfo.getInfor_state();
+    }
+
+*/
+
 
 
     /**

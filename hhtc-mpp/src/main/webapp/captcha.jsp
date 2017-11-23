@@ -5,6 +5,8 @@
 <%@ page import="java.awt.Graphics"%>
 <%@ page import="java.awt.Font"%>
 <%@ page import="javax.imageio.ImageIO"%>
+<%@ page import="com.sun.image.codec.jpeg.JPEGImageEncoder" %>
+<%@ page import="com.sun.image.codec.jpeg.JPEGCodec" %>
 
 <%!
 int captchaType = 1;
@@ -101,7 +103,9 @@ if(this.captchaType == 1){
 session.setAttribute("rand", sRand);
 
 g.dispose();
-ImageIO.write(image, "PNG", response.getOutputStream());
+JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(response.getOutputStream());
+encoder.encode(image);
+
 
 out.clear();
 out = pageContext.pushBody();

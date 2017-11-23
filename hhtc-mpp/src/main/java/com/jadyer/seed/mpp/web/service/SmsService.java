@@ -56,10 +56,10 @@ public class SmsService {
         Date currentDate = new Date();
         List<SmsInfo> smsInfoList = smsRepository.findByPhoneNoAndVerifyCodeOrderByIdDesc(phoneNo, verifyCode);
         for(SmsInfo obj : smsInfoList){
-            if(obj.getType()==type && obj.getTimeExpire().getTime()>=currentDate.getTime()){
+            if(obj.getType()==type ){
                 obj.setIsUsed(1);
                 obj.setUsedResult(1);
-                obj.setUsedTime(currentDate);
+               // obj.setUsedTime(currentDate);
                 smsRepository.saveAndFlush(obj);
                 return true;
             }

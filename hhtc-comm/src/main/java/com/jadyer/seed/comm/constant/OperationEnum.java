@@ -1,7 +1,7 @@
 package com.jadyer.seed.comm.constant;
 
-public enum CodeEnum {
-    SUCCESS               (0,    "成功"),
+public enum OperationEnum {
+    FANS_INFOR               (1,    "粉丝个人信息"),
     SYSTEM_OK             (1000, "保留码"),
     SYSTEM_BUSY           (1001, "系统繁忙"),
     SYSTEM_ERROR          (1002, "系统错误"),
@@ -11,8 +11,6 @@ public enum CodeEnum {
     DB_UPDATA               (2001,"更新数据错误"),
 
     HHTC_INFOR_ACCREDIT    (3100, "用户未授权"),
-    HHTC_INFOR_PHOMENO     (3101, "用户电话号码未验证"),
-    HHTC_INFOR_COMMUNITY   (3102, "用户住房信息审核,重复提交"),
 
     HHTC_SMS_VERIFY_FAIL  (3100, "短信验证未通过"),
     HHTC_SMS_SEND_FAIL_1  (3110, "短信发送失败：每分钟只能发送一条"),
@@ -35,7 +33,7 @@ public enum CodeEnum {
     private final int code;
     private final String msg;
 
-    CodeEnum(int _code, String _msg){
+    OperationEnum(int _code, String _msg){
         this.code = _code;
         this.msg = _msg;
     }
@@ -49,11 +47,13 @@ public enum CodeEnum {
     }
 
     public static String getMsgByCode(int code){
-        for(CodeEnum _enum : values()){
+        for(OperationEnum _enum : values()){
             if(_enum.getCode() == code){
                 return _enum.getMsg();
             }
         }
         return null;
     }
+
+
 }

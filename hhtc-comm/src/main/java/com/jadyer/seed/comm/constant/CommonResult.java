@@ -7,6 +7,11 @@ public class CommonResult {
 
     public CommonResult() {}
 
+    public CommonResult(OperationEnum operationEnum,Object data) {
+        this(CodeEnum.SUCCESS, new CommonResult(operationEnum.getCode()
+                ,operationEnum.getMsg(),data));
+    }
+
     public CommonResult(Object data) {
         this(CodeEnum.SUCCESS, data);
     }

@@ -203,7 +203,7 @@ public class HHTCHelper {
 
     public String getWxOpenidFromSession(HttpSession session){
         String openid = (String)session.getAttribute(Constants.WEB_SESSION_WX_OPENID);
-        LogUtil.getLogger().info("Session中获取到openid=[{}]", openid);
+        LogUtil.getLogger().info("Session get openid=[{}]", openid);
         if(StringUtils.isBlank(openid)){
             throw new HHTCException(CodeEnum.HHTC_UNLOGIN);
         }

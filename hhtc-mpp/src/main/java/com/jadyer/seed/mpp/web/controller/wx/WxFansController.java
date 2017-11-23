@@ -1,6 +1,7 @@
 package com.jadyer.seed.mpp.web.controller.wx;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
+import com.jadyer.seed.comm.constant.OperationEnum;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.comm.constant.CommonResult;
 import com.jadyer.seed.mpp.web.service.FansService;
@@ -23,12 +24,16 @@ public class WxFansController {
     @Resource
     private FansService fansService;
 
+    //TODO
+    String openid = "ojZ6h1YnB_USXHRGvIaUJ4remhHQ";
     /**
      * 查询粉丝信息
      */
     @GetMapping("/get")
     public CommonResult get(HttpSession session){
-        return new CommonResult(fansService.getByOpenid(hhtcHelper.getWxOpenidFromSession(session)));
+        //TODO
+        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(fansService.getByOpenid(openid));
     }
 
 
@@ -46,11 +51,11 @@ public class WxFansController {
     /*
     * TOKGO用户授权查询 查询该用户是否授权
     * */
-    @PostMapping("/accredit/get")
+    @GetMapping("/accredit/get")
     public CommonResult GetAccredit(HttpSession session){
-        char ResultCode = 0;
-        ResultCode = fansService.GetInforState(2, hhtcHelper.getWxOpenidFromSession(session));
-        return new CommonResult(ResultCode);
+        //TODO
+        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(OperationEnum.FANS_INFOR,fansService.GetInforState(2, openid));
     }
 
     /**
@@ -58,31 +63,39 @@ public class WxFansController {
      * */
     @PostMapping("/accredit/allow")
     public CommonResult UserAccredit(HttpSession session){
-        if (fansService.unInforSate('1',2, hhtcHelper.getWxOpenidFromSession(session))){
+        //TODO
+        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if (fansService.UpdatedataInforSate(0,'1',2,openid)){
             return GetAccredit(session);
         }
-        return new CommonResult(CodeEnum.SYSTEM_ERROR);
+        return new CommonResult(OperationEnum.FANS_INFOR,CodeEnum.SYSTEM_ERROR);
     }
 
     /**
-     * TOKGO用户电话录入
+     * TOKGO用户电话绑定
      * */
     @PostMapping("/phoneNO")
-    public CommonResult SetUserPhoneNO(String phoneNO ,String verifyCod, HttpSession session){
+    public CommonResult BindUserPhoneNO(String phoneNO ,String verifyCod, HttpSession session){
+        //TODO
         //String openid = hhtcHelper.getWxOpenidFromSession(session);
-        //return new CommonResult(fansService.PhoneNOCheck(phoneNO,verifyCod,openid));
-        return new CommonResult(fansService.PhoneNOCheck(phoneNO,verifyCod,"ojZ6h1dw3Pd6gEosXuZx7A1QeUsY"));
+        return new CommonResult(OperationEnum.FANS_INFOR, fansService.PhoneNOCheck(phoneNO,verifyCod,openid));
     }
 
-
-
-
+    /**
+     * TOKGO 地址绑定
+     * */
+    @PostMapping("/Community")
+    public CommonResult BindUserCommunity(String FansCommunity ,String houseNumber, HttpSession session){
+        //TODO
+        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(OperationEnum.FANS_INFOR, fansService.CommunityCheck(FansCommunity,houseNumber,openid));
+    }
 
     /**
-     * 车主注册
+     * 车牌号注册
      */
     @PostMapping("/reg/carOwner")
-    public CommonResult regCarOwner(String phoneNo, String verifyCode, long carOwnerCommunityId, String carNumber, String houseNumber, HttpSession session){
+    public CommonResult regCar(String phoneNo, String verifyCode, long carOwnerCommunityId, String carNumber, String houseNumber, HttpSession session){
         String openid = hhtcHelper.getWxOpenidFromSession(session);
         //把所有的小写字母转化为大写字母
         carNumber = carNumber.toUpperCase();

@@ -23,14 +23,6 @@ public interface FansInfoRepository extends BaseRepository<MppFansInfo, Long> {
      */
     MppFansInfo findByUidAndOpenid(long uid, String openid);
 
-    /**
-     * 更新粉丝的信息完成度状态
-     */
-    @Modifying
-    @Transactional(timeout=10)
-    @Query("UPDATE MppFansInfo SET infor_state=?1 WHERE uid=?2 AND openid=?3")
-    int updateInforSate(char infor_state, long uid, String openid);
-
 
     /**
      * 更新粉丝的关注状态

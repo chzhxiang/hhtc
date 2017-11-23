@@ -71,7 +71,7 @@ public final class WeixinHelper {
     static String getWeixinJSApiTicket(String accesstoken) throws IllegalAccessException {
         String reqURL = WeixinConstants.URL_WEIXIN_GET_JSAPI_TICKET.replace(WeixinConstants.URL_PLACEHOLDER_ACCESSTOKEN, accesstoken);
         String respData = HttpUtil.post(reqURL, null, null);
-        LogUtil.getLogger().info("获取微信jsapi_ticket,微信应答报文为-->{}", respData);
+        LogUtil.getLogger().info("get weixin jsapi_ticket,weixin response -->{}", respData);
         Map<String, String> map = JSON.parseObject(respData, new TypeReference<Map<String, String>>(){});
         if("0".equals(map.get("errcode"))){
             return map.get("ticket");
@@ -88,7 +88,7 @@ public final class WeixinHelper {
                                                                       .replace(WeixinConstants.URL_PLACEHOLDER_APPSECRET, appsecret)
                                                                       .replace(WeixinConstants.URL_PLACEHOLDER_CODE, code);
         String respData = HttpUtil.post(reqURL, null, null);
-        LogUtil.getLogger().info("获取微信网页access_token，微信应答报文为-->{}", respData);
+        LogUtil.getLogger().info("get weixin page access_token，weixin response -->{}", respData);
         WeixinOAuthAccessToken weixinOauthAccessToken = JSON.parseObject(respData, WeixinOAuthAccessToken.class);
         if(weixinOauthAccessToken.getErrcode() != 0){
             String errmsg = WeixinCodeEnum.getMessageByCode(weixinOauthAccessToken.getErrcode());
@@ -113,9 +113,9 @@ public final class WeixinHelper {
     public static WeixinErrorInfo createWeixinMenu(String accesstoken, WeixinMenu menu){
         String reqURL = WeixinConstants.URL_WEIXIN_GET_CREATE_MENU.replace(WeixinConstants.URL_PLACEHOLDER_ACCESSTOKEN, accesstoken);
         String reqData = JSON.toJSONString(menu);
-        LogUtil.getLogger().info("自定义菜单创建-->待发送的JSON为{}", reqData);
+        LogUtil.getLogger().info("Custom menu creation-->The JSON to be sent is{}", reqData);
         String respData = HttpUtil.post(reqURL, reqData, null);
-        LogUtil.getLogger().info("自定义菜单创建-->微信应答JSON为{}", respData);
+        LogUtil.getLogger().info("Custom menu creation-->The JSON to be sent is{}", respData);
         WeixinErrorInfo errinfo = JSON.parseObject(respData, WeixinErrorInfo.class);
         if(errinfo.getErrcode() != 0){
             String errmsg = WeixinCodeEnum.getMessageByCode(errinfo.getErrcode());
@@ -128,9 +128,9 @@ public final class WeixinHelper {
 
     public static WeixinErrorInfo createWeixinMenu(String accesstoken, String menuJson){
         String reqURL = WeixinConstants.URL_WEIXIN_GET_CREATE_MENU.replace(WeixinConstants.URL_PLACEHOLDER_ACCESSTOKEN, accesstoken);
-        LogUtil.getLogger().info("自定义菜单创建-->待发送的JSON为{}", menuJson);
+        LogUtil.getLogger().info("Custom menu creation-->待发送的JSON为{}", menuJson);
         String respData = HttpUtil.post(reqURL, menuJson, null);
-        LogUtil.getLogger().info("自定义菜单创建-->微信应答JSON为{}", respData);
+        LogUtil.getLogger().info("Custom menu creation-->微信应答JSON为{}", respData);
         WeixinErrorInfo errinfo = JSON.parseObject(respData, WeixinErrorInfo.class);
         if(errinfo.getErrcode() != 0){
             String errmsg = WeixinCodeEnum.getMessageByCode(errinfo.getErrcode());

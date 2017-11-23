@@ -16,7 +16,7 @@ import java.util.Date;
 public class MppFansInfo extends BaseEntity<Long> {
     private static final long serialVersionUID = 7585092842503110991L;
     private long uid;
-    private char infor_state;
+    private String infor_state;
     private String openid;
     private String name;
     @Column(name="id_card")
@@ -80,11 +80,11 @@ public class MppFansInfo extends BaseEntity<Long> {
         this.uid = uid;
     }
 
-    public char getInfor_state() {
+    public String getInfor_state() {
         return infor_state;
     }
 
-    public void setInfor_state(char infor_state) {
+    public void setInfor_state(String infor_state) {
         this.infor_state = infor_state;
     }
 

@@ -1,13 +1,14 @@
-<?xml version="1.0" encoding="UTF-8" ?>  
+<?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
     <property name="PROJECT_NAME" value="hhtc"/>
-    <property name="LOG_HOME" value="${LOG_PATH}"/>
+    <property name="LOG_HOME"  value="${log.dir:-logs}/${APP_NAME}"/>
     <contextName>${PROJECT_NAME}</contextName>
 
     <appender name="DEFAULT_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/${PROJECT_NAME}.log</file>
         <encoder>
             <pattern>[%d{yyMMddHHmmssSSS}][%t][%C{0}.%M]%m%n</pattern>
+            <charset>UTF-8</charset>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_HOME}/archive/${PROJECT_NAME}.log.%d{yyyyMMdd}</fileNamePattern>

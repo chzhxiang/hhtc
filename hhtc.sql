@@ -43,7 +43,7 @@ DROP TABLE IF EXISTS t_mpp_fans_info;
 CREATE TABLE t_mpp_fans_info(
 id                       INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
 uid                      INT          NOT NULL COMMENT '平台用户ID，对应t_mpp_user_info#id',
-infor_state              CHAR(1)  COMMENT '用户信息状态:0--未授权，1--未验证电话，2--未验证住址，3--未验证车位或车牌，4基本信息补充完成',
+infor_state             VARCHAR(5)     COMMENT '用户信息状态(每位的数字含义 0 未做 1 完成  2审核中):0--是否授权，1--是否验证电话，2--是否验证住址，3--是否验证车位 4--是否验证车牌',
 openid                   VARCHAR(64)  NOT NULL COMMENT '粉丝的openid',
 name                     VARCHAR(16)  COMMENT '粉丝的真实姓名',
 id_card                  VARCHAR(18)  COMMENT '粉丝的身份证号',
@@ -84,6 +84,27 @@ update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMES
 UNIQUE INDEX unique_index_phoneNo(phone_no),
 UNIQUE INDEX unique_index_uid_openid(uid, openid)
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='粉丝表';
+
+---TOKGO
+DROP TABLE IF EXISTS t_fans_infor_audit;
+CREATE TABLE t_fans_infor_audit(
+id                       INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+uid                      INT            NOT NULL   COMMENT '平台用户ID，对应t_mpp_user_info#id',
+state                    INT            NOT NULL   COMMENT '状态:0--未审核，1--审核通过，2--审核拒绝，3--取消审核 ',
+openid                   VARCHAR(64)   NOT NULL   COMMENT '粉丝的openid，对应t_mpp_fans_info#openid',
+type                     INT            NOT NULL   COMMENT '类型：1--住房地址，2--车位，3--车牌',
+content                  VARCHAR(999)  NOT NULL   COMMENT '申请内容',
+imgurl1                  VARCHAR(512)              COMMENT '申请附带图片资源1',
+imgurl2                  VARCHAR(512)              COMMENT '申请附带图片资源2',
+audit_reason            VARCHAR(999)              COMMENT '审核结果内容',
+audit_uid               INT                       COMMENT '审核人的uid，对应t_mpp_user_info#id',
+create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
+)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='审核表';
+
+
+
+
 
 
 DROP TABLE IF EXISTS t_mpp_user_info;
