@@ -13,7 +13,7 @@ import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.model.GoodsInfo;
 import com.jadyer.seed.mpp.web.model.GoodsPublishInfo;
 import com.jadyer.seed.mpp.web.model.GoodsPublishOrder;
-import com.jadyer.seed.mpp.web.model.MppFansInfo;
+import com.jadyer.seed.mpp.web.model.MppFansInfor;
 import com.jadyer.seed.mpp.web.model.OrderInfo;
 import com.jadyer.seed.mpp.web.model.UserFunds;
 import com.jadyer.seed.mpp.web.model.UserFundsFlow;
@@ -93,10 +93,11 @@ public class GoodsPublishService {
     public GoodsInfo verifyBeforeAdd(String openid, long goodsId, int publishType, int publishFromTime, int publishEndTime, String publishFromDates){
         List<String> dateList = Arrays.asList(publishFromDates.split("-"));
         hhtcHelper.verifyOfTime(publishType, publishFromTime, publishEndTime, Integer.parseInt(dateList.get(0)), Integer.parseInt(dateList.get(dateList.size()-1)));
-        //校验是否注册车位主
-        if(2 != fansService.getByOpenid(openid).getCarParkStatus()){
-            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_PARK);
-        }
+        //TODO
+        //        //校验是否注册车位主
+//        if(2 != fansService.getByOpenid(openid).getCarParkStatus()){
+//            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_PARK);
+//        }
         GoodsInfo goodsInfo = goodsService.get(goodsId);
         if(goodsInfo.getIsUsed() == 3){
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "车位无效（已删除）");
@@ -356,7 +357,7 @@ public class GoodsPublishService {
      * 预约下单
      */
     @Transactional(rollbackFor=Exception.class)
-    public Object order(String appid, String openid, String carNumber, BigDecimal price, String ids, String publishFromDates, List<GoodsPublishOrder> orderList, MppFansInfo fansInfo){
+    public Object order(String appid, String openid, String carNumber, BigDecimal price, String ids, String publishFromDates, List<GoodsPublishOrder> orderList, MppFansInfor fansInfo){
         //锁定发布信息
         goodsPublishOrderService.lock(orderList);
         //下单

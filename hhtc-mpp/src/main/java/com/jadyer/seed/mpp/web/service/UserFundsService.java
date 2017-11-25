@@ -7,7 +7,7 @@ import com.jadyer.seed.comm.util.MoneyUtil;
 import com.jadyer.seed.mpp.sdk.weixin.model.pay.WeixinPayUnifiedorderRespData;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.model.CommunityInfo;
-import com.jadyer.seed.mpp.web.model.MppFansInfo;
+import com.jadyer.seed.mpp.web.model.MppFansInfor;
 import com.jadyer.seed.mpp.web.model.MppUserInfo;
 import com.jadyer.seed.mpp.web.model.OrderInfo;
 import com.jadyer.seed.mpp.web.model.UserFunds;
@@ -244,13 +244,14 @@ public class UserFundsService {
             default: throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无效的充值类型["+type+"]");
         }
         //记录一笔订单
-        MppFansInfo fansInfo = fansService.getByOpenid(openid);
+        MppFansInfor fansInfo = fansService.getByOpenid(openid);
         OrderInfo orderInfo = new OrderInfo();
         orderInfo.setTotalFee(Long.parseLong(MoneyUtil.yuanToFen(_moneyBase.add(_moneyRent).toString())));
         orderInfo.setDepositMoney(_moneyBase);
         orderInfo.setCanRefundMoney(new BigDecimal(MoneyUtil.fenToYuan(orderInfo.getTotalFee()+"")));
-        orderInfo.setCommunityId(0!=fansInfo.getCarOwnerCommunityId() ? fansInfo.getCarOwnerCommunityId() : fansInfo.getCarParkCommunityId());
-        orderInfo.setCommunityName(0!=fansInfo.getCarOwnerCommunityId() ? fansInfo.getCarOwnerCommunityName() : fansInfo.getCarParkCommunityName());
+        //TODO
+//        orderInfo.setCommunityId(0!=fansInfo.getCarOwnerCommunityId() ? fansInfo.getCarOwnerCommunityId() : fansInfo.getCarParkCommunityId());
+//        orderInfo.setCommunityName(0!=fansInfo.getCarOwnerCommunityId() ? fansInfo.getCarOwnerCommunityName() : fansInfo.getCarParkCommunityName());
         orderInfo.setGoodsId(StringUtils.isNotBlank(goodsId) ? Long.parseLong(goodsId) : 0);
         orderInfo.setAppid(appid);
         orderInfo.setBody("吼吼共享车位 - 充值 - " + orderInfo.getCanRefundMoney() + " 元");

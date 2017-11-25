@@ -5,7 +5,7 @@ import com.jadyer.seed.comm.util.LogUtil;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
 import com.jadyer.seed.mpp.sdk.weixin.model.WeixinFansInfo;
-import com.jadyer.seed.mpp.web.model.MppFansInfo;
+import com.jadyer.seed.mpp.web.model.MppFansInfor;
 import com.jadyer.seed.mpp.web.model.MppUserInfo;
 import com.jadyer.seed.mpp.web.service.FansService;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -26,50 +26,50 @@ public class FansSaveAsync {
      * **/
     public void save(MppUserInfo mppUserInfo, String openid){
         try{
-            MppFansInfo mppFansInfo = fansService.getByUidAndOpenid(mppUserInfo.getId(), openid);
-            if(null == mppFansInfo){
-                mppFansInfo = new MppFansInfo();
+            MppFansInfor MppFansInfor = fansService.getByUidAndOpenid(mppUserInfo.getId(), openid);
+            if(null == MppFansInfor){
+                MppFansInfor = new MppFansInfor();
             }
             /*
              * 向微信服务器或QQ服务器查询粉丝信息
              */
             //if(1 == mppUserInfo.getMptype()){
                 WeixinFansInfo weixinFansInfo = WeixinHelper.getWeixinFansInfo(WeixinTokenHolder.getWeixinAccessToken(mppUserInfo.getAppid()), openid);
-                mppFansInfo.setUid(mppUserInfo.getId());
+                MppFansInfor.setUid(mppUserInfo.getId());
                 //TODO
-               // mppFansInfo.setWxid(mppUserInfo.getMpid());
-                mppFansInfo.setOpenid(openid);
-                mppFansInfo.setSubscribe(String.valueOf(weixinFansInfo.getSubscribe()));
-                mppFansInfo.setSubscribeTime(DateFormatUtils.format(new Date(Long.parseLong(weixinFansInfo.getSubscribe_time())*1000), "yyyy-MM-dd HH:mm:ss"));
-                mppFansInfo.setNickname(JadyerUtil.escapeEmoji(weixinFansInfo.getNickname()));
-                mppFansInfo.setSex(weixinFansInfo.getSex());
-                mppFansInfo.setCity(weixinFansInfo.getCity());
-                mppFansInfo.setCountry(weixinFansInfo.getCountry());
-                mppFansInfo.setProvince(weixinFansInfo.getProvince());
-                mppFansInfo.setLanguage(weixinFansInfo.getLanguage());
-                mppFansInfo.setHeadimgurl(weixinFansInfo.getHeadimgurl());
-                mppFansInfo.setUnionid(weixinFansInfo.getUnionid());
-                mppFansInfo.setRemark(weixinFansInfo.getRemark());
-                mppFansInfo.setGroupid(weixinFansInfo.getGroupid());
-                fansService.upsert(mppFansInfo);
+               // MppFansInfor.setWxid(mppUserInfo.getMpid());
+                MppFansInfor.setOpenid(openid);
+                MppFansInfor.setSubscribe(String.valueOf(weixinFansInfo.getSubscribe()));
+                MppFansInfor.setSubscribeTime(DateFormatUtils.format(new Date(Long.parseLong(weixinFansInfo.getSubscribe_time())*1000), "yyyy-MM-dd HH:mm:ss"));
+                MppFansInfor.setNickname(JadyerUtil.escapeEmoji(weixinFansInfo.getNickname()));
+                MppFansInfor.setSex(weixinFansInfo.getSex());
+                MppFansInfor.setCity(weixinFansInfo.getCity());
+                MppFansInfor.setCountry(weixinFansInfo.getCountry());
+                MppFansInfor.setProvince(weixinFansInfo.getProvince());
+                MppFansInfor.setLanguage(weixinFansInfo.getLanguage());
+                MppFansInfor.setHeadimgurl(weixinFansInfo.getHeadimgurl());
+                MppFansInfor.setUnionid(weixinFansInfo.getUnionid());
+                MppFansInfor.setRemark(weixinFansInfo.getRemark());
+                MppFansInfor.setGroupid(weixinFansInfo.getGroupid());
+                fansService.upsert(MppFansInfor);
             //}else{
             //    QQFansInfo qqFansInfo = QQHelper.getQQFansInfo(QQTokenHolder.getQQAccessToken(mppUserInfo.getAppid()), openid);
-            //    mppFansInfo.setUid(mppUserInfo.getId());
-            //    mppFansInfo.setWxid(mppUserInfo.getMpid());
-            //    mppFansInfo.setOpenid(openid);
-            //    mppFansInfo.setSubscribe(String.valueOf(qqFansInfo.getSubscribe()));
-            //    mppFansInfo.setSubscribeTime(DateFormatUtils.format(new Date(Long.parseLong(qqFansInfo.getSubscribe_time())*1000), "yyyy-MM-dd HH:mm:ss"));
-            //    mppFansInfo.setNickname(JadyerUtil.escapeEmoji(qqFansInfo.getNickname()));
-            //    mppFansInfo.setSex(qqFansInfo.getSex());
-            //    mppFansInfo.setCity(qqFansInfo.getCity());
-            //    mppFansInfo.setCountry(qqFansInfo.getCountry());
-            //    mppFansInfo.setProvince(qqFansInfo.getProvince());
-            //    mppFansInfo.setLanguage(qqFansInfo.getLanguage());
-            //    mppFansInfo.setHeadimgurl(qqFansInfo.getHeadimgurl());
-            //    mppFansInfo.setUnionid(qqFansInfo.getUnionid());
-            //    mppFansInfo.setRemark(qqFansInfo.getRemark());
-            //    mppFansInfo.setGroupid(qqFansInfo.getGroupid());
-            //    fansService.upsert(mppFansInfo);
+            //    MppFansInfor.setUid(mppUserInfo.getId());
+            //    MppFansInfor.setWxid(mppUserInfo.getMpid());
+            //    MppFansInfor.setOpenid(openid);
+            //    MppFansInfor.setSubscribe(String.valueOf(qqFansInfo.getSubscribe()));
+            //    MppFansInfor.setSubscribeTime(DateFormatUtils.format(new Date(Long.parseLong(qqFansInfo.getSubscribe_time())*1000), "yyyy-MM-dd HH:mm:ss"));
+            //    MppFansInfor.setNickname(JadyerUtil.escapeEmoji(qqFansInfo.getNickname()));
+            //    MppFansInfor.setSex(qqFansInfo.getSex());
+            //    MppFansInfor.setCity(qqFansInfo.getCity());
+            //    MppFansInfor.setCountry(qqFansInfo.getCountry());
+            //    MppFansInfor.setProvince(qqFansInfo.getProvince());
+            //    MppFansInfor.setLanguage(qqFansInfo.getLanguage());
+            //    MppFansInfor.setHeadimgurl(qqFansInfo.getHeadimgurl());
+            //    MppFansInfor.setUnionid(qqFansInfo.getUnionid());
+            //    MppFansInfor.setRemark(qqFansInfo.getRemark());
+            //    MppFansInfor.setGroupid(qqFansInfo.getGroupid());
+            //    fansService.upsert(MppFansInfor);
             //}
         }catch(Exception e){
             LogUtil.logToTask().error("致命异常：粉丝信息openid=["+openid+"]异步保存时发生异常，堆栈轨迹如下：", e);

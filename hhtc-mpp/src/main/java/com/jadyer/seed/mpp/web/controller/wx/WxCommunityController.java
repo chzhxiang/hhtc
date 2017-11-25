@@ -48,7 +48,7 @@ public class WxCommunityController {
 
 
     /**
-     * 根据城市名称获取小区名称列表
+     * TOKGO 根据城市名称获取小区名称列表
      */
     @GetMapping("/listByCityName")
     public CommonResult listByCityName(String cityName){

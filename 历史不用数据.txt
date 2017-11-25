@@ -1,6 +1,82 @@
 
 
 
+    /**
+     * 添加车牌号
+     */
+    @Transactional(rollbackFor=Exception.class)
+    public MppFansInfor carNumberAdd(String openid, String carNumber) {
+        MppFansInfor fansInfo = fansInfoRepository.findByOpenid(openid);
+        if(StringUtils.isNotBlank(fansInfo.getCarNumber()) && fansInfo.getCarNumber().contains(carNumber)){
+            return fansInfo;
+        }
+        if(StringUtils.isBlank(fansInfo.getCarNumber())){
+            fansInfo.setCarNumber(carNumber);
+        }else{
+            fansInfo.setCarNumber(fansInfo.getCarNumber() + "`" + carNumber);
+        }
+        return fansInfoRepository.saveAndFlush(fansInfo);
+    }
+
+
+        MppFansInfor fansInfo = this.verifyBeforeReg(phoneNo, verifyCode, 2, openid);
+        fansInfo.setPhoneNo(phoneNo);
+        fansInfo.setCarParkCommunityId(carParkCommunityId);
+        fansInfo.setCarParkCommunityName(communityInfo.getName());
+        fansInfo.setCarParkStatus(1);
+        fansInfo.setCarParkAuditStatus(1);
+        fansInfo.setCarParkRegTime(new Date());
+        fansInfo = fansInfoRepository.saveAndFlush(fansInfo);
+        //新增或更新（审核拒绝后再次注册）车位信息
+        GoodsInfo goodsInfo = goodsRepository.findByOpenidAndCarParkNumber(openid, carParkNumber);
+        if(null == goodsInfo){
+            goodsInfo = new GoodsInfo();
+        }
+        goodsInfo.setCommunityId(carParkCommunityId);
+        goodsInfo.setCommunityName(communityInfo.getName());
+        goodsInfo.setAppid(appid);
+        goodsInfo.setOpenid(openid);
+        goodsInfo.setCarParkNumber(carParkNumber);
+        goodsInfo.setCarEquityImg(carEquityImg);
+        goodsInfo.setCarAuditStatus(1);
+        goodsInfo.setIsUsed(0);
+        goodsInfo.setCarUsefulFromDate(carUsefulFromDate);
+        goodsInfo.setCarUsefulEndDate(carUsefulEndDate);
+        goodsInfo.setIsRepetition(0);
+        // 是否重复
+        List<GoodsInfo> byCarParkNumber = goodsRepository.findByCarParkNumber(goodsInfo.getCarParkNumber());
+        if(byCarParkNumber.size()>0){
+            goodsInfo.setIsRepetition(1);
+            // 更新所有车位为重复
+            goodsRepository.updateStatus(goodsInfo.getCarParkNumber(),1);
+        }
+        goodsRepository.saveAndFlush(goodsInfo);
+        return fansInfo.getCarOwnerStatus() == 0;
+
+
+
+//        if(StringUtils.isBlank(carNumber) || StringUtils.isBlank(houseNumber)){
+//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "车牌号或门牌号不能为空");
+//        }
+//        //TODO -infor 查询小区id---住址是否在车位租赁的小区
+//        CommunityInfo communityInfo = communityService.get(carOwnerCommunityId);
+//        if(StringUtils.isBlank(communityInfo.getName())){
+//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无此小区communityId=[" + carOwnerCommunityId + "]");
+//        }
+//        MppFansInfor fansInfo = this.verifyBeforeReg(phoneNo, verifyCode, 1, openid);
+//        fansInfo.setPhoneNo(phoneNo);
+//        fansInfo.setCarOwnerCommunityId(carOwnerCommunityId);
+//        fansInfo.setCarOwnerCommunityName(communityInfo.getName());
+//        fansInfo.setCarNumber(carNumber);
+//        fansInfo.setHouseNumber(houseNumber);
+//        fansInfo.setCarOwnerStatus(1);
+//        fansInfo.setCarOwnerAuditStatus(1);
+//        fansInfo.setCarOwnerRegTime(new Date());
+//        fansInfo = fansInfoRepository.saveAndFlush(fansInfo);
+//        return fansInfo.getCarParkStatus() == 0;
+
+
+
 WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
 dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的" + (type == 1 ? "车主" : "车位主") + "，您的注册未审核通过！"));
 dataItem.put("keyword1", new WeixinTemplateMsg.DItem(fansInfo.getPhoneNo().substring(0, 3) + "***" + fansInfo.getPhoneNo().substring(8)));
@@ -12,6 +88,10 @@ templateMsg.setUrl(this.hhtcContextPath + this.templateUrlRegAuditNotpass.replac
 templateMsg.setTouser(fansInfo.getOpenid());
 templateMsg.setData(dataItem);
 WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(appid), templateMsg);
+
+
+
+
 
 
 
@@ -27,7 +107,7 @@ WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(
         if(!smsService.smsVerify(phoneNO, verifyCode, 1))
             throw new HHTCException(CodeEnum.HHTC_SMS_VERIFY_FAIL);
         //验证成功 进行电话写入，并修改状态
-        MppFansInfo fansInfo = fansInfoRepository.findByOpenid(openid);
+        MppFansInfor fansInfo = fansInfoRepository.findByOpenid(openid);
         fansInfo.setPhoneNo(phoneNO);
         StringBuilder sb = new StringBuilder(fansInfo.getInfor_state());
         sb.setCharAt(1,'1');
@@ -50,7 +130,7 @@ WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(
         if(!smsService.smsVerify(phoneNO, verifyCode, 1))
             throw new HHTCException(CodeEnum.HHTC_SMS_VERIFY_FAIL);
         //验证成功 进行电话写入，并修改状态
-        MppFansInfo fansInfo = fansInfoRepository.findByOpenid(openid);
+        MppFansInfor fansInfo = fansInfoRepository.findByOpenid(openid);
         fansInfo.setPhoneNo(phoneNO);
         StringBuilder sb = new StringBuilder(fansInfo.getInfor_state());
         sb.setCharAt(1,'1');

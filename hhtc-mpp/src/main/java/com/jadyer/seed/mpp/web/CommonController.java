@@ -1,9 +1,12 @@
 package com.jadyer.seed.mpp.web;
 
 import com.google.common.collect.Maps;
+import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.comm.constant.CommonResult;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
+import com.jadyer.seed.mpp.web.model.MppFansInfor;
+import com.jadyer.seed.mpp.web.repository.FansInforRepository;
 import com.jadyer.seed.mpp.web.service.GoodsNeedService;
 import com.jadyer.seed.mpp.web.service.SmsService;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -47,6 +50,8 @@ public class CommonController {
     private SmsService smsService;
     @Resource
     private GoodsNeedService needService;
+    @Resource
+    private FansInforRepository fansInforRepository;
 
     @GetMapping("/view")
     String view(String url, HttpServletRequest request){
@@ -92,6 +97,12 @@ public class CommonController {
     @ResponseBody
     @GetMapping(value="/wx/common/sms/send")
     public CommonResult smsSend(String phoneNo, int type){
+        //电话验证时 电话号码不能存在
+        if (type ==1) {
+            MppFansInfor MppFansInfor = fansInforRepository.findByPhoneNo(phoneNo);
+            if (MppFansInfor!=null)
+                return new CommonResult(CodeEnum.HHTC_INFOR_PHOMENO_USED);
+        }
         smsService.smsSend(phoneNo, type);
         return new CommonResult();
     }

@@ -11,6 +11,7 @@ import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
 import com.jadyer.seed.mpp.sdk.weixin.model.WeixinOAuthAccessToken;
 import com.jadyer.seed.mpp.web.model.MppFansInfo;
+import com.jadyer.seed.mpp.web.model.MppFansInfor;
 import com.jadyer.seed.mpp.web.model.OrderInfo;
 import com.jadyer.seed.mpp.web.service.FansService;
 import com.jadyer.seed.mpp.web.service.MppUserService;
@@ -83,7 +84,8 @@ public class WeixinHelperController {
                 session.setAttribute(Constants.WEB_SESSION_WX_APPID, appid);
                 session.setAttribute(Constants.WEB_SESSION_WX_OPENID, oauthAccessToken.getOpenid());
                 if(fullURI.endsWith(this.portalCenterUrl)){
-                    MppFansInfo fansInfo = fansService.getByOpenid(oauthAccessToken.getOpenid());
+//                    MppFansInfo fansInfo = fansService.getByOpenid(oauthAccessToken.getOpenid());
+                    MppFansInfo fansInfo =null;
                     if(2!=fansInfo.getCarOwnerStatus() && 2!=fansInfo.getCarParkStatus()){
                         response.sendRedirect(hhtcContextPath + portalLoginUrl);
                         return null;

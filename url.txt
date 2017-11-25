@@ -1,10 +1,14 @@
 
 
     用户授权查询 查询该用户是否授权 ---- /wx/fans/infor/accredit/get
-    用户同意授权-----/wx/fans/infor/accredit/allowBind
+    用户同意授权-----/wx/fans/infor/accredit/allow
     用户电话绑定------/wx/fans/infor/phoneNOBind
     地址绑定 ----/wx/fans/infor/communityBind
-    车牌号绑定 ----/wx/fans/infor/carNOBind
+    车牌号绑定 ----/wx/fans/infor/carNumberBind
+    车位号绑定 ----/wx/fans/infor/carParkBind
+    发送验证码----/wx/common/sms/send
+根据城市名称获取小区名称列表 ------/wx/community/listByCityName
+
     管理员审核----/fans/Audit
 
 

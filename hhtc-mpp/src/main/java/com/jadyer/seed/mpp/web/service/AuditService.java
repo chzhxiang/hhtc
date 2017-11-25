@@ -6,7 +6,7 @@ import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
 import com.jadyer.seed.mpp.sdk.weixin.model.template.WeixinTemplateMsg;
 import com.jadyer.seed.mpp.web.model.FansInforAudit;
-import com.jadyer.seed.mpp.web.model.MppFansInfo;
+import com.jadyer.seed.mpp.web.model.MppFansInfor;
 import com.jadyer.seed.mpp.web.repository.FansAuditRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -54,7 +54,13 @@ public class AuditService {
         return true;
     }
 
-
+    /**
+     * 删除一个记录
+     *
+     * */
+    public void Delete(FansInforAudit fansInforAudit){
+        fansAuditRepository.delete(fansInforAudit);
+    }
 
     /**
      * TOKGO 获取用户审核数据
@@ -71,7 +77,7 @@ public class AuditService {
     }
 
     public void SendAuditResult(String FirstData,String Key1Data,String Key2Data
-            ,String RemarkData, MppFansInfo fansInfo,String appid,int type){
+            ,String RemarkData, MppFansInfor fansInfo,String appid,int type){
         /*
         {{first.DATA}}
         审核姓名：{{keyword1.DATA}}

@@ -39,11 +39,11 @@ update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMES
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='自定义菜单表';
 
 
-DROP TABLE IF EXISTS t_mpp_fans_info;
-CREATE TABLE t_mpp_fans_info(
+DROP TABLE IF EXISTS t_mpp_fans_infor;
+CREATE TABLE t_mpp_fans_infor(
 id                       INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
 uid                      INT          NOT NULL COMMENT '平台用户ID，对应t_mpp_user_info#id',
-infor_state             VARCHAR(5)     COMMENT '用户信息状态(每位的数字含义 0 未做 1 完成  2审核中):0--是否授权，1--是否验证电话，2--是否验证住址，3--是否验证车位 4--是否验证车牌',
+infor_state              VARCHAR(5)   COMMENT '用户信息状态(每位的数字含义 0 未做 1 完成  2审核中):0--是否授权，1--是否验证电话，2--是否验证住址，3--是否验证车位 4--是否验证车牌',
 openid                   VARCHAR(64)  NOT NULL COMMENT '粉丝的openid',
 name                     VARCHAR(16)  COMMENT '粉丝的真实姓名',
 id_card                  VARCHAR(18)  COMMENT '粉丝的身份证号',
@@ -60,24 +60,10 @@ subscribe_time           VARCHAR(19)  COMMENT '粉丝最后一次关注的时间
 unionid                  VARCHAR(64)  COMMENT '只有在用户将公众号绑定到微信开放平台帐号后，才会出现该字段',
 remark                   VARCHAR(64)  COMMENT '公众号运营者对粉丝的备注',
 groupid                  VARCHAR(16)  COMMENT '粉丝用户所在的分组ID',
-car_owner_status         TINYINT(1)   COMMENT '车主状态：0--未注册，1--审核中，2--已注册车主',
-car_owner_audit_status   TINYINT(1)   COMMENT '车主审核状态：1--审核中，2--审核通过，3--审核拒绝',
-car_owner_reg_time       DATETIME     COMMENT '车主注册时间',
-car_owner_audit_time     DATETIME     COMMENT '车主审核时间',
-car_owner_audit_uid      INT          COMMENT '车主审核人的uid，对应t_mpp_user_info#id',
-car_owner_audit_remark   VARCHAR(99)  COMMENT '车主审核备注',
-car_park_status          TINYINT(1)   COMMENT '车位主状态：0--未注册，1--审核中，2--已注册车位主',
-car_park_audit_status    TINYINT(1)   COMMENT '车位主审核状态：1--审核中，2--审核通过，3--审核拒绝',
-car_park_reg_time        DATETIME     COMMENT '车位主注册时间',
-car_park_audit_time      DATETIME     COMMENT '车位主审核时间',
-car_park_audit_uid       INT          COMMENT '车位主审核人的uid，对应t_mpp_user_info#id',
-car_park_audit_remark    VARCHAR(99)  COMMENT '车位主审核备注',
-car_owner_community_id   INT          COMMENT '车主所在的小区ID，对应t_community_info#id',
-car_park_community_id    INT          COMMENT '车位主所在的小区ID，对应t_community_info#id',
-car_owner_community_name VARCHAR(32)  COMMENT '车主所在的小区名称，冗余自t_community_info#name',
-car_park_community_name  VARCHAR(32)  COMMENT '车位主所在的小区名称，冗余自t_community_info#name',
+community_id             INT          COMMENT '粉丝所在的小区ID，对应t_community_info#id',
+community_name           VARCHAR(32)  COMMENT '粉丝所在的小区名称，冗余自t_community_info#name',
 house_number             VARCHAR(32)  COMMENT '门牌号',
-car_number               VARCHAR(999) COMMENT '车牌号（多个则以`分割）',
+car_number               VARCHAR(100) COMMENT '车牌号（多个则以`分割）',
 -- house_equity_img VARCHAR(999) COMMENT '房产证/租房合同图片（多张则以`分隔）',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',

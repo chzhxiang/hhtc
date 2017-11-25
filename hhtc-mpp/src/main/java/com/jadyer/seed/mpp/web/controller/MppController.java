@@ -236,7 +236,7 @@ public class MppController {
 
     /**
      * 分页查询关键字回复列表
-     * @param page zero-based page index
+     * @param pageNo zero-based page index
      */
     @RequestMapping("/reply/keyword/list")
     public String listViaPage(String pageNo, HttpServletRequest request){

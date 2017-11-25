@@ -7,7 +7,7 @@ import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.model.CommunityInfo;
 import com.jadyer.seed.mpp.web.model.GoodsInfo;
 import com.jadyer.seed.mpp.web.model.GoodsPublishOrder;
-import com.jadyer.seed.mpp.web.model.MppFansInfo;
+import com.jadyer.seed.mpp.web.model.MppFansInfor;
 import com.jadyer.seed.mpp.web.model.UserFunds;
 import com.jadyer.seed.mpp.web.repository.GoodsPublishOrderRepository;
 import com.jadyer.seed.mpp.web.service.CommunityService;
@@ -106,10 +106,11 @@ public class WxGoodsPublishController {
         String appid = hhtcHelper.getWxAppidFromSession(request.getSession());
         String openid = hhtcHelper.getWxOpenidFromSession(request.getSession());
         //校验是否注册车主
-        MppFansInfo fansInfo = fansService.getByOpenid(openid);
-        if(2 != fansInfo.getCarOwnerStatus()){
-            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_OWNER);
-        }
+        MppFansInfor fansInfor = fansService.getByOpenid(openid);
+        //TODO
+//        if(2 != fansInfor.getCarOwnerStatus()){
+//            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_OWNER);
+//        }
         //校验是否已被锁定
         BigDecimal price = new BigDecimal(0);
         List<GoodsPublishOrder> orderList = new ArrayList<>();
@@ -137,12 +138,12 @@ public class WxGoodsPublishController {
         }
         //车牌号更新
         if(StringUtils.isBlank(carNumber)){
-            carNumber = fansInfo.getCarNumber().split("`")[0];
+            carNumber = fansInfor.getCarNumber().split("`")[0];
         }else{
             carNumber = carNumber.toUpperCase();
-            if(!fansInfo.getCarNumber().contains(carNumber)){
-                fansInfo.setCarNumber(fansInfo.getCarNumber() + "`" + carNumber);
-                fansService.upsert(fansInfo);
+            if(!fansInfor.getCarNumber().contains(carNumber)){
+                fansInfor.setCarNumber(fansInfor.getCarNumber() + "`" + carNumber);
+                fansService.upsert(fansInfor);
             }
         }
         //计算publishFromDates
@@ -164,6 +165,6 @@ public class WxGoodsPublishController {
         for(String obj : publishFromDateList){
             sb.append("-").append(obj);
         }
-        return new CommonResult(goodsPublishService.order(appid, openid, carNumber, price, ids, sb.toString().substring(1), orderList, fansInfo));
+        return new CommonResult(goodsPublishService.order(appid, openid, carNumber, price, ids, sb.toString().substring(1), orderList, fansInfor));
     }
 }

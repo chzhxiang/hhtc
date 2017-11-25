@@ -98,7 +98,7 @@ public class CommunityService {
 
 
     /**
-     * 获取小区列表
+     *  TOKGO 获取小区列表
      */
     public List<CommunityInfo> listByCityName(String cityName){
         return communityRepository.findByCityName(cityName);

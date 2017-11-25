@@ -9,7 +9,7 @@ import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
 import com.jadyer.seed.mpp.sdk.weixin.model.template.WeixinTemplateMsg;
 import com.jadyer.seed.mpp.web.model.CommunityInfo;
 import com.jadyer.seed.mpp.web.model.GoodsInfo;
-import com.jadyer.seed.mpp.web.model.MppFansInfo;
+import com.jadyer.seed.mpp.web.model.MppFansInfor;
 import com.jadyer.seed.mpp.web.model.MppUserInfo;
 import com.jadyer.seed.mpp.web.repository.GoodsPublishOrderRepository;
 import com.jadyer.seed.mpp.web.repository.GoodsPublishRepository;
@@ -73,7 +73,7 @@ public class GoodsService {
         Page<GoodsInfo> page = goodsRepository.findAll(spec, pageable);
         List<GoodsInfo> list = page.getContent();
         for(GoodsInfo obj : list){
-            MppFansInfo fans = fansService.getByOpenid(obj.getOpenid());
+            MppFansInfor fans = fansService.getByOpenid(obj.getOpenid());
             obj.setNickname(fans.getNickname());
             obj.setHeadimgurl(fans.getHeadimgurl());
         }
@@ -96,7 +96,7 @@ public class GoodsService {
         Page<GoodsInfo> page = goodsRepository.findAll(spec, pageable);
         List<GoodsInfo> list = page.getContent();
         for(GoodsInfo obj : list){
-            MppFansInfo fans = fansService.getByOpenid(obj.getOpenid());
+            MppFansInfor fans = fansService.getByOpenid(obj.getOpenid());
             obj.setNickname(fans.getNickname());
             obj.setHeadimgurl(fans.getHeadimgurl());
         }
@@ -151,67 +151,68 @@ public class GoodsService {
                 throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "只能审核自己小区的车位");
             }
         }
-        //校验是否注册车位主
-        MppFansInfo fansInfo = fansService.getByOpenid(goodsInfo.getOpenid());
-        if(2 != fansInfo.getCarParkStatus()){
-            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_PARK);
-        }
-        goodsInfo.setCarAuditTime(new Date());
-        goodsInfo.setCarAuditUid(userInfo.getId());
-        goodsInfo = goodsRepository.saveAndFlush(goodsInfo);
-
-        if(goodsInfo.getCarAuditStatus() == 2 && Constants.ISSMS){
-            /*
-            {{first.DATA}}
-            手机号：{{keyword1.DATA}}
-            审核结果：{{keyword2.DATA}}
-            {{remark.DATA}}
-
-            尊敬的用户，您的押金退回业务审核结果如下
-            手机号：尾号3432
-            审核结果：通过
-            您交付平台的押金已退回您原支付账户，预计1~7个工作日到账，请注意查收。
-            */
-            WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
-            dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的车位主，您的车位申请已经审核通过！"));
-            dataItem.put("keyword1", new WeixinTemplateMsg.DItem("尾号" + fansInfo.getPhoneNo().substring(7,11)));
-            dataItem.put("keyword2", new WeixinTemplateMsg.DItem("车位号：" + goodsInfo.getCarParkNumber() + "审核通过"));
-            dataItem.put("remark", new WeixinTemplateMsg.DItem("我要抢车位，方便加一倍！点击“抢车位”，停车舒心更省心！"));
-            String url = this.hhtcContextPath + "/portal/index.html#/publish";
-            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+goodsInfo.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+goodsInfo.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
-            WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
-            templateMsg.setTemplate_id("upsa1MpVfulcu69n_f7B6kF2s8uV9ODU47estmNWuK4");
-            templateMsg.setUrl(url);
-            templateMsg.setTouser(fansInfo.getOpenid());
-            templateMsg.setData(dataItem);
-            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(goodsInfo.getAppid()), templateMsg);
-        }
-        if(goodsInfo.getCarAuditStatus() == 3 && Constants.ISSMS){
-            /*
-            {{first.DATA}}
-            审核姓名：{{keyword1.DATA}}
-            拒绝原因：{{keyword2.DATA}}
-            {{remark.DATA}}
-
-            尊敬的司导您好，您的专车服务未通过审核！
-            审核姓名：张三 师傅
-            拒绝原因：身份证照片模糊不清
-            请填写正确的有效信息，重新申请。如有问题请点击查看司导填写教程
-            */
-            WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
-            dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的车位主，您的车位未审核通过！"));
-            dataItem.put("keyword1", new WeixinTemplateMsg.DItem(goodsInfo.getCarParkNumber()));
-            dataItem.put("keyword2", new WeixinTemplateMsg.DItem(goodsInfo.getCarAuditRemark()));
-            dataItem.put("remark", new WeixinTemplateMsg.DItem("请填写正确的有效信息，重新申请，谢谢！"));
-            String url = this.hhtcContextPath + "/portal/index.html#/publish";
-            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+goodsInfo.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+goodsInfo.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
-            WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
-            templateMsg.setTemplate_id("337mC1vqm0l4bxf8WdEKfiNYO9BOjKCWlJus7hw2bPI");
-            templateMsg.setUrl(url);
-            templateMsg.setTouser(goodsInfo.getOpenid());
-            templateMsg.setData(dataItem);
-            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(goodsInfo.getAppid()), templateMsg);
-        }
+        //TODO
+//        //校验是否注册车位主
+//        MppFansInfor fansInfo = fansService.getByOpenid(goodsInfo.getOpenid());
+//        if(2 != fansInfo.getCarParkStatus()){
+//            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_PARK);
+//        }
+//        goodsInfo.setCarAuditTime(new Date());
+//        goodsInfo.setCarAuditUid(userInfo.getId());
+//        goodsInfo = goodsRepository.saveAndFlush(goodsInfo);
+//
+//        if(goodsInfo.getCarAuditStatus() == 2 && Constants.ISSMS){
+//            /*
+//            {{first.DATA}}
+//            手机号：{{keyword1.DATA}}
+//            审核结果：{{keyword2.DATA}}
+//            {{remark.DATA}}
+//
+//            尊敬的用户，您的押金退回业务审核结果如下
+//            手机号：尾号3432
+//            审核结果：通过
+//            您交付平台的押金已退回您原支付账户，预计1~7个工作日到账，请注意查收。
+//            */
+//            WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
+//            dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的车位主，您的车位申请已经审核通过！"));
+//            dataItem.put("keyword1", new WeixinTemplateMsg.DItem("尾号" + fansInfor.getPhoneNo().substring(7,11)));
+//            dataItem.put("keyword2", new WeixinTemplateMsg.DItem("车位号：" + goodsInfo.getCarParkNumber() + "审核通过"));
+//            dataItem.put("remark", new WeixinTemplateMsg.DItem("我要抢车位，方便加一倍！点击“抢车位”，停车舒心更省心！"));
+//            String url = this.hhtcContextPath + "/portal/index.html#/publish";
+//            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+goodsInfo.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+goodsInfo.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
+//            WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
+//            templateMsg.setTemplate_id("upsa1MpVfulcu69n_f7B6kF2s8uV9ODU47estmNWuK4");
+//            templateMsg.setUrl(url);
+//            templateMsg.setTouser(fansInfo.getOpenid());
+//            templateMsg.setData(dataItem);
+//            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(goodsInfo.getAppid()), templateMsg);
+//        }
+//        if(goodsInfo.getCarAuditStatus() == 3 && Constants.ISSMS){
+//            /*
+//            {{first.DATA}}
+//            审核姓名：{{keyword1.DATA}}
+//            拒绝原因：{{keyword2.DATA}}
+//            {{remark.DATA}}
+//
+//            尊敬的司导您好，您的专车服务未通过审核！
+//            审核姓名：张三 师傅
+//            拒绝原因：身份证照片模糊不清
+//            请填写正确的有效信息，重新申请。如有问题请点击查看司导填写教程
+//            */
+//            WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
+//            dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的车位主，您的车位未审核通过！"));
+//            dataItem.put("keyword1", new WeixinTemplateMsg.DItem(goodsInfo.getCarParkNumber()));
+//            dataItem.put("keyword2", new WeixinTemplateMsg.DItem(goodsInfo.getCarAuditRemark()));
+//            dataItem.put("remark", new WeixinTemplateMsg.DItem("请填写正确的有效信息，重新申请，谢谢！"));
+//            String url = this.hhtcContextPath + "/portal/index.html#/publish";
+//            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+goodsInfo.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+goodsInfo.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
+//            WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
+//            templateMsg.setTemplate_id("337mC1vqm0l4bxf8WdEKfiNYO9BOjKCWlJus7hw2bPI");
+//            templateMsg.setUrl(url);
+//            templateMsg.setTouser(goodsInfo.getOpenid());
+//            templateMsg.setData(dataItem);
+//            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(goodsInfo.getAppid()), templateMsg);
+//        }
         return goodsInfo;
     }
 
@@ -231,10 +232,11 @@ public class GoodsService {
         if(StringUtils.isBlank(communityInfo.getName())){
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无此小区communityId=[" + goodsInfo.getCommunityId() + "]");
         }
-        //校验是否注册车位主
-        if(2 != fansService.getByOpenid(goodsInfo.getOpenid()).getCarParkStatus()){
-            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_PARK);
-        }
+        //TODO
+//        //校验是否注册车位主
+//        if(2 != fansService.getByOpenid(goodsInfo.getOpenid()).getCarParkStatus()){
+//            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_PARK);
+//        }
         goodsInfo.setCommunityName(communityInfo.getName());
         goodsInfo.setIsUsed(0);
         goodsInfo.setCarAuditStatus(1);

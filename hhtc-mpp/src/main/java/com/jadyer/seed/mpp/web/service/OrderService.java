@@ -15,21 +15,14 @@ import com.jadyer.seed.mpp.sdk.weixin.model.pay.WeixinPayOrderqueryRespData;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.model.GoodsPublishInfo;
 import com.jadyer.seed.mpp.web.model.GoodsPublishOrder;
-import com.jadyer.seed.mpp.web.model.MppFansInfo;
+import com.jadyer.seed.mpp.web.model.MppFansInfor;
 import com.jadyer.seed.mpp.web.model.MppUserInfo;
 import com.jadyer.seed.mpp.web.model.OrderHistory;
 import com.jadyer.seed.mpp.web.model.OrderInfo;
 import com.jadyer.seed.mpp.web.model.OrderInout;
 import com.jadyer.seed.mpp.web.model.UserFunds;
 import com.jadyer.seed.mpp.web.model.UserFundsFlow;
-import com.jadyer.seed.mpp.web.repository.FansInfoRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsPublishOrderRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsPublishRepository;
-import com.jadyer.seed.mpp.web.repository.MppUserInfoRepository;
-import com.jadyer.seed.mpp.web.repository.OrderHistoryRepository;
-import com.jadyer.seed.mpp.web.repository.OrderInoutRepository;
-import com.jadyer.seed.mpp.web.repository.OrderRepository;
-import com.jadyer.seed.mpp.web.repository.UserFundsRepository;
+import com.jadyer.seed.mpp.web.repository.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -70,7 +63,7 @@ public class OrderService {
     @Resource
     private OrderInoutService orderInoutService;
     @Resource
-    private FansInfoRepository fansInfoRepository;
+    private FansInforRepository fansInforRepository;
     @Resource
     private UserFundsRepository userFundsRepository;
     @Resource
@@ -308,7 +301,7 @@ public class OrderService {
      * 后台运营主动搜索订单
      */
     public List<OrderInfo> search(String phoneNo) {
-        MppFansInfo fansInfo = fansInfoRepository.findByPhoneNo(phoneNo);
+        MppFansInfor fansInfo = fansInforRepository.findByPhoneNo(phoneNo);
         if(null==fansInfo || null==fansInfo.getId() || fansInfo.getId()==0){
             return new ArrayList<>();
         }
@@ -362,13 +355,14 @@ public class OrderService {
         if(null==mppUserInfo || mppUserInfo.getId()==0){
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "获取平台UID失败");
         }
-        MppFansInfo fansInfo = fansInfoRepository.findByPhoneNo(phoneNo);
+        MppFansInfor fansInfo = fansInforRepository.findByPhoneNo(phoneNo);
         if(null==fansInfo || null==fansInfo.getId() || fansInfo.getId()==0 || "0".equals(fansInfo.getSubscribe())){
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无法识别粉丝或未关注公众号");
         }
-        if(2 != fansInfo.getCarOwnerStatus()){
-            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_OWNER);
-        }
+        //TODO
+//        if(2 != fansInfo.getCarOwnerStatus()){
+//            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_OWNER);
+//        }
         //校驗原訂單
         OrderInfo order = this.get(orderId);
         if(order.getOrderType()!=1 && order.getOrderType()!=2){
