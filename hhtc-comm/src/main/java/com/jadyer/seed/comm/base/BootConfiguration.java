@@ -167,7 +167,7 @@ public class BootConfiguration extends WebMvcConfigurerAdapter {
     private static class PortalFilter extends OncePerRequestFilter {
         @Override
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-            System.out.println("URL-----------------> "+request.getServletPath());
+
             if(request.getServletPath().startsWith("/portal/") && false){
                 String userAgent = request.getHeader("User-Agent");
                 LogUtil.getLogger().debug("当前portal请求的User-Agent=[{}]",userAgent);

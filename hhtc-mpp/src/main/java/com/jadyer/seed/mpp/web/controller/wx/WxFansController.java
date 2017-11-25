@@ -51,7 +51,7 @@ public class WxFansController {
     /*
     * TOKGO用户授权查询 查询该用户是否授权
     * */
-    @GetMapping("/accredit/get")
+    @GetMapping("/infor/accredit/get")
     public CommonResult GetAccredit(HttpSession session){
         //TODO
         //String openid = hhtcHelper.getWxOpenidFromSession(session);
@@ -61,8 +61,8 @@ public class WxFansController {
     /**
      * TOKGO用户同意授权
      * */
-    @PostMapping("/accredit/allow")
-    public CommonResult UserAccredit(HttpSession session){
+    @PostMapping("/infor/accredit/allow")
+    public CommonResult FansAccredit(HttpSession session){
         //TODO
         //String openid = hhtcHelper.getWxOpenidFromSession(session);
         if (fansService.UpdatedataInforSate(0,'1',2,openid)){
@@ -74,8 +74,8 @@ public class WxFansController {
     /**
      * TOKGO用户电话绑定
      * */
-    @PostMapping("/phoneNO")
-    public CommonResult BindUserPhoneNO(String phoneNO ,String verifyCod, HttpSession session){
+    @PostMapping("/infor/phoneNOBind")
+    public CommonResult BindFansPhoneNO(String phoneNO ,String verifyCod, HttpSession session){
         //TODO
         //String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(OperationEnum.FANS_INFOR, fansService.PhoneNOCheck(phoneNO,verifyCod,openid));
@@ -84,24 +84,25 @@ public class WxFansController {
     /**
      * TOKGO 地址绑定
      * */
-    @PostMapping("/Community")
-    public CommonResult BindUserCommunity(String FansCommunity ,String houseNumber, HttpSession session){
+    @PostMapping("/infor/communityBind")
+    public CommonResult BindFansCommunity(String FansCommunity ,String houseNumber, HttpSession session){
         //TODO
         //String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(OperationEnum.FANS_INFOR, fansService.CommunityCheck(FansCommunity,houseNumber,openid));
     }
 
-    /**
-     * 车牌号注册
-     */
-    @PostMapping("/reg/carOwner")
-    public CommonResult regCar(String phoneNo, String verifyCode, long carOwnerCommunityId, String carNumber, String houseNumber, HttpSession session){
-        String openid = hhtcHelper.getWxOpenidFromSession(session);
-        //把所有的小写字母转化为大写字母
-        carNumber = carNumber.toUpperCase();
-        //判断该车牌是否允许注册
-        return new CommonResult(fansService.regCarOwner(openid, phoneNo, verifyCode, carOwnerCommunityId, carNumber, houseNumber));
-    }
+
+//    /**
+//     * TOKGO 车牌号绑定
+//     */
+//    @PostMapping("/infor/carNumberBind")
+//    public CommonResult BindFansCarNumber(String carNumber, HttpSession session){
+//        String openid = hhtcHelper.getWxOpenidFromSession(session);
+//        //把所有的小写字母转化为大写字母
+//        carNumber = carNumber.toUpperCase();
+//        //判断该车牌是否允许注册
+//        return new CommonResult(OperationEnum.FANS_INFOR,fansService.regCarOwner(openid, phoneNo, verifyCode, carOwnerCommunityId, carNumber, houseNumber));
+//    }
 
 
     /**

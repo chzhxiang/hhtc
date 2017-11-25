@@ -31,9 +31,8 @@ public class LogAspect {
         if(request.getServletPath().startsWith("/wx/orderinout")){
             return joinPoint.proceed();
         }
-        //TODO 日志修改
-        System.out.println(methodInfo+"()-->"+request.getRequestURI()+"被调用，客户端IP="+IPUtil.getClientIP(request)+"，入参为["+JadyerUtil.buildStringFromMap(request.getParameterMap())+"]") ;
-      //  LogUtil.getLogger().info("{}()-->{}被调用，客户端IP={}，入参为[{}]", methodInfo, request.getRequestURI(), IPUtil.getClientIP(request), JadyerUtil.buildStringFromMap(request.getParameterMap()));
+
+        LogUtil.getLogger().info("{}()-->{}被调用，客户端IP={}，入参为[{}]", methodInfo, request.getRequestURI(), IPUtil.getClientIP(request), JadyerUtil.buildStringFromMap(request.getParameterMap()));
         respData = joinPoint.proceed();
         long endTime = System.currentTimeMillis();
         String returnInfo;
@@ -42,8 +41,7 @@ public class LogAspect {
         }else{
             returnInfo = JSON.toJSONStringWithDateFormat(respData, JSON.DEFFAULT_DATE_FORMAT, SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty, SerializerFeature.WriteNullNumberAsZero, SerializerFeature.WriteNullListAsEmpty, SerializerFeature.WriteNullBooleanAsFalse);
         }
-        //TODO 日志修改
-        System.out.println(methodInfo+"()-->"+request.getRequestURI()+"被调用，出参为["+returnInfo+"]，Duration["+ (endTime-startTime)+"]ms");
+        LogUtil.getLogger().info("{}()-->{}被调用，出参为[{}]，Duration[{}]ms",methodInfo,request.getRequestURI(),returnInfo,endTime-startTime);
         LogUtil.getLogger().info("---------------------------------------------------------------------------------------------");
         return respData;
     }

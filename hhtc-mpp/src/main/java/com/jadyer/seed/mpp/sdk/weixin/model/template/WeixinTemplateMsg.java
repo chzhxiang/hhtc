@@ -1,5 +1,8 @@
 package com.jadyer.seed.mpp.sdk.weixin.model.template;
 
+import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
+import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
+
 import java.util.HashMap;
 
 public class WeixinTemplateMsg {
@@ -40,6 +43,7 @@ public class WeixinTemplateMsg {
         this.data = data;
     }
 
+
     public static class DataItem extends HashMap<String, DItem> {
         private static final long serialVersionUID = -5767034886837670403L;
         public DataItem() {}
@@ -47,6 +51,7 @@ public class WeixinTemplateMsg {
             this.put(key, item);
         }
     }
+
 
     public static class DItem {
         private String value;

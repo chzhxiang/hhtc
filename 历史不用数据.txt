@@ -1,0 +1,158 @@
+
+
+
+WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
+dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的" + (type == 1 ? "车主" : "车位主") + "，您的注册未审核通过！"));
+dataItem.put("keyword1", new WeixinTemplateMsg.DItem(fansInfo.getPhoneNo().substring(0, 3) + "***" + fansInfo.getPhoneNo().substring(8)));
+dataItem.put("keyword2", new WeixinTemplateMsg.DItem(auditRemark));
+dataItem.put("remark", new WeixinTemplateMsg.DItem("请填写正确的有效信息，重新申请，谢谢！"));
+WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
+templateMsg.setTemplate_id("337mC1vqm0l4bxf8WdEKfiNYO9BOjKCWlJus7hw2bPI");
+templateMsg.setUrl(this.hhtcContextPath + this.templateUrlRegAuditNotpass.replace("{userType}", type + ""));
+templateMsg.setTouser(fansInfo.getOpenid());
+templateMsg.setData(dataItem);
+WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(appid), templateMsg);
+
+
+
+    /**
+     * TOKGO车牌号验证
+     * *//*
+    @Transactional(rollbackFor=Exception.class)
+    public String PhoneNOCheck(String phoneNO ,String verifyCode, String openid){
+        //检查是否用户授权
+        if(GetInforState(2, openid).charAt(0) == '0')
+            throw  new HHTCException(CodeEnum.HHTC_INFOR_ACCREDIT);
+        //短信验证
+        if(!smsService.smsVerify(phoneNO, verifyCode, 1))
+            throw new HHTCException(CodeEnum.HHTC_SMS_VERIFY_FAIL);
+        //验证成功 进行电话写入，并修改状态
+        MppFansInfo fansInfo = fansInfoRepository.findByOpenid(openid);
+        fansInfo.setPhoneNo(phoneNO);
+        StringBuilder sb = new StringBuilder(fansInfo.getInfor_state());
+        sb.setCharAt(1,'1');
+        fansInfo.setInfor_state(sb.toString());
+        fansInfo = fansInfoRepository.saveAndFlush(fansInfo);
+        //TODO  是否删除历史验证码
+        //返回当前状态码
+        return fansInfo.getInfor_state();
+    }*/
+
+    /**
+     * TOKGO车位验证
+     * *//*
+    @Transactional(rollbackFor=Exception.class)
+    public String PhoneNOCheck(String phoneNO ,String verifyCode, String openid){
+        //检查是否用户授权
+        if(GetInforState(2, openid).charAt(0) == '0')
+            throw  new HHTCException(CodeEnum.HHTC_INFOR_ACCREDIT);
+        //短信验证
+        if(!smsService.smsVerify(phoneNO, verifyCode, 1))
+            throw new HHTCException(CodeEnum.HHTC_SMS_VERIFY_FAIL);
+        //验证成功 进行电话写入，并修改状态
+        MppFansInfo fansInfo = fansInfoRepository.findByOpenid(openid);
+        fansInfo.setPhoneNo(phoneNO);
+        StringBuilder sb = new StringBuilder(fansInfo.getInfor_state());
+        sb.setCharAt(1,'1');
+        fansInfo.setInfor_state(sb.toString());
+        fansInfo = fansInfoRepository.saveAndFlush(fansInfo);
+        //TODO  是否删除历史验证码
+        //返回当前状态码
+        return fansInfo.getInfor_state();
+    }
+
+*/
+
+
+
+if(type == 2){
+        //删除车位
+            for(GoodsInfo obj : goodsReposi tory.findByOpenid(fansInfo.getOpenid())){
+                if(2 == obj.getIsUsed()){
+                    throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "车位已被下单");
+                }
+                if(orderService.countByGoodsIdAndOrderTypeInAndOrderStatusIn(obj.getId(), Arrays.asList(1, 2), Arrays.asList(2, 9)) > 0){
+                    throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "车位已被下单或转租");
+                }
+                goodsPublishOrderRepository.deleteByGoodsId(obj.getId());
+                goodsPublishRepository.deleteByGoodsId(obj.getId());
+                goodsRepository.delete(obj.getId());
+                //更新车位重复状态
+                List<GoodsInfo> list = goodsRepository.findByCarParkNumber(obj.getCarParkNumber());
+                if(null!=list && list.size()==1){
+                    goodsRepository.updateStatus(obj.getCarParkNumber(), 0);
+                }
+            }
+        }
+
+--------审核不通过 发短信
+
+//模版CODE: SMS_86725136（車位主）
+                //模版内容: 尊敬的手机尾号为${phone}的用户：您好！感谢您注册吼吼停车，您提交的车位主资料已通过物业审核。请登录吼吼停车微信公众号发布您的车位吧！
+                Map<String, String> paramMap = new HashMap<>();
+                paramMap.put("phone", fansInfo.getPhoneNo().substring(7, 11));
+                hhtcHelper.sendSms(fansInfo.getPhoneNo(), "SMS_86725136", paramMap);
+                /*
+                {{first.DATA}}
+                手机号：{{keyword1.DATA}}
+                审核结果：{{keyword2.DATA}}
+                {{remark.DATA}}
+
+                尊敬的用户，您的押金退回业务审核结果如下
+                手机号：尾号3432
+                审核结果：通过
+                您交付平台的押金已退回您原支付账户，预计1~7个工作日到账，请注意查收。
+                */
+                WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
+                dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的车位主，您的注册申请已经审核通过！"));
+                dataItem.put("keyword1", new WeixinTemplateMsg.DItem("尾号" + fansInfo.getPhoneNo().substring(7,11)));
+                dataItem.put("keyword2", new WeixinTemplateMsg.DItem("通过"));
+                dataItem.put("remark", new WeixinTemplateMsg.DItem("恭喜您，您将从以上生效时间起开始享受吼吼停车提供的全面保障和贴心服务。"));
+                String url = this.hhtcContextPath + this.portalCenterUrl;
+                url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+appid+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+appid+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
+                WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
+                templateMsg.setTemplate_id("upsa1MpVfulcu69n_f7B6kF2s8uV9ODU47estmNWuK4");
+                templateMsg.setUrl(url);
+                templateMsg.setTouser(fansInfo.getOpenid());
+                templateMsg.setData(dataItem);
+                WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(appid), templateMsg);
+
+
+-----审核通过 发送短信
+//模版CODE: SMS_86570144（車主）
+                //模版内容: 尊敬的手机尾号为${phone}的用户：您好！感谢您注册吼吼停车，您提交的车主资料已通过物业审核。请登录吼吼停车微信公众号开始抢车位吧！
+                Map<String, String> paramMap = new HashMap<>();
+                paramMap.put("phone", fansInfo.getPhoneNo().substring(7, 11));
+                hhtcHelper.sendSms(fansInfo.getPhoneNo(), "SMS_86570144", paramMap);
+                /*
+                {{first.DATA}}
+                车牌号码：{{keyword1.DATA}}
+                生效时间：{{keyword2.DATA}}
+                {{remark.DATA}}
+
+                尊敬的 XXX，您的爱车已经通过审核，
+                车牌号码：京A00004
+                生效时间：2017-03-01
+                恭喜您成为萌马成员，您将从以上生效时间起开始享受萌马为爱车提供的全面保障和贴心服务。
+                */
+                WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
+                dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的车主，您的注册申请已经审核通过！"));
+                dataItem.put("keyword1", new WeixinTemplateMsg.DItem(fansInfo.getCarNumber()));
+                dataItem.put("keyword2", new WeixinTemplateMsg.DItem(DateFormatUtils.format(new Date(), "yyyy-MM-dd")));
+                dataItem.put("remark", new WeixinTemplateMsg.DItem("我要抢车位，方便加一倍！点击“抢车位”，停车舒心更省心！"));
+                String url = this.hhtcContextPath + "/portal/index.html#/park";
+                url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+appid+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+appid+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
+                WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
+                templateMsg.setTemplate_id("lhvy1gpBCZsBbvOMf93qNWxpF2I4j4cnBe5rt2q3z6w");
+                templateMsg.setUrl(url);
+                templateMsg.setTouser(fansInfo.getOpenid());
+                templateMsg.setData(dataItem);
+                WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(appid), templateMsg);
+
+
+
+
+
+
+
+

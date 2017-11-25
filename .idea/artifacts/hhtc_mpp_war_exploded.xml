@@ -87,11 +87,11 @@
           <element id="library" level="project" name="Maven: com.alibaba:fastjson:1.2.37" />
           <element id="library" level="project" name="Maven: org.jasypt:jasypt:1.9.2" />
           <element id="library" level="project" name="Maven: org.quartz-scheduler:quartz:2.3.0" />
+          <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.7.25" />
           <element id="library" level="project" name="Maven: org.bouncycastle:bcprov-jdk15on:1.57" />
           <element id="library" level="project" name="Maven: com.aliyun:aliyun-java-sdk-core:3.2.9" />
           <element id="library" level="project" name="Maven: com.aliyun:aliyun-java-sdk-dysmsapi:1.0.0-SNAPSHOT" />
           <element id="library" level="project" name="Maven: com.aliyun.openservices:ons-client:1.6.0.Final" />
-          <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.7.25" />
         </element>
       </element>
       <element id="directory" name="META-INF">

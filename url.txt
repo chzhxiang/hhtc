@@ -1,0 +1,20 @@
+
+
+    用户授权查询 查询该用户是否授权 ---- /wx/fans/infor/accredit/get
+    用户同意授权-----/wx/fans/infor/accredit/allowBind
+    用户电话绑定------/wx/fans/infor/phoneNOBind
+    地址绑定 ----/wx/fans/infor/communityBind
+    车牌号绑定 ----/wx/fans/infor/carNOBind
+    管理员审核----/fans/Audit
+
+
+
+
+
+
+
+
+
+
+
+

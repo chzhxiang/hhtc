@@ -6,8 +6,10 @@ import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.util.LogUtil;
 import com.jadyer.seed.mpp.web.HHTCHelper;
+import com.jadyer.seed.mpp.web.model.FansInforAudit;
 import com.jadyer.seed.mpp.web.model.MppUserInfo;
 import com.jadyer.seed.mpp.web.service.AdviceService;
+import com.jadyer.seed.mpp.web.service.AuditService;
 import com.jadyer.seed.mpp.web.service.FansService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +28,8 @@ public class FansController{
     private FansService fansService;
     @Resource
     private AdviceService adviceService;
+    @Resource
+    private AuditService auditService;
 
     /**
      * 分页查询待审核的车主列表
@@ -50,6 +54,24 @@ public class FansController{
         return "fans/task.park.list";
     }
 
+    /**
+     * TOKGO审核粉丝地址、车牌和车位
+     * @param status   审核状态：1--审核通过，2--审核拒绝
+     * @param id     审核信息id号
+     * */
+    @ResponseBody
+    @RequestMapping("/Audit")
+    public CommonResult Audit(long id, int status, String auditRemark, HttpSession session){
+        String appid = hhtcHelper.getWxAppidFromSession(session);
+        //获取操作员的对象
+        MppUserInfo userInfo = (MppUserInfo)session.getAttribute(Constants.WEB_SESSION_USER);
+        FansInforAudit fansInforAudit = auditService.GetOne(id);
+        fansService.Audit(userInfo, fansInforAudit,status, auditRemark, appid);
+
+        return new CommonResult();
+    }
+
+
 
     /**
      * 审核车主或车位主
@@ -62,7 +84,7 @@ public class FansController{
     public CommonResult carAudit(long id, int status, int type, String auditRemark, HttpSession session){
           String appid = hhtcHelper.getWxAppidFromSession(session);
         MppUserInfo userInfo = (MppUserInfo)session.getAttribute(Constants.WEB_SESSION_USER);
-        fansService.carAudit(userInfo, id, status, type, auditRemark, appid);
+        //fansService.carAudit(userInfo, id, status, type, auditRemark, appid);
         return new CommonResult();
     }
 

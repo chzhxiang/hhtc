@@ -72,7 +72,6 @@ public class FansSaveAsync {
             //    fansService.upsert(mppFansInfo);
             //}
         }catch(Exception e){
-            System.out.println("致命异常：粉丝信息openid=["+openid+"]异步保存时发生异常，堆栈轨迹如下："+e);
             LogUtil.logToTask().error("致命异常：粉丝信息openid=["+openid+"]异步保存时发生异常，堆栈轨迹如下：", e);
         }
     }
