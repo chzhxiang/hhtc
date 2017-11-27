@@ -226,19 +226,12 @@ public class HHTCHelper {
 
 
     /**
-     * 生成下单或退款的订单号（固长25）
-     * @param type 9--车主发布需求，8--车主预约下单，0--除以上情况外的
+     * TOKGO 生成下单或退款的订单号（固长25）
      */
-    public String buildOrderNo(int type){
-        if(type == 0){
-            return DateFormatUtils.format(new Date(), "yyMMddHHmmssSSS") + RandomStringUtils.randomNumeric(10);
-        }else{
-            return type + DateFormatUtils.format(new Date(), "yyMMddHHmmssSSS") + RandomStringUtils.randomNumeric(9);
-        }
+    public static String buildOrderNo(){
+        return DateFormatUtils.format(new Date(), "yyMMddHHmmssSSS") + RandomStringUtils.randomNumeric(10);
     }
-    public String buildOrderNo(){
-        return this.buildOrderNo(0);
-    }
+
 
 
     /**

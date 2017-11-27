@@ -223,7 +223,7 @@ public class OrderService {
             newpo.setOpenid(openid);
             newpo.setFromType(2);
             newpo.setFromId(po.getId());
-            newpo.setStatus(0);
+//            newpo.setStatus(0);
             //newpo.setGoodsPublishIds();
             newpo = goodsPublishOrderRepository.saveAndFlush(newpo);
             String pubids = "";
@@ -240,7 +240,7 @@ public class OrderService {
                 newinfo = goodsPublishRepository.saveAndFlush(newinfo);
                 pubids = pubids + "`" + newinfo.getId();
             }
-            newpo.setGoodsPublishIds(pubids.substring(1));
+//            newpo.setGoodsPublishIds(pubids.substring(1));
             goodsPublishOrderRepository.saveAndFlush(newpo);
         }
         //更新原订单信息
@@ -384,9 +384,9 @@ public class OrderService {
         List<GoodsPublishOrder> orderList = new ArrayList<>();
         for(String id : ids.split("`")){
             GoodsPublishOrder pubOrder = goodsPublishOrderRepository.findOne(Long.parseLong(id));
-            if(pubOrder.getStatus() != 0){
-                throw new HHTCException(CodeEnum.HHTC_GOODS_ORDER_FAIL);
-            }
+//            if(pubOrder.getStatus() != 0){
+//                throw new HHTCException(CodeEnum.HHTC_GOODS_ORDER_FAIL);
+//            }
             orderList.add(pubOrder);
             price = price.add(pubOrder.getPrice());
         }
@@ -434,9 +434,9 @@ public class OrderService {
         orderInfo.setCarParkImg(orderList.get(0).getCarParkImg());
         orderInfo.setCarNumber(order.getCarNumber());
         orderInfo.setOpenFromDates(publishFromDates);
-        orderInfo.setOpenFromTime(orderList.get(0).getPublishFromTime());
-        orderInfo.setOpenEndTime(orderList.get(orderList.size()-1).getPublishEndTime());
-        orderInfo.setOutTradeNo(hhtcHelper.buildOrderNo(8));
+//        orderInfo.setOpenFromTime(orderList.get(0).getPublishFromTime());
+//        orderInfo.setOpenEndTime(orderList.get(orderList.size()-1).getPublishEndTime());
+//        orderInfo.setOutTradeNo(hhtcHelper.buildOrderNo(8));
         orderInfo.setTotalFee(Long.parseLong(MoneyUtil.yuanToFen(price.toString())));
         orderInfo.setDepositMoney(new BigDecimal(0));
         orderInfo.setCanRefundMoney(new BigDecimal(0));

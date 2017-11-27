@@ -16,6 +16,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
@@ -74,6 +75,9 @@ public class CommonController {
         out.close();
     }
 
+    /**
+     * 上传图片
+     * */
 
     @RequestMapping("/common/uploadImg")
     void uploadImg(MultipartFile imgData, HttpServletResponse response) throws IOException {
@@ -95,7 +99,7 @@ public class CommonController {
 
 
     @ResponseBody
-    @GetMapping(value="/wx/common/sms/send")
+    @PostMapping(value="/wx/common/sms/send")
     public CommonResult smsSend(String phoneNo, int type){
         //电话验证时 电话号码不能存在
         if (type ==1) {
@@ -103,7 +107,8 @@ public class CommonController {
             if (MppFansInfor!=null)
                 return new CommonResult(CodeEnum.HHTC_INFOR_PHOMENO_USED);
         }
-        smsService.smsSend(phoneNo, type);
+        //TODO 测试阶段不用发短信
+        //smsService.smsSend(phoneNo, type);
         return new CommonResult();
     }
 
@@ -157,6 +162,9 @@ public class CommonController {
         return new CommonResult(resultMap);
     }
 
+    /**
+     * TOKGO 微信上传图片
+     * */
 
     @ResponseBody
     @RequestMapping(value="/wx/media/upload")

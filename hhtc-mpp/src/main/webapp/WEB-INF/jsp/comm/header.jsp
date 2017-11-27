@@ -48,7 +48,6 @@
                 <a href="#"><span>业务管理</span><i></i></a>
                 <div>
                     <a href="${ctx}/goods/list"><span>车位列表</span></a>
-                    <a href="${ctx}/goods/task/list"><span>车位审核</span></a>
                     <a href="${ctx}/community/list/mgr"><span>物管管理</span></a>
                     <a href="${ctx}/community/list"><span>小区管理</span></a>
                     <a href="${ctx}/community/device/list"><span>小区设备管理</span></a>
@@ -58,8 +57,9 @@
             <li ${currentMenu eq 'menu_fans' ? 'class="on"' : ''}>
                 <a href="#"><span>粉丝管理</span><i></i></a>
                 <div>
-                    <a href="${ctx}/fans/task/park/list"><span>车位主审核</span><i></i></a>
-                    <a href="${ctx}/fans/task/owner/list"><span>车主审核</span><i></i></a>
+                    <a href="${ctx}/fans/task/list"><span>车位审核</span></a>
+                    <a href="${ctx}/fans/task/park/list"><span>地址审核</span><i></i></a>
+                    <a href="${ctx}/fans/task/owner/list"><span>车牌审核</span><i></i></a>
                     <a href="${ctx}/fans/list"><span>粉丝列表</span><i></i></a>
                     <a href="${ctx}/fans/advice/list"><span>意见反馈</span><i></i></a>
                 </div>

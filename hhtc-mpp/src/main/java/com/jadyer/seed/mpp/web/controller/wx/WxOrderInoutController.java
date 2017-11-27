@@ -90,7 +90,7 @@ public class WxOrderInoutController {
 
 
     /**
-     * @param communityId 小区ID
+     * @param
      * @param deviceId    设备信息ID
      */
     @RequestMapping("/{deviceId}")

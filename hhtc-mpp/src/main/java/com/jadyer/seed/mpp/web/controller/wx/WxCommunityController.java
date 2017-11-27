@@ -60,4 +60,6 @@ public class WxCommunityController {
     public CommonResult get(long id){
         return new CommonResult(communityService.get(id));
     }
+
+
 }

@@ -1,16 +1,46 @@
 
 
-    用户授权查询 查询该用户是否授权 ---- /wx/fans/infor/accredit/get
-    用户同意授权-----/wx/fans/infor/accredit/allow
-    用户电话绑定------/wx/fans/infor/phoneNOBind
-    地址绑定 ----/wx/fans/infor/communityBind
-    车牌号绑定 ----/wx/fans/infor/carNumberBind
-    车位号绑定 ----/wx/fans/infor/carParkBind
-    发送验证码----/wx/common/sms/send
-根据城市名称获取小区名称列表 ------/wx/community/listByCityName
+get    用户授权查询 查询该用户是否授权 ---- /wx/fans/infor/accredit/get
+post    用户同意授权-----/wx/fans/infor/accredit/allow
+post    用户电话绑定------/wx/fans/infor/phoneNOBind  String phoneNO ,String verifyCod,
 
-    管理员审核----/fans/Audit
+post    用户电话注册 -----/wx/fans/infor/phoneNOBind  String phoneNO ,String verifyCod,
+post    地址绑定 ----/wx/fans/infor/communityBind long CommunityID ,String houseNumber,
 
+post    车牌号绑定 ----/wx/fans/infor/carNumberBind  String carNumber, String carNumberImg,
+post    车牌号注销  --- /wx/fans/infor/carNumberLogout  long id,String state ,
+
+post    车位号绑定 ----/wx/goods/infor/carParkBind String carParkNumber, String carEquityImg,String carUsefulEndDate,
+post    车位注销  --- /wx/goods/infor/carNumberLogout  long id,String state ,
+
+post    发送验证码----/wx/common/sms/send
+get  根据城市名称获取小区名称列表 ------/wx/community/listByCityName
+
+post    管理员审核----/fans/Audit   long id（审核表中的id）, int status, String auditRemark
+
+
+get 获取粉丝个人信息 -----/wx/fans/get
+get 查询粉丝车牌信息信息 -----/wx/fans/get/CarNuber
+get 查询粉丝车位信息信息 -----/wx/goods/get/CarPark
+
+post 新增意见 ------/wx/advice/add  String content, String img,
+get 查询历史投诉记录---/wx/advice/get
+---  微信上传图片 ----/wx/media/upload String serverId,
+
+get 获取可以发布的车位信息 --/wx/market/post/getcarparks
+post 车位发布------ /wx/market/post/postCarpark  long goodsId, String starttime,String endtime
+get  库存数量 获取市场的车位---/wx/market/post/inventory  long communityId
+
+get 车位主获取发布的订单  ---/wx/market/post/getorder
+post 车位主取消发布车位 ---- /wx/market/post/cancel  String orderid
+get 获取粉丝自己的订单 ---/wx/market/transaction /get/order  int type  type 1---预约订单  2----进行中的订单 3---所有
+post  取消订单 ----- /wx/market/transaction /cancel   String orderid，,String type
+
+
+
+post 预约下单 -------/wx/market/transaction/reservation    String orderid,String CarNuber ,
+post 取消预约 ----- /wx/market/transaction/reservationLogout  String orderid
+post 开始订单 ----- /wx/market/transaction/startorder   String orderid
 
 
 

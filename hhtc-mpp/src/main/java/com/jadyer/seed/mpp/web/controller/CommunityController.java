@@ -3,6 +3,7 @@ package com.jadyer.seed.mpp.web.controller;
 import com.jadyer.seed.comm.constant.CommonResult;
 import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.model.CommunityInfo;
+import com.jadyer.seed.mpp.web.model.FansInforAudit;
 import com.jadyer.seed.mpp.web.model.MppUserInfo;
 import com.jadyer.seed.mpp.web.service.CommunityService;
 import org.apache.commons.lang3.StringUtils;

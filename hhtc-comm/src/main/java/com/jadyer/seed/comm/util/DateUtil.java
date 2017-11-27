@@ -57,6 +57,11 @@ public final class DateUtil {
         }
     }
 
+    public static String getStringDate(){
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        return df.format(new Date());
+    }
+
 
     public static String getCurrentDate(){
         return new SimpleDateFormat("yyyyMMdd").format(new Date());
@@ -169,4 +174,11 @@ public final class DateUtil {
         }
         return dayList;
     }
+
+    public long GetTimems(String timestring) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+        return  sdf.parse(timestring).getTime();
+    }
+
+
 }

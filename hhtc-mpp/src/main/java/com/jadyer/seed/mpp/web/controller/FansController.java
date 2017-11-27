@@ -11,6 +11,7 @@ import com.jadyer.seed.mpp.web.model.MppUserInfo;
 import com.jadyer.seed.mpp.web.service.AdviceService;
 import com.jadyer.seed.mpp.web.service.AuditService;
 import com.jadyer.seed.mpp.web.service.FansService;
+import com.jadyer.seed.mpp.web.service.GoodsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -30,6 +31,19 @@ public class FansController{
     private AdviceService adviceService;
     @Resource
     private AuditService auditService;
+    @Resource
+    private GoodsService goodsService;
+
+    /**
+     * 分页查询待审核的车位列表
+     * @param pageNo zero-based page index
+     */
+    @RequestMapping("/task/list")
+    public String listTaskViaPage(String pageNo, HttpServletRequest request){
+        MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
+        request.setAttribute("page", goodsService.listTaskViaPage(userInfo, pageNo));
+        return "fans/task.list";
+    }
 
     /**
      * 分页查询待审核的车主列表
@@ -55,7 +69,7 @@ public class FansController{
     }
 
     /**
-     * TOKGO审核粉丝地址、车牌和车位
+     * TOKGO 审核粉丝地址、车牌和车位
      * @param status   审核状态：1--审核通过，2--审核拒绝
      * @param id     审核信息id号
      * */
@@ -70,7 +84,6 @@ public class FansController{
 
         return new CommonResult();
     }
-
 
 
     /**

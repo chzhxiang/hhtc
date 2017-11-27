@@ -68,18 +68,19 @@ public class WxGoodsPublishController {
     @RequestMapping("/add")
     public CommonResult add(long goodsId, int publishType, int publishFromTime, int publishEndTime, String publishFromDates, HttpSession session){
         String openid = hhtcHelper.getWxOpenidFromSession(session);
-        GoodsInfo goodsInfo = goodsPublishService.verifyBeforeAdd(openid, goodsId, publishType, publishFromTime, publishEndTime, publishFromDates);
+//        GoodsInfo goodsInfo = goodsPublishService.verifyBeforeAdd(openid, goodsId, publishType, publishFromTime, publishEndTime, publishFromDates);
         //校验押金是否足够（一个车位一份押金）
         Map<String, String> fundsMap = new HashMap<>();
         UserFunds funds = userFundsService.get(openid);
-        CommunityInfo communityInfo = communityService.get(goodsInfo.getCommunityId());
-        if(communityInfo.getMoneyBase().compareTo(funds.getMoneyBase()) > 0){
-            fundsMap.put("moneyBase", (communityInfo.getMoneyBase().subtract(funds.getMoneyBase())).toString());
-            fundsMap.put("moneyRent", new BigDecimal(0).toString());
-            fundsMap.put("moneyFull", (new BigDecimal(fundsMap.get("moneyBase")).add(new BigDecimal(fundsMap.get("moneyRent")))).toString());
-            return new CommonResult(CodeEnum.HHTC_NEED_NO_MONEY, fundsMap);
-        }
-        return new CommonResult(goodsPublishService.add(openid, publishType, publishFromTime, publishEndTime, publishFromDates, goodsInfo));
+//        CommunityInfo communityInfo = communityService.get(goodsInfo.getCommunityId());
+//        if(communityInfo.getMoneyBase().compareTo(funds.getMoneyBase()) > 0){
+//            fundsMap.put("moneyBase", (communityInfo.getMoneyBase().subtract(funds.getMoneyBase())).toString());
+//            fundsMap.put("moneyRent", new BigDecimal(0).toString());
+//            fundsMap.put("moneyFull", (new BigDecimal(fundsMap.get("moneyBase")).add(new BigDecimal(fundsMap.get("moneyRent")))).toString());
+//            return new CommonResult(CodeEnum.HHTC_NEED_NO_MONEY, fundsMap);
+//        }
+//        return new CommonResult(goodsPublishService.add(openid, publishType, publishFromTime, publishEndTime, publishFromDates, goodsInfo));
+        return new CommonResult();
     }
 
 
@@ -116,9 +117,9 @@ public class WxGoodsPublishController {
         List<GoodsPublishOrder> orderList = new ArrayList<>();
         for(String id : ids.split("`")){
             GoodsPublishOrder order = goodsPublishOrderRepository.findOne(Long.parseLong(id));
-            if(order.getStatus() != 0){
-                throw new HHTCException(CodeEnum.HHTC_GOODS_ORDER_FAIL);
-            }
+//            if(order.getStatus() != 0){
+//                throw new HHTCException(CodeEnum.HHTC_GOODS_ORDER_FAIL);
+//            }
             orderList.add(order);
             price = price.add(order.getPrice());
         }
@@ -167,4 +168,7 @@ public class WxGoodsPublishController {
         }
         return new CommonResult(goodsPublishService.order(appid, openid, carNumber, price, ids, sb.toString().substring(1), orderList, fansInfor));
     }
+
+
+
 }

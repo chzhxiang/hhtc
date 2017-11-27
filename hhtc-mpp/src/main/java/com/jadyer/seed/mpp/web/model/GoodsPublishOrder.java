@@ -20,8 +20,8 @@ import java.util.Date;
 @Table(name="t_goods_publish_order")
 public class GoodsPublishOrder extends BaseEntity<Long> {
     private static final long serialVersionUID = 5452996244293033218L;
-    @Column(name="goods_publish_ids")
-    private String goodsPublishIds;
+    @Column(name="order_id")
+    private String orderID;
     private String openid;
     @Column(name="community_id")
     private long communityId;
@@ -34,28 +34,46 @@ public class GoodsPublishOrder extends BaseEntity<Long> {
     @Column(name="car_park_img")
     private String carParkImg;
     private BigDecimal price;
-    @Column(name="publish_type")
-    private int publishType;
     @Column(name="publish_from_dates")
     private String publishFromDates;
     @Column(name="publish_from_time")
-    private int publishFromTime;
+    private String publishFromTime;
     @Column(name="publish_end_time")
-    private int publishEndTime;
+    private String publishEndTime;
     @Column(name="from_type")
     private int fromType;
     @Column(name="from_id")
     private long fromId;
-    @Column(name="lock_from_date")
-    private Date lockFromDate;
-    @Column(name="lock_end_date")
-    private Date lockEndDate;
-    private int status;
     /**
      * 发布车位的三合一校验时使用
      */
     @Transient
     private long deleteId;
+
+
+    public String getOrderID() {
+        return orderID;
+    }
+
+    public void setOrderID(String orderID) {
+        this.orderID = orderID;
+    }
+
+    public String getPublishFromTime() {
+        return publishFromTime;
+    }
+
+    public void setPublishFromTime(String publishFromTime) {
+        this.publishFromTime = publishFromTime;
+    }
+
+    public String getPublishEndTime() {
+        return publishEndTime;
+    }
+
+    public void setPublishEndTime(String publishEndTime) {
+        this.publishEndTime = publishEndTime;
+    }
 
     public long getCommunityId() {
         return communityId;
@@ -97,22 +115,6 @@ public class GoodsPublishOrder extends BaseEntity<Long> {
         this.price = price;
     }
 
-    public int getPublishType() {
-        return publishType;
-    }
-
-    public void setPublishType(int publishType) {
-        this.publishType = publishType;
-    }
-
-    public String getGoodsPublishIds() {
-        return goodsPublishIds;
-    }
-
-    public void setGoodsPublishIds(String goodsPublishIds) {
-        this.goodsPublishIds = goodsPublishIds;
-    }
-
     public String getPublishFromDates() {
         return publishFromDates;
     }
@@ -121,21 +123,6 @@ public class GoodsPublishOrder extends BaseEntity<Long> {
         this.publishFromDates = publishFromDates;
     }
 
-    public int getPublishFromTime() {
-        return publishFromTime;
-    }
-
-    public void setPublishFromTime(int publishFromTime) {
-        this.publishFromTime = publishFromTime;
-    }
-
-    public int getPublishEndTime() {
-        return publishEndTime;
-    }
-
-    public void setPublishEndTime(int publishEndTime) {
-        this.publishEndTime = publishEndTime;
-    }
 
     public int getFromType() {
         return fromType;
@@ -151,30 +138,6 @@ public class GoodsPublishOrder extends BaseEntity<Long> {
 
     public void setFromId(long fromId) {
         this.fromId = fromId;
-    }
-
-    public Date getLockFromDate() {
-        return lockFromDate;
-    }
-
-    public void setLockFromDate(Date lockFromDate) {
-        this.lockFromDate = lockFromDate;
-    }
-
-    public Date getLockEndDate() {
-        return lockEndDate;
-    }
-
-    public void setLockEndDate(Date lockEndDate) {
-        this.lockEndDate = lockEndDate;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
     }
 
     public String getCommunityName() {

@@ -32,24 +32,28 @@ public class SmsService {
      */
     @Transactional(rollbackFor=Exception.class)
     public SmsInfo smsSend(String phoneNo, int type){
-        String verifyCode = RandomStringUtils.randomNumeric(6);
-        if(hhtcHelper.sendSms(phoneNo, verifyCode)){
-            SmsInfo smsInfo = new SmsInfo();
-            smsInfo.setIsUsed(0);
-            smsInfo.setPhoneNo(phoneNo);
-            smsInfo.setVerifyCode(verifyCode);
-            smsInfo.setType(type);
-            smsInfo.setTimeSend(new Date());
-            smsInfo.setTimeExpire(DateUtils.addMinutes(new Date(), smsValidityMinute));
-            return smsRepository.saveAndFlush(smsInfo);
+        try {
+            String verifyCode = RandomStringUtils.randomNumeric(6);
+            if(hhtcHelper.sendSms(phoneNo, verifyCode)){
+                SmsInfo smsInfo = new SmsInfo();
+                smsInfo.setIsUsed(0);
+                smsInfo.setPhoneNo(phoneNo);
+                smsInfo.setVerifyCode(verifyCode);
+                smsInfo.setType(type);
+                smsInfo.setTimeSend(new Date());
+                smsInfo.setTimeExpire(DateUtils.addMinutes(new Date(), smsValidityMinute));
+                return smsRepository.saveAndFlush(smsInfo);
+            }
+        }catch (Exception ex) {
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "短信发送失败");
         }
-        throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "短信发送失败");
+        return null;
     }
 
 
     /**
      * 短信验证
-     * @param type 短信类型：1—电话号码验证，2—车位主注册，3—车主提现，4—车位主提现
+     * @param type 短信类型：1—电话号码验证，2—电话号码注销，3—车主提现，4—车位主提现
      */
     @Transactional(rollbackFor=Exception.class)
     public boolean smsVerify(String phoneNo, String verifyCode, int type){
@@ -59,6 +63,7 @@ public class SmsService {
             if(obj.getType()==type ){
                 obj.setIsUsed(1);
                 obj.setUsedResult(1);
+                //TODO 验证码的有效期
                // obj.setUsedTime(currentDate);
                 smsRepository.saveAndFlush(obj);
                 return true;

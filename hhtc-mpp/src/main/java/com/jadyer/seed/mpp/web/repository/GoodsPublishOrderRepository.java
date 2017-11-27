@@ -12,14 +12,14 @@ import java.util.List;
  * Created by 玄玉<http://jadyer.cn/> on 2017/7/17 10:42.
  */
 public interface GoodsPublishOrderRepository extends BaseRepository<GoodsPublishOrder, Long> {
-    long countByStatus(int status);
-    long countByGoodsIdAndStatusIn(long goodsId, List<Integer> statusList);
-    long countByCommunityIdAndStatus(long communityId, int status);
 
-    List<GoodsPublishOrder> findByCommunityIdAndStatusAndPublishFromTimeLessThanEqual(long communityId, int status, int publishFromTime);
-    List<GoodsPublishOrder> findByCommunityIdAndStatusAndPublishTypeAndPublishFromTimeGreaterThanAndPublishEndTimeGreaterThanEqual(long communityId, int status, int publishType, int publishFromTime, int publishEndTime);
 
-    GoodsPublishOrder findByGoodsPublishIdsLike(String GoodsPublishIds);
+    List<GoodsPublishOrder> findByCommunityId(long communityId);
+//    List<GoodsPublishOrder> findByCommunityIdAndStatusAndPublishTypeAndPublishFromTimeGreaterThanAndPublishEndTimeGreaterThanEqual(long communityId, int status, int publishType, int publishFromTime, int publishEndTime);
+//
+    List<GoodsPublishOrder> findByOpenid(String openid);
+
+    GoodsPublishOrder findByOrderID(String orderID);
 
     List<GoodsPublishOrder> findByGoodsIdAndOpenid(long goodsId, String openid);
 
@@ -30,21 +30,13 @@ public interface GoodsPublishOrderRepository extends BaseRepository<GoodsPublish
 
     @Modifying
     @Transactional(timeout=10)
-    @Query("DELETE FROM GoodsPublishOrder WHERE goodsPublishIds=?1")
-    void deleteByGoodsPublishId(long goodPublishId);
+    @Query("DELETE FROM GoodsPublishOrder WHERE orderID=?1")
+    void deleteByOrderID(String orderID);
 
 
-    /**
-     * 更新发布的状态
-     */
-    @Modifying
-    @Transactional(timeout=10)
-    @Query("UPDATE GoodsPublishOrder SET status=?2 WHERE id=?1")
-    int updateStatus(long id, int status);
 
-
-    /**
-     * 定时任务：记录过期的发布信息到历史表
-     */
-    List<GoodsPublishOrder> findByPublishFromDatesEndingWith(String publishEndDate);
+//    /**
+//     * 定时任务：记录过期的发布信息到历史表
+//     */
+//    List<GoodsPublishOrder> findByPublishFromDatesEndingWith(String publishEndDate);
 }

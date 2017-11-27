@@ -8,16 +8,8 @@ import com.jadyer.seed.comm.util.DateUtil;
 import com.jadyer.seed.comm.util.JadyerUtil;
 import com.jadyer.seed.comm.util.LogUtil;
 import com.jadyer.seed.mpp.web.HHTCHelper;
-import com.jadyer.seed.mpp.web.model.GoodsPublishHistory;
-import com.jadyer.seed.mpp.web.model.GoodsPublishInfo;
-import com.jadyer.seed.mpp.web.model.GoodsPublishOrder;
-import com.jadyer.seed.mpp.web.model.OrderInfo;
-import com.jadyer.seed.mpp.web.repository.GoodsPublishHistoryRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsPublishOrderRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsPublishRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsRepository;
-import com.jadyer.seed.mpp.web.repository.OrderRentRepository;
-import com.jadyer.seed.mpp.web.repository.OrderRepository;
+import com.jadyer.seed.mpp.web.model.*;
+import com.jadyer.seed.mpp.web.repository.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -30,7 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -54,17 +48,20 @@ public class GoodsPublishOrderService {
     @Resource
     private GoodsService goodsService;
     @Resource
-    private GoodsRepository goodsRepository;
+    private GooRepository goodsRepository;
     @Resource
     private OrderRepository orderRepository;
     @Resource
     private CommunityService communityService;
     @Resource
     private UserFundsService userFundsService;
+
     @Resource
     private OrderRentRepository orderRentRepository;
     @Resource
     private UserFundsFlowService userFundsFlowService;
+    @Resource
+    private GoodsInforRepository goodsInforRepository;
     @Resource
     private GoodsPublishRepository goodsPublishRepository;
     @Resource
@@ -72,14 +69,110 @@ public class GoodsPublishOrderService {
     @Resource
     private GoodsPublishHistoryRepository goodsPublishHistoryRepository;
 
+
+
+    /**
+     * TOKGO 获取用户发布车位
+     * */
+    @Transactional(rollbackFor=Exception.class)
+    public List<GoodsInfor> GetPublishCarpark(String openid){
+        return goodsInforRepository.findByOpenidAndIsUsed(openid,0);
+    }
+
+
+    /**
+     * TOKGO 用户发布订单
+     * */
+    @Transactional(rollbackFor=Exception.class)
+    public void postOrder(String openid,long goodsId, String starttime,String endtime){
+        GoodsInfor goodsInfor = goodsInforRepository.findByOpenidAndId(openid, goodsId);
+        if (goodsInfor ==null)
+            throw new HHTCException(CodeEnum.SYSTEM_NULL);
+        //TODO  检测用户押金是否足够
+        GoodsPublishOrder goodsPublishOrder = new GoodsPublishOrder();
+        goodsPublishOrder.setOrderID(HHTCHelper.buildOrderNo());
+        goodsPublishOrder.setOpenid(openid);
+        goodsPublishOrder.setCommunityId(goodsInfor.getCommunityId());
+        goodsPublishOrder.setCommunityName(goodsInfor.getCommunityName());
+        goodsPublishOrder.setGoodsId(goodsInfor.getId());
+        goodsPublishOrder.setCarParkNumber(goodsInfor.getCarParkNumber());
+        goodsPublishOrder.setCarParkImg(goodsInfor.getCarParkImg());
+        goodsPublishOrder.setPrice(GetPrice(starttime,endtime));
+        goodsPublishOrder.setPublishFromTime(starttime);
+        goodsPublishOrder.setPublishEndTime(endtime);
+        //更改车位当前状态
+        goodsService.updateStatus(goodsId,1,goodsInfor.getIsUsed());
+        goodsPublishOrderRepository.save(goodsPublishOrder);
+    }
+
+    /**
+     * TOKGO 计算价格
+     * */
+
+    private BigDecimal GetPrice(String starttime,String endtime){
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+        long timestart,timeend;
+        try {
+            timestart= sdf.parse(starttime).getTime();
+            timeend= sdf.parse(endtime).getTime();
+        } catch (ParseException e) {
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_TIME_ERROR);
+        }
+        //TODO  计算订单价格
+        return  new BigDecimal(100.00);
+    }
+
+    /**
+     * TOKGO 库存数量 获取市场的车位
+     */
+    @Transactional(rollbackFor=Exception.class)
+    public List<GoodsPublishOrder> inventory(long communityId){
+        List<GoodsPublishOrder> goodsPublishOrderSends = new ArrayList<>();
+        List<GoodsPublishOrder> goodsPublishOrders =goodsPublishOrderRepository.findByCommunityId(communityId);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+        long timeend;
+        try {
+            timeend= sdf.parse("2017-11-27 11:18").getTime();
+        } catch (ParseException e) {
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_TIME_ERROR);
+        }
+        for (GoodsPublishOrder goodsPublishOrder:goodsPublishOrders){
+            ////TODO 根据时间进行筛选
+            if (true){
+                goodsPublishOrderSends.add(goodsPublishOrder);
+            }
+        }
+        return goodsPublishOrderSends;
+    }
+
+    /**
+     * TOKGO 获取发布订单
+     * */
+    public List<GoodsPublishOrder> Getfansorder(String openid){
+        return goodsPublishOrderRepository.findByOpenid(openid);
+    }
+
+
+    /**
+     * TOKGO 订单取消 回归市场
+     * */
+    public void BackMarket( OrderInfor orderInfor){
+        //TODO 订单回归市场 操作
+    }
+
+
+
+
+
+
     @Transactional(rollbackFor=Exception.class)
     public void lock(List<GoodsPublishOrder> orderList){
         Date lockFromDate = new Date();
         Date lockEndDate = DateUtils.addMinutes(lockFromDate, this.orderLockMinute+1);
         for(GoodsPublishOrder order : orderList){
-            order.setStatus(1);
-            order.setLockFromDate(lockFromDate);
-            order.setLockEndDate(lockEndDate);
+//            order.setStatus(1);
+//            order.setLockFromDate(lockFromDate);
+//            order.setLockEndDate(lockEndDate);
             goodsPublishOrderRepository.saveAndFlush(order);
             List<GoodsPublishInfo> publishList = goodsPublishRepository.findByGoodsPublishOrderId(order.getId());
             for(GoodsPublishInfo obj : publishList){
@@ -98,7 +191,7 @@ public class GoodsPublishOrderService {
     @Transactional(rollbackFor=Exception.class)
     public void updateStatusToUsed(List<GoodsPublishOrder> orderList){
         for(GoodsPublishOrder order : orderList){
-            order.setStatus(2);
+//            order.setStatus(2);
             goodsPublishOrderRepository.saveAndFlush(order);
             List<GoodsPublishInfo> publishList = goodsPublishRepository.findByGoodsPublishOrderId(order.getId());
             for(GoodsPublishInfo obj : publishList){
@@ -116,7 +209,7 @@ public class GoodsPublishOrderService {
     @Transactional(rollbackFor=Exception.class)
     public void updateStatusToPublishing(List<GoodsPublishOrder> orderList){
         for(GoodsPublishOrder order : orderList){
-            order.setStatus(1);
+//            order.setStatus(1);
             goodsPublishOrderRepository.saveAndFlush(order);
             List<GoodsPublishInfo> publishList = goodsPublishRepository.findByGoodsPublishOrderId(order.getId());
             for(GoodsPublishInfo obj : publishList){
@@ -129,33 +222,9 @@ public class GoodsPublishOrderService {
         }
     }
 
-
-    /**
-     * 库存数量
-     */
-    public Map<String, Long> inventory(long communityId){
-        long dealCount;
-        long remainCount;
-        if(communityId > 0){
-            dealCount = orderRepository.countByCommunityIdAndOrderStatusInAndOrderTypeLessThan(communityId, Arrays.asList(2, 9, 99), 10);
-            remainCount = goodsPublishOrderRepository.countByCommunityIdAndStatus(communityId, 0);
-        }else{
-            dealCount = orderRepository.countByOrderStatusInAndOrderTypeLessThan(Arrays.asList(2, 9, 99), 10);
-            remainCount = goodsPublishOrderRepository.countByStatus(0);
-        }
-        return new HashMap<String, Long>(){
-            private static final long serialVersionUID = -3747740152447862442L;
-            {
-                put("dealCount", dealCount);
-                put("remainCount", remainCount);
-            }
-        };
-    }
-
-
     /**
      * 车位发布列表
-     * @param page zero-based page index
+     * @param goodsId zero-based page index
      */
     public Page<GoodsPublishOrder> listByGoodsId(long goodsId, String pageNo) {
         Sort sort = new Sort(Sort.Direction.ASC, "id");
@@ -180,29 +249,22 @@ public class GoodsPublishOrderService {
      * 车位主取消发布车位
      */
     @Transactional(rollbackFor=Exception.class)
-    public void cancel(String openid, long id) {
-        GoodsPublishOrder order = goodsPublishOrderRepository.findOne(id);
-        //可以取消未锁定的
-        if(order.getStatus() != 0){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "该车位已被锁定或使用");
-        }
-        //只能提前一个小时
-        int publishFromDate;
-        if(order.getPublishFromDates().contains("-")){
-            publishFromDate = Integer.parseInt(order.getPublishFromDates().substring(0, order.getPublishFromDates().indexOf("-")));
-        }else{
-            publishFromDate = Integer.parseInt(order.getPublishFromDates());
-        }
-        if(DateUtils.addHours(new Date(), 1).getTime() > hhtcHelper.convertToDate(publishFromDate, order.getPublishFromTime()).getTime()){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "至少提前一个小时取消");
-        }
-        goodsPublishOrderRepository.delete(id);
-        goodsPublishRepository.deleteByGoodsPublishOrderId(id);
-        //判断删除后是否发布订单就没有了，那就得把goods状态改为未使用
-        List<GoodsPublishOrder> orderList = goodsPublishOrderRepository.findByGoodsIdAndOpenid(order.getGoodsId(), openid);
-        if(orderList.isEmpty() || (orderList.size()==1 && orderList.get(0).getId()==id)){
-            goodsRepository.updateStatus(order.getGoodsId(), 0);
-        }
+    public void cancel(String openid,String orderid) {
+        GoodsPublishOrder order = goodsPublishOrderRepository.findByOrderID(orderid);
+        // TODO 只能提前一个小时 没有写
+//        int publishFromDate;
+//        if(order.getPublishFromDates().contains("-")){
+//            publishFromDate = Integer.parseInt(order.getPublishFromDates().substring(0, order.getPublishFromDates().indexOf("-")));
+//        }else{
+//            publishFromDate = Integer.parseInt(order.getPublishFromDates());
+//        }
+////        if(DateUtils.addHours(new Date(), 1).getTime() > hhtcHelper.convertToDate(publishFromDate, order.getPublishFromTime()).getTime()){
+////            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "至少提前一个小时取消");
+////        }
+        // 那就得把goods状态改为未使用
+        goodsService.updateStatus(order.getGoodsId(),0,1);
+        //删除市场中的订单
+        goodsPublishOrderRepository.delete(order);
     }
 
 
@@ -211,59 +273,59 @@ public class GoodsPublishOrderService {
      */
     @Transactional(rollbackFor=Exception.class)
     public void history(){
-        List<GoodsPublishOrder> pubOrderList = goodsPublishOrderRepository.findByPublishFromDatesEndingWith(DateUtil.getYestoday());
-        List<GoodsPublishOrder> pubOrderList22 = goodsPublishOrderRepository.findByPublishFromDatesEndingWith(DateUtil.getCurrentDate());
-        pubOrderList.addAll(pubOrderList22);
-        String idx = "1";
-        int len = pubOrderList.size();
-        LogUtil.getQuartzLogger().info("定时任务：归档发布信息-->查到记录[{}]条", len);
-        for(GoodsPublishOrder obj : pubOrderList){
-            idx = JadyerUtil.leftPadUseZero(idx, String.valueOf(len).length());
-            LogUtil.getQuartzLogger().info("定时任务：归档发布信息-->开始处理[{}-{}]条，id={}", len, idx, obj.getId());
-            int publishEndDate;
-            String[] fromDates = obj.getPublishFromDates().split("-");
-            publishEndDate = Integer.parseInt(fromDates[fromDates.length-1]);
-            if(3==obj.getPublishType() || (2==obj.getPublishType() && obj.getPublishEndTime()<obj.getPublishFromTime())){
-                try {
-                    publishEndDate = Integer.parseInt(DateFormatUtils.format(DateUtils.addDays(DateUtils.parseDate(publishEndDate+"", "yyyyMMdd"), 1), "yyyyMMdd"));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-            }
-            //该发布信息是否被锁定中（正在下单支付）
-            boolean isLocking = false;
-            if(null!=obj.getLockEndDate() && new Date().compareTo(obj.getLockEndDate())<1){
-                isLocking = true;
-            }
+//        List<GoodsPublishOrder> pubOrderList = goodsPublishOrderRepository.findByPublishFromDatesEndingWith(DateUtil.getYestoday());
+//        List<GoodsPublishOrder> pubOrderList22 = goodsPublishOrderRepository.findByPublishFromDatesEndingWith(DateUtil.getCurrentDate());
+//        pubOrderList.addAll(pubOrderList22);
+//        String idx = "1";
+//        int len = pubOrderList.size();
+//        LogUtil.getQuartzLogger().info("定时任务：归档发布信息-->查到记录[{}]条", len);
+//        for(GoodsPublishOrder obj : pubOrderList){
+//            idx = JadyerUtil.leftPadUseZero(idx, String.valueOf(len).length());
+//            LogUtil.getQuartzLogger().info("定时任务：归档发布信息-->开始处理[{}-{}]条，id={}", len, idx, obj.getId());
+//            int publishEndDate;
+//            String[] fromDates = obj.getPublishFromDates().split("-");
+//            publishEndDate = Integer.parseInt(fromDates[fromDates.length-1]);
+//            if(3==obj.getPublishType() || (2==obj.getPublishType() && obj.getPublishEndTime()<obj.getPublishFromTime())){
+//                try {
+//                    publishEndDate = Integer.parseInt(DateFormatUtils.format(DateUtils.addDays(DateUtils.parseDate(publishEndDate+"", "yyyyMMdd"), 1), "yyyyMMdd"));
+//                } catch (ParseException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            //该发布信息是否被锁定中（正在下单支付）
+//            boolean isLocking = false;
+//            if(null!=obj.getLockEndDate() && new Date().compareTo(obj.getLockEndDate())<1){
+//                isLocking = true;
+//            }
             //标记该发布信息，是否已被下单并使用中，默认为否
-            boolean isUsing = false;
-            for(OrderInfo order : orderRepository.findByGoodsPublishOrderIdsLike("%"+obj.getId()+"%")){
-                if(order.getOrderStatus()==1 || order.getOrderStatus()==2){
-                    isUsing = true;
-                }
-            }
-            Date endDate = hhtcHelper.convertToDate(publishEndDate, obj.getPublishEndTime());
-            if(endDate.compareTo(new Date())>0 || isLocking || isUsing){
-                LogUtil.getQuartzLogger().info("定时任务：归档发布信息-->正在处理[{}-{}]条，id={}的记录暂不需要归档", len, idx, obj.getId());
-            }else{
-                obj.setStatus(3);
-                goodsPublishOrderRepository.saveAndFlush(obj);
-                List<GoodsPublishInfo> pubList = goodsPublishRepository.findByGoodsPublishOrderId(obj.getId());
-                for(GoodsPublishInfo pub : pubList){
-                    GoodsPublishHistory history = new GoodsPublishHistory();
-                    BeanUtil.copyProperties(pub, history);
-                    history.setId(null);
-                    history.setGoodsPublishId(pub.getId());
-                    goodsPublishHistoryRepository.saveAndFlush(history);
-                    goodsPublishRepository.delete(pub.getId());
-                    //发布信息列表为空时，将其对应的车位置为待发布
-                    if(0 == goodsPublishRepository.countByGoodsId(pub.getGoodsId())){
-                        goodsRepository.updateStatus(pub.getGoodsId(), 0);
-                    }
-                }
-            }
-            LogUtil.getQuartzLogger().info("定时任务：归档发布信息-->处理完毕[{}-{}]条", len, idx);
-            idx = String.valueOf(Integer.parseInt(idx) + 1);
-        }
+//            boolean isUsing = false;
+//            for(OrderInfo order : orderRepository.findByGoodsPublishOrderIdsLike("%"+obj.getId()+"%")){
+//                if(order.getOrderStatus()==1 || order.getOrderStatus()==2){
+//                    isUsing = true;
+//                }
+//            }
+//            Date endDate = hhtcHelper.convertToDate(publishEndDate, 0);
+//            if(endDate.compareTo(new Date())>0  || isUsing){
+//                LogUtil.getQuartzLogger().info("定时任务：归档发布信息-->正在处理[{}-{}]条，id={}的记录暂不需要归档", len, idx, obj.getId());
+//            }else{
+////                obj.setStatus(3);
+//                goodsPublishOrderRepository.saveAndFlush(obj);
+//                List<GoodsPublishInfo> pubList = goodsPublishRepository.findByGoodsPublishOrderId(obj.getId());
+//                for(GoodsPublishInfo pub : pubList){
+//                    GoodsPublishHistory history = new GoodsPublishHistory();
+//                    BeanUtil.copyProperties(pub, history);
+//                    history.setId(null);
+//                    history.setGoodsPublishId(pub.getId());
+//                    goodsPublishHistoryRepository.saveAndFlush(history);
+//                    goodsPublishRepository.delete(pub.getId());
+//                    //发布信息列表为空时，将其对应的车位置为待发布
+//                    if(0 == goodsPublishRepository.countByGoodsId(pub.getGoodsId())){
+//                        goodsRepository.updateStatus(pub.getGoodsId(), 0);
+//                    }
+//                }
+//            }
+//            LogUtil.getQuartzLogger().info("定时任务：归档发布信息-->处理完毕[{}-{}]条", len, idx);
+//            idx = String.valueOf(Integer.parseInt(idx) + 1);
+//        }
     }
 }

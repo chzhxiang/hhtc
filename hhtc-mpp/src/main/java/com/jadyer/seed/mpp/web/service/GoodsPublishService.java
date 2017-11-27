@@ -10,17 +10,11 @@ import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
 import com.jadyer.seed.mpp.sdk.weixin.model.template.WeixinTemplateMsg;
 import com.jadyer.seed.mpp.web.HHTCHelper;
-import com.jadyer.seed.mpp.web.model.GoodsInfo;
-import com.jadyer.seed.mpp.web.model.GoodsPublishInfo;
-import com.jadyer.seed.mpp.web.model.GoodsPublishOrder;
-import com.jadyer.seed.mpp.web.model.MppFansInfor;
-import com.jadyer.seed.mpp.web.model.OrderInfo;
-import com.jadyer.seed.mpp.web.model.UserFunds;
-import com.jadyer.seed.mpp.web.model.UserFundsFlow;
+import com.jadyer.seed.mpp.web.model.*;
 import com.jadyer.seed.mpp.web.repository.GoodsPublishHistoryRepository;
 import com.jadyer.seed.mpp.web.repository.GoodsPublishOrderRepository;
 import com.jadyer.seed.mpp.web.repository.GoodsPublishRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsRepository;
+import com.jadyer.seed.mpp.web.repository.GooRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -63,7 +57,7 @@ public class GoodsPublishService {
     @Resource
     private OrderService orderService;
     @Resource
-    private GoodsRepository goodsRepository;
+    private GooRepository goodsRepository;
     @Resource
     private UserFundsService userFundsService;
     @Resource
@@ -90,7 +84,7 @@ public class GoodsPublishService {
     /**
      * 业务校验（车位主发布车位）
      */
-    public GoodsInfo verifyBeforeAdd(String openid, long goodsId, int publishType, int publishFromTime, int publishEndTime, String publishFromDates){
+    public GoodsInfor verifyBeforeAdd(String openid, long goodsId, int publishType, int publishFromTime, int publishEndTime, String publishFromDates){
         List<String> dateList = Arrays.asList(publishFromDates.split("-"));
         hhtcHelper.verifyOfTime(publishType, publishFromTime, publishEndTime, Integer.parseInt(dateList.get(0)), Integer.parseInt(dateList.get(dateList.size()-1)));
         //TODO
@@ -98,8 +92,8 @@ public class GoodsPublishService {
 //        if(2 != fansService.getByOpenid(openid).getCarParkStatus()){
 //            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_PARK);
 //        }
-        GoodsInfo goodsInfo = goodsService.get(goodsId);
-        if(goodsInfo.getIsUsed() == 3){
+        GoodsInfor goodsInfor = goodsService.get(goodsId);
+        if(goodsInfor.getIsUsed() == 3){
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "车位无效（已删除）");
         }
         try {
@@ -107,15 +101,15 @@ public class GoodsPublishService {
             if(publishType==3 || (2==publishType && publishEndTime<publishFromTime)){
                 endDate = DateUtils.addDays(endDate, 1);
             }
-            if(Integer.parseInt(DateFormatUtils.format(endDate, "yyyyMMdd")) > goodsInfo.getCarUsefulEndDate()){
-                throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "发布截止日不能超过车位有效期");
-            }
+//            if(Integer.parseInt(DateFormatUtils.format(endDate, "yyyyMMdd")) > goodsInfo.getCarUsefulEndDate()){
+//                throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "发布截止日不能超过车位有效期");
+//            }
         } catch (ParseException e) {
             e.printStackTrace();
         }
         //时间段不可重叠
         hhtcHelper.verifyOfTimeCross(dateList, goodsId, publishFromTime, publishEndTime);
-        return goodsInfo;
+        return goodsInfor;
     }
 
 
@@ -171,10 +165,10 @@ public class GoodsPublishService {
         }
         //最后判断info所属的order是否是大于24小时发布的那种
         if(null!=info.getId() && info.getId()>0){
-            GoodsPublishOrder order = goodsPublishOrderRepository.findByGoodsPublishIdsLike("%"+info.getId()+"%");
-            if(null!=order && order.getId()>0 && order.getPublishFromDates().contains("-")){
-                return new GoodsPublishInfo();
-            }
+//            GoodsPublishOrder order = goodsPublishOrderRepository.findByGoodsPublishIdsLike("%"+info.getId()+"%");
+//            if(null!=order && order.getId()>0 && order.getPublishFromDates().contains("-")){
+//                return new GoodsPublishInfo();
+//            }
         }
         return info;
     }
@@ -184,7 +178,7 @@ public class GoodsPublishService {
      * 发布的车位是否可合并
      */
     public boolean addCanMerge(String openid, long goodsId, int publishType, int publishFromTime, int publishEndTime, String publishFromDates){
-        GoodsInfo goodsInfo = this.verifyBeforeAdd(openid, goodsId, publishType, publishFromTime, publishEndTime, publishFromDates);
+//        GoodsInfo goodsInfo = this.verifyBeforeAdd(openid, goodsId, publishType, publishFromTime, publishEndTime, publishFromDates);
         //全天或超过24小时的发布订单，都不合并
         if(publishFromDates.contains("-") || publishType==3){
             return false;
@@ -213,21 +207,21 @@ public class GoodsPublishService {
         GoodsPublishOrder order = new GoodsPublishOrder();
         //先处理不需要合并的（全天或超过24小时的发布订单）
         if(publishFromDates.contains("-") || publishType==3){
-            order.setGoodsPublishIds("");
-            order.setPrice(new BigDecimal(0));
-            order.setOpenid(openid);
-            order.setCommunityId(goodsInfo.getCommunityId());
-            order.setCommunityName(goodsInfo.getCommunityName());
-            order.setGoodsId(goodsInfo.getId());
-            order.setCarParkNumber(goodsInfo.getCarParkNumber());
-            order.setCarParkImg(goodsInfo.getCarParkImg());
-            order.setPublishType(publishType);
-            order.setPublishFromDates(publishFromDates);
-            order.setPublishFromTime(publishFromTime);
-            order.setPublishEndTime(publishEndTime);
-            order.setFromType(1);
-            order.setFromId(0);
-            order.setStatus(0);
+//            order.setGoodsPublishIds("");
+//            order.setPrice(new BigDecimal(0));
+//            order.setOpenid(openid);
+//            order.setCommunityId(goodsInfo.getCommunityId());
+//            order.setCommunityName(goodsInfo.getCommunityName());
+//            order.setGoodsId(goodsInfo.getId());
+//            order.setCarParkNumber(goodsInfo.getCarParkNumber());
+//            order.setCarParkImg(goodsInfo.getCarParkImg());
+//            order.setPublishType(publishType);
+//            order.setPublishFromDates(publishFromDates);
+//            order.setPublishFromTime(publishFromTime);
+//            order.setPublishEndTime(publishEndTime);
+//            order.setFromType(1);
+//            order.setFromId(0);
+//            order.setStatus(0);
             order = goodsPublishOrderRepository.saveAndFlush(order);
             String ids = "";
             BigDecimal price = new BigDecimal(0);
@@ -263,7 +257,7 @@ public class GoodsPublishService {
                 ids = ids + "`" + info.getId();
                 price = price.add(info.getPrice());
             }
-            order.setGoodsPublishIds(ids.substring(1));
+//            order.setGoodsPublishIds(ids.substring(1));
             order.setPrice(price);
             order = goodsPublishOrderRepository.saveAndFlush(order);
         }else{
@@ -278,49 +272,49 @@ public class GoodsPublishService {
                 }
             }
             GoodsPublishInfo info = this.threeToOne(goodsInfo.getId(), publishType, publishFromTime, publishEndTime, publishFromDate, publishEndDate);
-            //不存在合并的：新增publishOrder和publishInfo
-            if(null==info.getId() || info.getId()==0){
-                order.setGoodsPublishIds("");
-                order.setPrice(new BigDecimal(0));
-                order.setOpenid(openid);
-                order.setCommunityId(goodsInfo.getCommunityId());
-                order.setCommunityName(goodsInfo.getCommunityName());
-                order.setGoodsId(goodsInfo.getId());
-                order.setCarParkNumber(goodsInfo.getCarParkNumber());
-                order.setCarParkImg(goodsInfo.getCarParkImg());
-                order.setPublishType(publishType);
-                order.setPublishFromDates(publishFromDates);
-                order.setPublishFromTime(publishFromTime);
-                order.setPublishEndTime(publishEndTime);
-                order.setFromType(1);
-                order.setFromId(0);
-                order.setStatus(0);
-                order = goodsPublishOrderRepository.saveAndFlush(order);
-                BeanUtil.copyProperties(order, info);
-                info.setId(null);
-                info.setPrice(hhtcHelper.calcPrice(goodsInfo.getCommunityId(), publishType));
-                info.setGoodsPublishOrderId(order.getId());
-                info.setPublishFromDate(publishFromDate);
-                info.setPublishEndDate(publishEndDate);
-                info.setFromIds("0");
-                info.setStatus(0);
-                info = goodsPublishRepository.saveAndFlush(info);
-                order.setGoodsPublishIds(info.getId()+"");
-                order.setPrice(info.getPrice());
-                order = goodsPublishOrderRepository.saveAndFlush(order);
-            }else{
-                //存在合并的（有三合一的则要删除一个，否则更新publishOrder和publishInfo，更新时要特别注意order的时间变化）
-                if(info.getDeleteId() > 0){
-                    goodsPublishRepository.delete(info.getDeleteId());
-                    goodsPublishOrderRepository.deleteByGoodsPublishId(info.getDeleteId());
-                }
-                info = goodsPublishRepository.saveAndFlush(info);
-                order = goodsPublishOrderRepository.findOne(info.getGoodsPublishOrderId());
-                order.setPublishFromDates(info.getPublishFromDate()+"");
-                order.setPublishFromTime(info.getPublishFromTime());
-                order.setPublishEndTime(info.getPublishEndTime());
-                order = goodsPublishOrderRepository.saveAndFlush(order);
-            }
+//            //不存在合并的：新增publishOrder和publishInfo
+//            if(null==info.getId() || info.getId()==0){
+//                order.setGoodsPublishIds("");
+//                order.setPrice(new BigDecimal(0));
+//                order.setOpenid(openid);
+//                order.setCommunityId(goodsInfo.getCommunityId());
+//                order.setCommunityName(goodsInfo.getCommunityName());
+//                order.setGoodsId(goodsInfo.getId());
+//                order.setCarParkNumber(goodsInfo.getCarParkNumber());
+//                order.setCarParkImg(goodsInfo.getCarParkImg());
+//                order.setPublishType(publishType);
+//                order.setPublishFromDates(publishFromDates);
+//                order.setPublishFromTime(publishFromTime);
+//                order.setPublishEndTime(publishEndTime);
+//                order.setFromType(1);
+//                order.setFromId(0);
+//                order.setStatus(0);
+//                order = goodsPublishOrderRepository.saveAndFlush(order);
+//                BeanUtil.copyProperties(order, info);
+//                info.setId(null);
+//                info.setPrice(hhtcHelper.calcPrice(goodsInfo.getCommunityId(), publishType));
+//                info.setGoodsPublishOrderId(order.getId());
+//                info.setPublishFromDate(publishFromDate);
+//                info.setPublishEndDate(publishEndDate);
+//                info.setFromIds("0");
+//                info.setStatus(0);
+//                info = goodsPublishRepository.saveAndFlush(info);
+//                order.setGoodsPublishIds(info.getId()+"");
+//                order.setPrice(info.getPrice());
+//                order = goodsPublishOrderRepository.saveAndFlush(order);
+//            }else{
+//                //存在合并的（有三合一的则要删除一个，否则更新publishOrder和publishInfo，更新时要特别注意order的时间变化）
+//                if(info.getDeleteId() > 0){
+//                    goodsPublishRepository.delete(info.getDeleteId());
+//                    goodsPublishOrderRepository.deleteByGoodsPublishId(info.getDeleteId());
+//                }
+//                info = goodsPublishRepository.saveAndFlush(info);
+//                order = goodsPublishOrderRepository.findOne(info.getGoodsPublishOrderId());
+//                order.setPublishFromDates(info.getPublishFromDate()+"");
+//                order.setPublishFromTime(info.getPublishFromTime());
+//                order.setPublishEndTime(info.getPublishEndTime());
+//                order = goodsPublishOrderRepository.saveAndFlush(order);
+//            }
         }
         goodsService.updateStatus(goodsInfo.getId(), 1, 0);
         return order;
@@ -369,11 +363,11 @@ public class GoodsPublishService {
         orderInfo.setCarParkNumber(orderList.get(0).getCarParkNumber());
         orderInfo.setCarParkImg(orderList.get(0).getCarParkImg());
         orderInfo.setCarNumber(carNumber);
-        orderInfo.setOpenType(orderList.get(0).getPublishType());
-        orderInfo.setOpenFromDates(publishFromDates);
-        orderInfo.setOpenFromTime(orderList.get(0).getPublishFromTime());
-        orderInfo.setOpenEndTime(orderList.get(orderList.size()-1).getPublishEndTime());
-        orderInfo.setOutTradeNo(hhtcHelper.buildOrderNo(8));
+//        orderInfo.setOpenType(orderList.get(0).getPublishType());
+//        orderInfo.setOpenFromDates(publishFromDates);
+//        orderInfo.setOpenFromTime(orderList.get(0).getPublishFromTime());
+//        orderInfo.setOpenEndTime(orderList.get(orderList.size()-1).getPublishEndTime());
+//        orderInfo.setOutTradeNo(hhtcHelper.buildOrderNo(8));
         orderInfo.setTotalFee(Long.parseLong(MoneyUtil.yuanToFen(price.toString())));
         orderInfo.setDepositMoney(new BigDecimal(0));
         orderInfo.setCanRefundMoney(new BigDecimal(0));
@@ -672,35 +666,35 @@ public class GoodsPublishService {
                 }
             }
         }else if(StringUtils.isNotBlank(publishFromTime) && StringUtils.isNotBlank(publishEndTime)){
-            List<GoodsPublishOrder> puborderList = goodsPublishOrderRepository.findByCommunityIdAndStatusAndPublishFromTimeLessThanEqual(communityId, 0, Integer.parseInt(publishFromTime));
-            List<GoodsPublishOrder> puborderList22 = goodsPublishOrderRepository.findByCommunityIdAndStatusAndPublishTypeAndPublishFromTimeGreaterThanAndPublishEndTimeGreaterThanEqual(communityId, 0, 3, Integer.parseInt(publishFromTime), Integer.parseInt(publishEndTime));
-            puborderList.addAll(puborderList22);
+//            List<GoodsPublishOrder> puborderList = goodsPublishOrderRepository.findByCommunityIdAndStatusAndPublishFromTimeLessThanEqual(communityId, 0, Integer.parseInt(publishFromTime));
+//            List<GoodsPublishOrder> puborderList22 = goodsPublishOrderRepository.findByCommunityIdAndStatusAndPublishTypeAndPublishFromTimeGreaterThanAndPublishEndTimeGreaterThanEqual(communityId, 0, 3, Integer.parseInt(publishFromTime), Integer.parseInt(publishEndTime));
+//            puborderList.addAll(puborderList22);
             List<GoodsPublishOrder> poList = new ArrayList<>();
-            for(GoodsPublishOrder obj : puborderList){
-                Date seaEdate = hhtcHelper.convertToDate(Integer.parseInt(DateUtil.getCurrentDate()), Integer.parseInt(publishEndTime));
-                Date objEdate = hhtcHelper.convertToDate(Integer.parseInt(DateUtil.getCurrentDate()), obj.getPublishEndTime());
-                if(obj.getPublishType()==3 || (obj.getPublishType()==2 && obj.getPublishEndTime()<obj.getPublishFromTime())){
-                    objEdate = DateUtils.addDays(objEdate, 1);
-                }
-                if(seaEdate.compareTo(objEdate) == 1){
-                    //精确匹配或包裹匹配外则continue
-                    continue;
-                }
-                poList.add(obj);
-            }
-            for(GoodsPublishOrder obj : poList){
-                Map<String, String> map = new HashMap<>();
-                map.put("matchSuccess", "true");
-                map.put("ids", obj.getId()+"");
-                map.put("price", obj.getPrice().toString());
-                map.put("carParkImg", obj.getCarParkImg());
-                map.put("carParkNumber", obj.getCarParkNumber());
-                map.put("publishType", obj.getPublishType()+"");
-                map.put("publishFromDates", obj.getPublishFromDates());
-                map.put("publishFromTime", obj.getPublishFromTime()+"");
-                map.put("publishEndTime", obj.getPublishEndTime()+"");
-                respData.add(map);
-            }
+//            for(GoodsPublishOrder obj : puborderList){
+//                Date seaEdate = hhtcHelper.convertToDate(Integer.parseInt(DateUtil.getCurrentDate()), Integer.parseInt(publishEndTime));
+//                Date objEdate = hhtcHelper.convertToDate(Integer.parseInt(DateUtil.getCurrentDate()), obj.getPublishEndTime());
+//                if(obj.getPublishType()==3 || (obj.getPublishType()==2 && obj.getPublishEndTime()<obj.getPublishFromTime())){
+//                    objEdate = DateUtils.addDays(objEdate, 1);
+//                }
+//                if(seaEdate.compareTo(objEdate) == 1){
+//                    //精确匹配或包裹匹配外则continue
+//                    continue;
+//                }
+//                poList.add(obj);
+//            }
+//            for(GoodsPublishOrder obj : poList){
+//                Map<String, String> map = new HashMap<>();
+//                map.put("matchSuccess", "true");
+//                map.put("ids", obj.getId()+"");
+//                map.put("price", obj.getPrice().toString());
+//                map.put("carParkImg", obj.getCarParkImg());
+//                map.put("carParkNumber", obj.getCarParkNumber());
+//                map.put("publishType", obj.getPublishType()+"");
+//                map.put("publishFromDates", obj.getPublishFromDates());
+//                map.put("publishFromTime", obj.getPublishFromTime()+"");
+//                map.put("publishEndTime", obj.getPublishEndTime()+"");
+//                respData.add(map);
+//            }
         }
         /*
          * 都没匹配到，或者搜索条件至少一个是空的，那么返回最新的10条记录
@@ -818,10 +812,10 @@ public class GoodsPublishService {
                     map.put("price", obj.getPrice().toString());
                     map.put("carParkImg", obj.getCarParkImg());
                     map.put("carParkNumber", obj.getCarParkNumber());
-                    map.put("publishType", obj.getPublishType()+"");
-                    map.put("publishFromDates", obj.getPublishFromDates());
-                    map.put("publishFromTime", obj.getPublishFromTime()+"");
-                    map.put("publishEndTime", obj.getPublishEndTime()+"");
+//                    map.put("publishType", obj.getPublishType()+"");
+//                    map.put("publishFromDates", obj.getPublishFromDates());
+//                    map.put("publishFromTime", obj.getPublishFromTime()+"");
+//                    map.put("publishEndTime", obj.getPublishEndTime()+"");
                     respData.add(map);
                 }
             }

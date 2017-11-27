@@ -1,19 +1,10 @@
 package com.jadyer.seed.mpp.web.service;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
-import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.jpa.Condition;
-import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
-import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
-import com.jadyer.seed.mpp.sdk.weixin.model.template.WeixinTemplateMsg;
-import com.jadyer.seed.mpp.web.model.CommunityInfo;
-import com.jadyer.seed.mpp.web.model.GoodsInfo;
-import com.jadyer.seed.mpp.web.model.MppFansInfor;
-import com.jadyer.seed.mpp.web.model.MppUserInfo;
-import com.jadyer.seed.mpp.web.repository.GoodsPublishOrderRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsPublishRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsRepository;
+import com.jadyer.seed.mpp.web.model.*;
+import com.jadyer.seed.mpp.web.repository.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -26,8 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+
+import static com.jadyer.seed.comm.constant.Constants.*;
 
 /**
  * Created by 玄玉<http://jadyer.cn/> on 2017/7/17 18:31.
@@ -43,13 +36,118 @@ public class GoodsService {
     @Resource
     private OrderService orderService;
     @Resource
-    private GoodsRepository goodsRepository;
+    private AuditService auditService;
     @Resource
     private CommunityService communityService;
+    @Resource
+    private FansInforRepository fansInforRepository;
+    @Resource
+    private GoodsInforRepository goodsInforRepository;
     @Resource
     private GoodsPublishRepository goodsPublishRepository;
     @Resource
     private GoodsPublishOrderRepository goodsPublishOrderRepository;
+
+
+    /**
+     * TOKGO 获取用户当前车位信息
+     * */
+    public List<HashMap> getFansCarParkInfor(String openid){
+        List<HashMap> list = new ArrayList<>();
+        HashMap hashMap;
+        MppFansInfor mppFansInfor = fansInforRepository.findByOpenid(openid);
+        if (mppFansInfor==null )
+            throw new HHTCException(CodeEnum.SYSTEM_NULL);
+        List<GoodsInfor> goodsInfors = goodsInforRepository.findByOpenid(openid);
+        for (GoodsInfor goodsInfor:goodsInfors){
+            hashMap = new HashMap();
+            hashMap.put("state","work");
+            hashMap.put("id",goodsInfor.getId());
+            hashMap.put("communityName",goodsInfor.getCommunityName());
+            hashMap.put("parkNumber",goodsInfor.getCarParkNumber());
+            hashMap.put("endTime",goodsInfor.getCarUsefulEndDate());
+            list.add(hashMap);
+        }
+        List<FansInforAudit> fansInforAudits = auditService.GetAudit(2,openid,2);
+        //添加审核数据
+        for (FansInforAudit fansInforAudit:fansInforAudits){
+            hashMap = new HashMap();
+            String[] T = fansInforAudit.getContent().split("@");
+            hashMap.put("state","audit");
+            hashMap.put("id",fansInforAudit.getId());
+            if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_CARPARK_BIT)=='1')
+                hashMap.put("communityName",mppFansInfor.getCommunityName());
+            else
+                hashMap.put("communityName",auditService.GetAudit(2,openid,1)
+                        .get(0).getContent().split("@")[1]);
+            hashMap.put("parkNumber",T[0]);
+            hashMap.put("endTime",T[1]);
+            list.add(hashMap);
+        }
+        return list;
+    }
+
+
+
+    /**
+     * TOKGO 车位注销
+     */
+    @Transactional(rollbackFor=Exception.class)
+    public String carParkLogout(String openid,long id,String state){
+        if(StringUtils.isBlank(state)){
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_NULL);
+        }
+        if ("audit".equals(state)){
+            auditService.Delete(id);
+        }
+        else{
+            fansInforRepository.delete(id);
+        }
+        return  fansInforRepository.findByOpenid(openid).getInfor_state();
+    }
+
+
+    /**
+     *TOKGO车位主注册
+     */
+    @Transactional(rollbackFor=Exception.class)
+    public HashMap regCarPark(String openid, String carParkNumber, String carEquityImg, String carUsefulEndDate){
+        if(StringUtils.isBlank(carParkNumber)||carUsefulEndDate==null){
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_NULL);
+        }
+        MppFansInfor mppFansInfor= fansInforRepository.findByOpenid(openid);
+        //检查是否用户验证电话
+        if(mppFansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) == '0')
+            throw  new HHTCException(CodeEnum.HHTC_INFOR_PHOMENO);
+        List<FansInforAudit> fansInforAudits = auditService.GetAudit(mppFansInfor.getUid()
+                ,mppFansInfor.getOpenid(),AUDTI_TEPY_CARPARK);
+        //判断用户是否已经提交请求
+        if (fansInforAudits.size() > 0){
+            for (FansInforAudit fansInforAudit :fansInforAudits)
+                if (fansInforAudit.getState()==0) {
+                    if (carParkNumber.equals(fansInforAudit.getContent().split("@")[0]))
+                        throw new HHTCException(CodeEnum.HHTC_INFOR_CARPARK);
+                }
+        }
+        //写入审核
+        FansInforAudit fansInforAudit = auditService.AddAudit(mppFansInfor.getUid(),openid
+                ,2,0,carParkNumber+"@"+carUsefulEndDate,carEquityImg);
+        //返回当前车位信息
+        HashMap hashMap = new HashMap();
+        hashMap.put("state","audit");
+        hashMap.put("id",fansInforAudit.getId());
+        if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_CARPARK_BIT)=='1')
+            hashMap.put("communityName",mppFansInfor.getCommunityName());
+        else
+            hashMap.put("communityName",auditService.GetAudit(2,openid,1)
+                    .get(0).getContent().split("@")[1]);
+        hashMap.put("parkNumber",carParkNumber);
+        hashMap.put("endTime",carUsefulEndDate);
+        return  hashMap;
+    }
+
+
+
 
     /**
      * 分页查询待审核的车位列表
@@ -57,79 +155,80 @@ public class GoodsService {
      */
     public Page<GoodsInfo> listTaskViaPage(MppUserInfo userInfo, String pageNo){
         //排序
-        Sort sort = new Sort(Sort.Direction.ASC, "id");
-        //分页
-        Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
-        //条件（物管只能查询自己小区的车位列表）
-        Condition<GoodsInfo> spec = Condition.<GoodsInfo>and().eq("carAuditStatus", 1);
-        if(userInfo.getType() == 2){
-            List<Long> idList = new ArrayList<>();
-            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
-                idList.add(obj.getId());
-            }
-            spec.in("communityId", idList);
-        }
-        //执行
-        Page<GoodsInfo> page = goodsRepository.findAll(spec, pageable);
-        List<GoodsInfo> list = page.getContent();
-        for(GoodsInfo obj : list){
-            MppFansInfor fans = fansService.getByOpenid(obj.getOpenid());
-            obj.setNickname(fans.getNickname());
-            obj.setHeadimgurl(fans.getHeadimgurl());
-        }
-        return page;
+//        Sort sort = new Sort(Sort.Direction.ASC, "id");
+//        //分页
+//        Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
+//        //条件（物管只能查询自己小区的车位列表）
+//        Condition<GoodsInfo> spec = Condition.<GoodsInfo>and().eq("carAuditStatus", 1);
+//        if(userInfo.getType() == 2){
+//            List<Long> idList = new ArrayList<>();
+//            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
+//                idList.add(obj.getId());
+//            }
+//            spec.in("communityId", idList);
+//        }
+//        //执行
+//        Page<GoodsInfo> page = goodsRepository.findAll(spec, pageable);
+//        List<GoodsInfo> list = page.getContent();
+//        for(GoodsInfo obj : list){
+//            MppFansInfor fans = fansService.getByOpenid(obj.getOpenid());
+//            obj.setNickname(fans.getNickname());
+//            obj.setHeadimgurl(fans.getHeadimgurl());
+//        }
+//        return page;
+        return null;
     }
 
 
     public Page<GoodsInfo> listViaPage(MppUserInfo userInfo, String pageNo){
-        Sort sort = new Sort(Sort.Direction.ASC, "id");
-        Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
-        Condition<GoodsInfo> spec = null;
-        //物管只能查询自己小区的车位列表
-        if(userInfo.getType() == 2){
-            List<Long> idList = new ArrayList<>();
-            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
-                idList.add(obj.getId());
-            }
-            spec = Condition.<GoodsInfo>and().in("communityId", idList);
-        }
-        Page<GoodsInfo> page = goodsRepository.findAll(spec, pageable);
-        List<GoodsInfo> list = page.getContent();
-        for(GoodsInfo obj : list){
-            MppFansInfor fans = fansService.getByOpenid(obj.getOpenid());
-            obj.setNickname(fans.getNickname());
-            obj.setHeadimgurl(fans.getHeadimgurl());
-        }
-        return page;
+//        Sort sort = new Sort(Sort.Direction.ASC, "id");
+//        Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
+//        Condition<GoodsInfo> spec = null;
+//        //物管只能查询自己小区的车位列表
+//        if(userInfo.getType() == 2){
+//            List<Long> idList = new ArrayList<>();
+//            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
+//                idList.add(obj.getId());
+//            }
+//            spec = Condition.<GoodsInfo>and().in("communityId", idList);
+//        }
+//        Page<GoodsInfo> page = goodsRepository.findAll(spec, pageable);
+//        List<GoodsInfo> list = page.getContent();
+//        for(GoodsInfo obj : list){
+//            MppFansInfor fans = fansService.getByOpenid(obj.getOpenid());
+//            obj.setNickname(fans.getNickname());
+//            obj.setHeadimgurl(fans.getHeadimgurl());
+//        }
+        return null;
     }
 
 
-    public List<GoodsInfo> listAllByOpenid(String openid){
-        Sort sort = new Sort(Sort.Direction.DESC, "id");
-        Condition<GoodsInfo> spec = Condition.<GoodsInfo>and().eq("openid", openid).ne("isUsed", 3);
-        return goodsRepository.findAll(spec, sort);
-    }
-
-
-    public long count(MppUserInfo userInfo){
-        if(userInfo.getType() == 2){
-            long count = 0;
-            List<Long> idList = new ArrayList<>();
-            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
-                count = count + goodsRepository.countByCommunityId(obj.getId());
-            }
-            return count;
-        }else{
-            return goodsRepository.count();
-        }
-    }
+//    public List<GoodsInfo> listAllByOpenid(String openid){
+//        Sort sort = new Sort(Sort.Direction.DESC, "id");
+//        Condition<GoodsInfo> spec = Condition.<GoodsInfo>and().eq("openid", openid).ne("isUsed", 3);
+//        return goodsRepository.findAll(spec, sort);
+//    }
+//
+//
+//    public long count(MppUserInfo userInfo){
+//        if(userInfo.getType() == 2){
+//            long count = 0;
+//            List<Long> idList = new ArrayList<>();
+//            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
+//                count = count + goodsRepository.countByCommunityId(obj.getId());
+//            }
+//            return count;
+//        }else{
+//            return goodsRepository.count();
+//        }
+//    }
 
 
     /**
      * 查询车位详情
      */
-    public GoodsInfo get(long id){
-        return goodsRepository.findOne(id);
+    public GoodsInfor get(long id){
+        return goodsInforRepository.findOne(id);
     }
 
 
@@ -217,110 +316,14 @@ public class GoodsService {
     }
 
 
-    /**
-     * 添加车位
-     */
-    @Transactional(rollbackFor=Exception.class)
-    public GoodsInfo add(GoodsInfo goodsInfo){
-        //校验唯一性
-        GoodsInfo byOpenidAndCarParkNumber = goodsRepository.findByOpenidAndCarParkNumber(goodsInfo.getOpenid(), goodsInfo.getCarParkNumber());
-        if(null!=byOpenidAndCarParkNumber){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "添加失败：您发布的车位已存在");
-        }
-        //校验小区是否存在
-        CommunityInfo communityInfo = communityService.get(goodsInfo.getCommunityId());
-        if(StringUtils.isBlank(communityInfo.getName())){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无此小区communityId=[" + goodsInfo.getCommunityId() + "]");
-        }
-        //TODO
-//        //校验是否注册车位主
-//        if(2 != fansService.getByOpenid(goodsInfo.getOpenid()).getCarParkStatus()){
-//            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_PARK);
-//        }
-        goodsInfo.setCommunityName(communityInfo.getName());
-        goodsInfo.setIsUsed(0);
-        goodsInfo.setCarAuditStatus(1);
-        goodsInfo.setCarUsefulFromDate(goodsInfo.getCarUsefulFromDate());
-        goodsInfo.setCarUsefulEndDate(goodsInfo.getCarUsefulEndDate());
-        goodsInfo.setId(null);
-        goodsInfo.setIsRepetition(0);
-        // 是否重复
-        List<GoodsInfo> byCarParkNumber = goodsRepository.findByCarParkNumber(goodsInfo.getCarParkNumber());
-        if(byCarParkNumber.size()>0){
-            goodsInfo.setIsRepetition(1);
-            // 更新所有车位为重复
-            goodsRepository.updateStatus(goodsInfo.getCarParkNumber(),1);
-        }
-        return goodsRepository.saveAndFlush(goodsInfo);
-    }
-
 
     /**
-     * 更新状态
+     * TOKGO 更新状态
      * @param preIsUsed 本次欲更新的状态的前置状态
      */
     @Transactional(rollbackFor=Exception.class)
     public boolean updateStatus(long id, int isUsed, int preIsUsed){
-        return 1 == goodsRepository.updateStatus(id, isUsed, preIsUsed);
+        return 1 == goodsInforRepository.updateStatus(id, isUsed, preIsUsed);
     }
 
-
-    /**
-     * 修改车位
-     */
-    @Transactional(rollbackFor=Exception.class)
-    public GoodsInfo update(long id, long communityId, String carParkNumber, String carEquityImg) {
-        GoodsInfo info = goodsRepository.findOne(id);
-        if(info.getCarAuditStatus() == 1){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "不能修改审核中的车位");
-        }
-        if(info.getCarAuditStatus() == 2){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "不能修改已审核通过的车位");
-        }
-        if(communityId != info.getCommunityId()){
-            info.setCommunityId(communityId);
-            info.setCommunityName(communityService.get(communityId).getName());
-        }
-        GoodsInfo gi = goodsRepository.findByOpenidAndCarParkNumber(info.getOpenid(), carParkNumber);
-        if(null!=gi && null!=gi.getId() && gi.getId()!=id){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "您发布的车位已存在");
-        }
-        info.setCarParkNumber(carParkNumber);
-        info.setCarEquityImg(carEquityImg);
-        info.setCarAuditStatus(1);
-        return goodsRepository.saveAndFlush(info);
-    }
-
-
-    /**
-     * 删除车位（其会将该车位发布信息一并删除）
-     */
-    @Transactional(rollbackFor=Exception.class)
-    public void del(MppUserInfo userInfo, long id) {
-        if(null!=userInfo && userInfo.getType()!=1){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "仅平台运营有删除权限");
-        }
-        //List<GoodsInfo> goodsInfoList = goodsRepository.findByOpenid(openid);
-        //if(goodsInfoList.isEmpty() || goodsInfoList.size()==1){
-        //    throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "请至少保留一个车位");
-        //}
-        GoodsInfo goods = goodsRepository.findOne(id);
-        if(goods.getCarAuditStatus() == 1){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "审核中的车位不能删除");
-        }
-        if(2 == goods.getIsUsed()){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "车位已被下单");
-        }
-        if(orderService.countByGoodsIdAndOrderTypeInAndOrderStatusIn(id, Arrays.asList(1, 2), Arrays.asList(2, 9)) > 0){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "车位已被下单或转租");
-        }
-        goodsPublishOrderRepository.deleteByGoodsId(id);
-        goodsPublishRepository.deleteByGoodsId(id);
-        goodsRepository.delete(id);
-        //更新车位重复状态
-        List<GoodsInfo> list = goodsRepository.findByCarParkNumber(goods.getCarParkNumber());
-        if(null!=list && list.size()==1){
-            goodsRepository.updateStatus(goods.getCarParkNumber(), 0);
-        }
-    }
 }

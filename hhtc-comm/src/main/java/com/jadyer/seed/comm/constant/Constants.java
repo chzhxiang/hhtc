@@ -17,13 +17,17 @@ public interface Constants {
     int AUDTI_TEPY_CARPARK = 2;
     int AUDTI_TEPY_CARNUMBER = 3;
 
-    //0--是否授权，1--是否验证电话，2--是否验证住址，3--是否验证车位 4--是否验证车牌
+    //0--是否授权，1--是否验证电话，2--是否验证住址
     int INFOR_STATE_ACCREDIT_BIT =0;
     int INFOR_STATE_PHOMENO_BIT =1;
     int INFOR_STATE_COMMUNITY_BIT =2;
     int INFOR_STATE_CARPARK_BIT =3;
     int INFOR_STATE_CARNUMBE_BIT =4;
 
+    //0--预约，1--进行中，2--待支付
+    int ORDER_STATE_RESERVATION =0;
+    int ORDER_STATE_ING =1;
+    int ORDER_STATE_PAY =2;
 
 
     //系统中的部分常量 且都已 S_ 开头

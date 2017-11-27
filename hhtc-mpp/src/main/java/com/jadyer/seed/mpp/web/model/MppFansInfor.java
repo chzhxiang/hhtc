@@ -12,7 +12,7 @@ import java.util.Date;
 @Entity
 @DynamicInsert
 @DynamicUpdate
-@Table(name="t_mpp_fans_info")
+@Table(name="t_mpp_fans_infor")
 public class MppFansInfor extends BaseEntity<Long> {
     private static final long serialVersionUID = 7585092842503110991L;
     private long uid;

@@ -2,6 +2,7 @@ package com.jadyer.seed.mpp.web.service;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.comm.constant.Constants;
+import com.jadyer.seed.comm.constant.WxMsgEnum;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.jpa.Condition;
 import com.jadyer.seed.comm.util.JadyerUtil;
@@ -11,6 +12,7 @@ import com.jadyer.seed.mpp.sdk.weixin.model.WeixinFansInfo;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.model.*;
 import com.jadyer.seed.mpp.web.repository.*;
+import com.jadyer.seed.mpp.web.service.async.WeixinTemplateMsgAsync;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -21,9 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.jadyer.seed.comm.constant.Constants.*;
 
@@ -40,6 +40,8 @@ public class FansService {
     @Value("${hhtc.wxtemplateUrl.regauditnotpass}")
     private String templateUrlRegAuditNotpass;
     @Resource
+    private AuditService auditService;
+    @Resource
     private HHTCHelper hhtcHelper;
     @Resource
     private SmsService smsService;
@@ -48,21 +50,17 @@ public class FansService {
     @Resource
     private GoodsService goodsService;
     @Resource
-    private GoodsRepository goodsRepository;
+    private AdviceRepository adviceRepository;
     @Resource
     private CommunityService communityService;
     @Resource
-    private AdviceRepository adviceRepository;
-    @Resource
     private FansInforRepository fansInforRepository;
     @Resource
-    private GoodsPublishRepository goodsPublishRepository;
-    @Resource
-    private GoodsPublishOrderRepository goodsPublishOrderRepository;
+    private GoodsInforRepository goodsInforRepository;
     @Resource
     private MppUserInfoRepository mppUserInfoRepository;
     @Resource
-    private AuditService auditService;
+    private WeixinTemplateMsgAsync weixinTemplateMsgAsync;
 
 
     /**
@@ -79,6 +77,12 @@ public class FansService {
         return fansInforRepository.findByUidAndOpenid(uid,openid).getInfor_state();
     }
 
+    /**
+     * 查询粉丝的信息状态
+     * */
+    public char GetInforState(long uid, String openid,int inforbit){
+        return fansInforRepository.findByUidAndOpenid(uid,openid).getInfor_state().charAt(inforbit);
+    }
 
     /**
      * 查询某个粉丝的信息
@@ -146,7 +150,7 @@ public class FansService {
     public String PhoneNOCheck(String phoneNO ,String verifyCode, String openid){
         MppFansInfor fansInfor = fansInforRepository.findByOpenid(openid);
         //检查是否用户授权
-        if(GetInforState(fansInfor.getUid(), openid).charAt(INFOR_STATE_ACCREDIT_BIT) == '0')
+        if(fansInfor.getInfor_state().charAt(INFOR_STATE_ACCREDIT_BIT) == '0')
             throw  new HHTCException(CodeEnum.HHTC_INFOR_ACCREDIT);
         //短信验证
         if(!smsService.smsVerify(phoneNO, verifyCode, 1))
@@ -159,6 +163,28 @@ public class FansService {
         return fansInfor.getInfor_state();
     }
 
+
+    /**
+     * TOKGO电话号码注销
+     * */
+    @Transactional(rollbackFor=Exception.class)
+    public String PhoneNODelete(String phoneNO ,String verifyCode, String openid){
+        MppFansInfor fansInfor = fansInforRepository.findByOpenid(openid);
+        //检查是否用户授权
+        if(fansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) != '1')
+            throw  new HHTCException(CodeEnum.HHTC_INFOR_PHOMENO);
+        //短信验证
+        if(!smsService.smsVerify(phoneNO, verifyCode, 2))
+            throw new HHTCException(CodeEnum.HHTC_SMS_VERIFY_FAIL);
+        //验证成功 进行电话写入，并修改状态
+        fansInfor.setPhoneNo(null);
+        UpdatedataInforSate(INFOR_STATE_PHOMENO_BIT,'0',fansInfor);
+        //TODO  是否删除历史验证码
+        //返回当前状态码
+        return fansInfor.getInfor_state();
+    }
+
+
     /**
      * TOKGO地址号审核
      * */
@@ -169,7 +195,7 @@ public class FansService {
         }
         MppFansInfor MppFansInfor= fansInforRepository.findByOpenid(openid);
         //检查是否用户验证电话
-        if(GetInforState(MppFansInfor.getUid(), openid).charAt(INFOR_STATE_PHOMENO_BIT) == '0')
+        if(GetInforState(MppFansInfor.getUid(), openid,INFOR_STATE_PHOMENO_BIT)== '0')
             throw  new HHTCException(CodeEnum.HHTC_INFOR_PHOMENO);
         //检测用户是否已经提交房屋验证
         List<FansInforAudit> fansInforAudits = auditService.GetAudit(MppFansInfor.getUid(),openid,AUDTI_TEPY_COMMUNITY);
@@ -181,7 +207,7 @@ public class FansService {
         //重组信息
         String infor = CommunityID+"@"+houseNumber;
         //写入审核
-        auditService.AddAudit(MppFansInfor.getUid(),openid,1,infor);
+        auditService.AddAudit(MppFansInfor.getUid(),openid,1,0,infor);
         UpdatedataInforSate(INFOR_STATE_COMMUNITY_BIT,'2',MppFansInfor);
         //返回当前状态码
         return  fansInforRepository.findByOpenid(openid).getInfor_state();
@@ -240,12 +266,12 @@ public class FansService {
     }
 
 
-    public Page<AdviceInfo> listAdviceViaPage(String pageNo){
+    public Page<AdviceInfor> listAdviceViaPage(String pageNo){
         Sort sort = new Sort(Sort.Direction.DESC, "id");
         Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
-        Page<AdviceInfo> page = adviceRepository.findAll(pageable);
-        List<AdviceInfo> list = page.getContent();
-        for(AdviceInfo obj : list){
+        Page<AdviceInfor> page = adviceRepository.findAll(pageable);
+        List<AdviceInfor> list = page.getContent();
+        for(AdviceInfor obj : list){
             MppFansInfor fans = this.getByOpenid(obj.getOpenid());
             obj.setNickname(fans.getNickname());
             obj.setHeadimgurl(fans.getHeadimgurl());
@@ -284,6 +310,42 @@ public class FansService {
         }
         return MppFansInfor;
     }
+
+
+    /**
+     * TOKGO 获取用户当前车牌信息
+     * */
+    public List<HashMap> getFansCarNumberInfor(String openid){
+        List<HashMap> list = new ArrayList<>();
+        HashMap hashMap;
+        MppFansInfor mppFansInfor = fansInforRepository.findByOpenid(openid);
+        if (mppFansInfor==null )
+            throw new HHTCException(CodeEnum.SYSTEM_NULL);
+        //添加已有的数据
+        if (!StringUtils.isBlank(mppFansInfor.getCarNumber())){
+            String[] carnumbers = mppFansInfor.getCarNumber().split("`");
+            int i=0;
+            for (String carnumber:carnumbers){
+                hashMap = new HashMap();
+                hashMap.put("state","work");
+                hashMap.put("id",i);
+                hashMap.put("infor",carnumber);
+                list.add(hashMap);
+                i++;
+            }
+        }
+        List<FansInforAudit> fansInforAudits = auditService.GetAudit(2,openid,3);
+        //添加审核数据
+        for (FansInforAudit carnumber:fansInforAudits){
+            hashMap = new HashMap();
+            hashMap.put("state","audit");
+            hashMap.put("id",carnumber.getId());
+            hashMap.put("infor",carnumber.getContent());
+            list.add(hashMap);
+        }
+        return list;
+    }
+
 
 
     /**
@@ -326,28 +388,58 @@ public class FansService {
         return fansInfo;
     }
 
+    /**
+     * TOKGO 车牌注销
+     */
+    @Transactional(rollbackFor=Exception.class)
+    public String CarNumberLogout(String openid,long id,String state){
+        if(StringUtils.isBlank(state)){
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_NULL);
+        }
+        MppFansInfor mppFansInfor= fansInforRepository.findByOpenid(openid);
+        if ("audit".equals(state)){
+            auditService.Delete(id);
+        }
+        else{
+            String[] infor = mppFansInfor.getCarNumber().split("`");
+            if (infor.length==2){
+                if (id==0)
+                    mppFansInfor.setCarNumber(infor[1]);
+                else
+                    mppFansInfor.setCarNumber(infor[0]);
+            }else
+                mppFansInfor.setCarNumber(null);
+            fansInforRepository.save(mppFansInfor);
+        }
+        return  fansInforRepository.findByOpenid(openid).getInfor_state();
+    }
+
+
 
     /**
      * TOKGO 车牌审核请求
      */
     @Transactional(rollbackFor=Exception.class)
-    public String CarNumber(String openid,String CarNumber,String carNumberImg){
+    public HashMap CarNumber(String openid,String CarNumber,String carNumberImg){
         if(StringUtils.isBlank(CarNumber)){
             throw new HHTCException(CodeEnum.SYSTEM_PARAM_NULL);
         }
         MppFansInfor MppFansInfor= fansInforRepository.findByOpenid(openid);
         //检查是否用户验证电话
-        if(GetInforState(MppFansInfor.getUid(), openid).charAt(INFOR_STATE_PHOMENO_BIT) == '0')
+        if(GetInforState(MppFansInfor.getUid(), openid,INFOR_STATE_PHOMENO_BIT) == '0')
             throw  new HHTCException(CodeEnum.HHTC_INFOR_PHOMENO);
         String OldCarNumber = MppFansInfor.getCarNumber();
         //检测用户是否已经提交改车牌号 或者提交了两次车牌审核
         CheckCarnumber(MppFansInfor,CarNumber,OldCarNumber);
         //写入审核
-        auditService.AddAudit(MppFansInfor.getUid(),openid,3,CarNumber,carNumberImg);
-        if (OldCarNumber==null)
-            UpdatedataInforSate(INFOR_STATE_CARNUMBE_BIT,'2',MppFansInfor.getUid(),openid);
-        //返回当前状态码
-        return  fansInforRepository.findByOpenid(openid).getInfor_state();
+        FansInforAudit fansInforAudit = auditService.AddAudit(MppFansInfor.getUid(),openid
+                ,3,0,CarNumber,carNumberImg);
+        //返回当前车牌信息
+        HashMap hashMap = new HashMap();
+        hashMap.put("state","audit");
+        hashMap.put("id",fansInforAudit.getId());
+        hashMap.put("infor",CarNumber);
+        return  hashMap;
     }
 
     /**
@@ -358,7 +450,7 @@ public class FansService {
         List<FansInforAudit> fansInforAudits = auditService.GetAudit(MppFansInfor.getUid()
                 ,MppFansInfor.getOpenid(),AUDTI_TEPY_CARNUMBER);
         int count = 0;
-        if (OldCarNumber!=null) {
+        if (OldCarNumber!=null &&!StringUtils.isBlank(OldCarNumber)) {
             //判断用户已经拥有了两块车牌
             count = OldCarNumber.split("`").length;
             if (count >= Constants.S_CARNUMBERMAX)
@@ -375,37 +467,6 @@ public class FansService {
                     count++;
                 }
         }
-    }
-
-    /**
-     *TOKGO车位主注册
-     */
-    @Transactional(rollbackFor=Exception.class)
-    public String regCarPark(String openid, String carParkNumber, String carEquityImg, Integer carUsefulEndDate){
-        if(StringUtils.isBlank(carParkNumber)||carUsefulEndDate==null){
-            throw new HHTCException(CodeEnum.SYSTEM_PARAM_NULL);
-        }
-        MppFansInfor MppFansInfor= fansInforRepository.findByOpenid(openid);
-        //检查是否用户验证电话
-        if(GetInforState(MppFansInfor.getUid(), openid).charAt(INFOR_STATE_PHOMENO_BIT) == '0')
-            throw  new HHTCException(CodeEnum.HHTC_INFOR_PHOMENO);
-        List<FansInforAudit> fansInforAudits = auditService.GetAudit(MppFansInfor.getUid()
-                ,MppFansInfor.getOpenid(),AUDTI_TEPY_CARPARK);
-        //判断用户是否已经提交请求
-        if (fansInforAudits.size() > 0){
-            for (FansInforAudit fansInforAudit :fansInforAudits)
-                if (fansInforAudit.getState()==0) {
-                    if (carParkNumber.equals(fansInforAudit.getContent().split("@")[0]))
-                        throw new HHTCException(CodeEnum.HHTC_INFOR_CARPARK);
-                }
-        }
-        //写入审核
-        auditService.AddAudit(MppFansInfor.getUid(),openid,2,carParkNumber+"@"+carUsefulEndDate,carEquityImg);
-        //TODO
-        //        if (MppFansInfor()==null)
-//            UpdatedataInforSate(INFOR_STATE_CARPARK_BIT,'2',MppFansInfor.getUid(),openid);
-        //返回当前状态码
-        return  fansInforRepository.findByOpenid(openid).getInfor_state();
     }
 
 
@@ -447,9 +508,11 @@ public class FansService {
         if (fansInforAudit.getType() == Constants.AUDTI_TEPY_COMMUNITY) {
             if (status == 1) {
                 FirstData = "尊敬的用户，你的地址审核通过了";
-                String[] da = fansInforAudit.getContent().split("@");
-                fansInfor.setCommunityId(Long.valueOf(da[0]));
-                fansInfor.setCommunityName(da[1]);
+                String[] addressInfor = fansInforAudit.getContent().split("@");
+                CommunityInfo communityInfo = communityService.get(Long.valueOf(addressInfor[0]));
+                fansInfor.setCommunityId(communityInfo.getId());
+                fansInfor.setCommunityName(communityInfo.getName());
+                fansInfor.setHouseNumber(addressInfor[1]);
                 UpdatedataInforSate(INFOR_STATE_COMMUNITY_BIT, '1', fansInfor);
             }else {
                 FirstData = "尊敬的用户，你的地址审核未通过";
@@ -460,7 +523,7 @@ public class FansService {
         else if (fansInforAudit.getType() == Constants.AUDTI_TEPY_CARPARK){
             if (status == 1) {
                 FirstData = "尊敬的用户，你的车位："+fansInforAudit.getContent()+",审核通过了";
-                AddGoods(fansInfor,fansInforAudit);
+                AddGoods(fansInfor,fansInforAudit,appid);
                 if (fansInfor.getInfor_state().charAt(INFOR_STATE_CARPARK_BIT)!='1')
                     UpdatedataInforSate(INFOR_STATE_CARPARK_BIT, '1', fansInfor);
             }else {
@@ -483,7 +546,12 @@ public class FansService {
             }
         }
         //审核结果发送微信模板消息
-        auditService.SendAuditResult(FirstData,Key1Data,Key2Data,RemarkData,fansInfor,appid,2);
+        if (status == 1)
+            weixinTemplateMsgAsync.Send(FirstData,Key1Data,Key2Data,RemarkData,appid
+                    ,fansInfor.getOpenid(), WxMsgEnum.AUDIT_NOTPASS);
+        else
+            weixinTemplateMsgAsync.Send(FirstData,Key1Data,Key2Data,RemarkData,appid
+                    ,fansInfor.getOpenid(), WxMsgEnum.AUDIT_NOTPASS);
         //删除审核记录
         auditService.Delete(fansInforAudit);
     }
@@ -491,26 +559,25 @@ public class FansService {
     /**
      * TOKGO 添加车位
      * */
-    private void AddGoods(MppFansInfor fansInfor,FansInforAudit fansInforAudit){
+    private void AddGoods(MppFansInfor fansInfor,FansInforAudit fansInforAudit, String appid){
 
         //新增或更新（审核拒绝后再次注册）车位信息
 //        GoodsInfo goodsInfo = goodsRepository.findByOpenidAndCarParkNumber(openid, carParkNumber);
 //        if(null == goodsInfo){
 //            goodsInfo = new GoodsInfo();
 //        }
-        GoodsInfo goodsInfo = new GoodsInfo();
-        String tet ="test";
-        goodsInfo.setCommunityId(1);
-        goodsInfo.setCommunityName(tet);
-        goodsInfo.setAppid(tet);
-        goodsInfo.setOpenid(fansInfor.getOpenid());
-        goodsInfo.setCarParkNumber(fansInforAudit.getContent());
-        goodsInfo.setCarEquityImg(fansInforAudit.getImgurl1());
-        goodsInfo.setCarAuditStatus(1);
-        goodsInfo.setIsUsed(0);
-        goodsInfo.setCarUsefulFromDate(new Date().getDate());
-        goodsInfo.setCarUsefulEndDate(new Date().getDate());
-        goodsInfo.setIsRepetition(0);
+        GoodsInfor goodsInfor = new GoodsInfor();
+        goodsInfor.setCommunityId(fansInfor.getCommunityId());
+        goodsInfor.setCommunityName(fansInfor.getCommunityName());
+        goodsInfor.setAppid(appid);
+        goodsInfor.setOpenid(fansInfor.getOpenid());
+        goodsInfor.setCarParkNumber(fansInforAudit.getContent().split("@")[0]);
+        goodsInfor.setCarEquityImg(fansInforAudit.getImgurl1());
+        //TODO 这里缺少uid
+//        goodsInfor.setCarAuditUid(userInfo.getUuid());
+        goodsInfor.setIsUsed(0);
+        goodsInfor.setCarUsefulEndDate(fansInforAudit.getContent().split("@")[1]);
+        goodsInfor.setIsRepetition(0);
 //        // 是否重复
 //        List<GoodsInfo> byCarParkNumber = goodsRepository.findByCarParkNumber(goodsInfo.getCarParkNumber());
 //        if(byCarParkNumber.size()>0){
@@ -518,7 +585,7 @@ public class FansService {
 //            // 更新所有车位为重复
 //            goodsRepository.updateStatus(goodsInfo.getCarParkNumber(),1);
 //        }
-        goodsRepository.saveAndFlush(goodsInfo);
+        goodsInforRepository.saveAndFlush(goodsInfor);
 //        return fansInfo.getCarOwnerStatus() == 0;
 
     }

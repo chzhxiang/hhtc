@@ -1,4 +1,237 @@
 
+DROP TABLE IF EXISTS t_order_info;
+CREATE TABLE t_order_info(
+id                      INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+community_id            INT           NOT NULL COMMENT '小区ID，对应t_community_info#id',
+community_name          VARCHAR(32)   NOT NULL COMMENT '小区名称，冗余自t_community_info#name',
+goods_id                INT           COMMENT '商品ID，即车位ID，对应t_goods_info#id',
+goods_publish_order_ids VARCHAR(999)  COMMENT '商品发布的订单ID，对应t_goods_publish_order#id，多个ID则以`分隔',
+goods_need_id           INT           COMMENT '车主发布的需求ID，对应t_goods_need_info#id',
+car_park_number         VARCHAR(32)   COMMENT '车位号，冗余自t_goods_info#car_park_number',
+car_park_img            VARCHAR(999)  COMMENT '车位平面图，冗余自t_goods_info#car_park_img',
+car_number              VARCHAR(16)   COMMENT '车牌号，即发生交易时车主使用的车牌',
+open_type               TINYINT(1)    COMMENT '车位预约停车类型：1--日间，2--夜间，3--全天',
+open_from_time          INT           COMMENT '车位预约停车起始时间，格式为930则表示09:30（24小时制）',
+open_end_time           INT           COMMENT '车位预约停车截止时间，格式为1600则表示16:00（24小时制）',
+open_from_dates         VARCHAR(999)  COMMENT '车位预约停车起始日期集合，以半角横杠分隔，示例：20170719-20170727-20170727',
+appid                   VARCHAR(32)   COMMENT 'wxpay-appid',
+body                    VARCHAR(512)  COMMENT 'wxpay-商品描述',
+attach                  VARCHAR(512)  COMMENT 'wxpay-附加数据',
+out_trade_no            VARCHAR(32)   NOT NULL COMMENT 'wxpay-商户订单号',
+total_fee               INT           NOT NULL COMMENT 'wxpay-标价金额，即订单总金额，单位为分',
+deposit_money           DECIMAL(16,4) NOT NULL COMMENT '押金，单位：元',
+can_refund_money        DECIMAL(16,4) NOT NULL COMMENT '剩余可退款金额，单位：元',
+spbill_create_ip        VARCHAR(23)   COMMENT 'wxpay-终端IP',
+time_start              CHAR(14)      COMMENT 'wxpay-交易起始时间，即订单生成时间，格式为yyyyMMddHHmmss',
+time_expire             CHAR(14)      COMMENT 'wxpay-交易结束时间，即订单失效时间，格式为yyyyMMddHHmmss（最短失效必须大于5分钟）',
+notify_url              VARCHAR(512)  COMMENT 'wxpay-通知地址',
+trade_type              VARCHAR(8)    COMMENT 'wxpay-交易类型：JSAPI--公众号支付、NATIVE--原生扫码支付、APP--app支付',
+product_id              INT           COMMENT 'wxpay-商品ID',
+openid                  VARCHAR(64)   NOT NULL COMMENT 'wxpay-用户标识，trade_type=JSAPI时（即公众号支付），此参数必传，此参数为微信用户在商户对应appid下的唯一标识',
+is_subscribe            CHAR(1)       COMMENT 'wxpay-notify-用户是否关注公众账号，Y--关注，N--未关注，仅在公众账号类型支付有效',
+bank_type               VARCHAR(16)   COMMENT 'wxpay-notify-付款银行，其为采用字符串类型的银行标识',
+cash_fee                INT           COMMENT 'wxpay-notify-现金支付金额',
+transaction_id          VARCHAR(64)   COMMENT 'wxpay-notify-微信支付订单号',
+time_end                CHAR(14)      COMMENT 'wxpay-notify-支付完成时间，格式为yyyyMMddHHmmss，如2009年12月25日9点10分10秒表示为20091225091010',
+trade_state_desc        VARCHAR(512)  COMMENT 'wxpay-query-交易状态描述（对当前查询订单状态的描述和下一步操作的指引）',
+notify_time             DATETIME      COMMENT '后台通知的时间',
+is_notify               TINYINT(1)    COMMENT '是否已后台通知：0--未通知，1--已通知',
+order_type              TINYINT(1)    NOT NULL COMMENT '订单类型：1--车主预约下单，2--车主需求下单，10--个人中心充值，11--车位主发布车位充值，12--车主预约下单充值，13--车主发布需求充值',
+order_status            TINYINT(1)    NOT NULL COMMENT '订单状态：0--待支付，1--支付中，2--支付成功，3--支付失败，4--已关闭，5--转入退款，6--已撤销（刷卡支付），9--已转租，99--订单生命周期已结束',
+create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+INDEX index_openid(openid),
+INDEX index_outTradeNo(out_trade_no)
+)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='订单信息表（存储车位已被预约的信息）';
+
+
+
+
+
+        List<GoodsPublishOrder> orderList = new ArrayList<>();
+        for(String id : ids.split("`")){
+            GoodsPublishOrder order = goodsPublishOrderRepository.findOne(Long.parseLong(id));
+//            if(order.getStatus() != 0){
+//                throw new HHTCException(CodeEnum.HHTC_GOODS_ORDER_FAIL);
+//            }
+            orderList.add(order);
+            price = price.add(order.getPrice());
+        }
+        //校验押金和余额是否足够
+        Map<String, String> fundsMap = new HashMap<>();
+        fundsMap.put("moneyBase", new BigDecimal(0).toString());
+        fundsMap.put("moneyRent", new BigDecimal(0).toString());
+        UserFunds funds = userFundsService.get(openid);
+        Map<String, String> dataMap = userFundsService.depositIsenough(openid, orderList.get(0).getCommunityId());
+        if("0".equals(dataMap.get("isenough")) || price.compareTo(funds.getMoneyBalance())>0){
+            fundsMap.put("moneyBase", dataMap.get("money"));
+            if(price.compareTo(funds.getMoneyBalance()) > 0){
+                fundsMap.put("moneyRent", (price.subtract(funds.getMoneyBalance())).toString());
+            }
+            fundsMap.put("moneyFull", (new BigDecimal(fundsMap.get("moneyBase")).add(new BigDecimal(fundsMap.get("moneyRent")))).toString());
+            return new CommonResult(CodeEnum.HHTC_NEED_NO_MONEY, fundsMap);
+        }
+        //车牌号更新
+        if(StringUtils.isBlank(carNumber)){
+            carNumber = fansInfor.getCarNumber().split("`")[0];
+        }else{
+            carNumber = carNumber.toUpperCase();
+            if(!fansInfor.getCarNumber().contains(carNumber)){
+                fansInfor.setCarNumber(fansInfor.getCarNumber() + "`" + carNumber);
+                fansService.upsert(fansInfor);
+            }
+        }
+        //计算publishFromDates
+        List<String> publishFromDateList = new ArrayList<>();
+        for(GoodsPublishOrder obj : orderList){
+            for(String _fromDate : obj.getPublishFromDates().split("-")){
+                if(!publishFromDateList.contains(_fromDate)){
+                    publishFromDateList.add(_fromDate);
+                }
+            }
+        }
+        publishFromDateList.sort(new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                return Integer.parseInt(o1) - Integer.parseInt(o2);
+            }
+        });
+        StringBuilder sb = new StringBuilder();
+        for(String obj : publishFromDateList){
+            sb.append("-").append(obj);
+        }
+        return new CommonResult(goodsPublishService.order(appid, openid, carNumber, price, ids, sb.toString().substring(1), orderList, fansInfor));
+
+
+
+/**
+     * 添加车位
+     */
+    @PostMapping("/add")
+    public CommonResult add(GoodsInfo goodsInfo, HttpSession session){
+        goodsInfo.setAppid(hhtcHelper.getWxAppidFromSession(session));
+        goodsInfo.setOpenid(hhtcHelper.getWxOpenidFromSession(session));
+        return new CommonResult(goodsService.add(goodsInfo));
+    }
+
+
+    /**
+     * 删除车位（其会将该车位发布信息一并删除）
+     */
+    @PostMapping("/del")
+    public CommonResult del(long id, HttpSession session){
+        goodsService.del(null, id);
+        return new CommonResult();
+    }
+
+
+    /**
+     * 修改车位
+     */
+    @PostMapping("/update")
+    public CommonResult update(long id, long communityId, String carParkNumber, String carEquityImg){
+        return new CommonResult(goodsService.update(id, communityId, carParkNumber, carEquityImg));
+    }
+
+
+
+/**
+     * 删除车位（其会将该车位发布信息一并删除）
+     */
+    @Transactional(rollbackFor=Exception.class)
+    public void del(MppUserInfo userInfo, long id) {
+        if(null!=userInfo && userInfo.getType()!=1){
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "仅平台运营有删除权限");
+        }
+        //List<GoodsInfo> goodsInfoList = goodsRepository.findByOpenid(openid);
+        //if(goodsInfoList.isEmpty() || goodsInfoList.size()==1){
+        //    throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "请至少保留一个车位");
+        //}
+        GoodsInfo goods = goodsRepository.findOne(id);
+        if(goods.getCarAuditStatus() == 1){
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "审核中的车位不能删除");
+        }
+        if(2 == goods.getIsUsed()){
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "车位已被下单");
+        }
+        if(orderService.countByGoodsIdAndOrderTypeInAndOrderStatusIn(id, Arrays.asList(1, 2), Arrays.asList(2, 9)) > 0){
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "车位已被下单或转租");
+        }
+        goodsPublishOrderRepository.deleteByGoodsId(id);
+        goodsPublishRepository.deleteByGoodsId(id);
+        goodsRepository.delete(id);
+        //更新车位重复状态
+        List<GoodsInfo> list = goodsRepository.findByCarParkNumber(goods.getCarParkNumber());
+        if(null!=list && list.size()==1){
+            goodsRepository.updateStatus(goods.getCarParkNumber(), 0);
+        }
+    }
+
+
+    /**
+     * 修改车位
+     */
+    @Transactional(rollbackFor=Exception.class)
+    public GoodsInfo update(long id, long communityId, String carParkNumber, String carEquityImg) {
+        GoodsInfo info = goodsRepository.findOne(id);
+        if(info.getCarAuditStatus() == 1){
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "不能修改审核中的车位");
+        }
+        if(info.getCarAuditStatus() == 2){
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "不能修改已审核通过的车位");
+        }
+        if(communityId != info.getCommunityId()){
+            info.setCommunityId(communityId);
+            info.setCommunityName(communityService.get(communityId).getName());
+        }
+        GoodsInfo gi = goodsRepository.findByOpenidAndCarParkNumber(info.getOpenid(), carParkNumber);
+        if(null!=gi && null!=gi.getId() && gi.getId()!=id){
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "您发布的车位已存在");
+        }
+        info.setCarParkNumber(carParkNumber);
+        info.setCarEquityImg(carEquityImg);
+        info.setCarAuditStatus(1);
+        return goodsRepository.saveAndFlush(info);
+    }
+
+
+
+/**
+     * 添加车位
+     */
+    @Transactional(rollbackFor=Exception.class)
+    public GoodsInfo add(GoodsInfo goodsInfo){
+        //校验唯一性
+        GoodsInfo byOpenidAndCarParkNumber = goodsRepository.findByOpenidAndCarParkNumber(goodsInfo.getOpenid(), goodsInfo.getCarParkNumber());
+        if(null!=byOpenidAndCarParkNumber){
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "添加失败：您发布的车位已存在");
+        }
+        //校验小区是否存在
+        CommunityInfo communityInfo = communityService.get(goodsInfo.getCommunityId());
+        if(StringUtils.isBlank(communityInfo.getName())){
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无此小区communityId=[" + goodsInfo.getCommunityId() + "]");
+        }
+        //TODO
+//        //校验是否注册车位主
+//        if(2 != fansService.getByOpenid(goodsInfo.getOpenid()).getCarParkStatus()){
+//            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_PARK);
+//        }
+        goodsInfo.setCommunityName(communityInfo.getName());
+        goodsInfo.setIsUsed(0);
+        goodsInfo.setCarAuditStatus(1);
+        goodsInfo.setCarUsefulFromDate(goodsInfo.getCarUsefulFromDate());
+        goodsInfo.setCarUsefulEndDate(goodsInfo.getCarUsefulEndDate());
+        goodsInfo.setId(null);
+        goodsInfo.setIsRepetition(0);
+        // 是否重复
+        List<GoodsInfo> byCarParkNumber = goodsRepository.findByCarParkNumber(goodsInfo.getCarParkNumber());
+        if(byCarParkNumber.size()>0){
+            goodsInfo.setIsRepetition(1);
+            // 更新所有车位为重复
+            goodsRepository.updateStatus(goodsInfo.getCarParkNumber(),1);
+        }
+        return goodsRepository.saveAndFlush(goodsInfo);
+    }
 
 
     /**

@@ -208,15 +208,15 @@ public class GoodsNeedService {
         }
         BeanUtil.copyProperties(order, order01);
         order01.setId(null);
-        order01.setGoodsPublishIds("");
-        order01.setPrice(hhtcHelper.calcPrice(order.getCommunityId(), type));
-        order01.setPublishType(type);
-        order01.setPublishFromDates(newFromDate+"");
-        order01.setPublishFromTime(newFromTime);
-        order01.setPublishEndTime(newEndTime);
-        order01.setFromType(3);
-        order01.setFromId(order.getId());
-        order01.setStatus(0);
+//        order01.setGoodsPublishIds("");
+//        order01.setPrice(hhtcHelper.calcPrice(order.getCommunityId(), type));
+//        order01.setPublishType(type);
+//        order01.setPublishFromDates(newFromDate+"");
+//        order01.setPublishFromTime(newFromTime);
+//        order01.setPublishEndTime(newEndTime);
+//        order01.setFromType(3);
+//        order01.setFromId(order.getId());
+//        order01.setStatus(0);
         order01 = goodsPublishOrderRepository.saveAndFlush(order01);
         GoodsPublishInfo p1 = new GoodsPublishInfo();
         BeanUtil.copyProperties(source, p1);
@@ -232,7 +232,7 @@ public class GoodsNeedService {
         p1.setFromIds(source.getId()+"");
         p1.setStatus(0);
         p1 = goodsPublishService.upsert(p1);
-        order01.setGoodsPublishIds(p1.getId()+"");
+//        order01.setGoodsPublishIds(p1.getId()+"");
         order01 = goodsPublishOrderRepository.saveAndFlush(order01);
         LogUtil.getQuartzLogger().info("定时任务：车位需求匹配：匹配处理-->开始处理[{}-{}]：needId={}：切割出新发布orderId={}", len, currIndex, needId, order01.getId());
     }
@@ -305,43 +305,43 @@ public class GoodsNeedService {
                 //计算GoodsPublishOrderIds（防止下单成功后再转租出现的那个问题）
                 String goodsPublishOrderIds = publish.getGoodsPublishOrderId()+"";
                 GoodsPublishOrder order = goodsPublishOrderRepository.findOne(publish.getGoodsPublishOrderId());
-                if(matchType==2 || order.getGoodsPublishIds().contains("`")){
-                    GoodsPublishOrder po01 = new GoodsPublishOrder();
-                    BeanUtil.copyProperties(order, po01);
-                    po01.setGoodsPublishIds("");
-                    po01.setPrice(new BigDecimal(0));
-                    po01.setPublishFromDates(need.getNeedFromDate()+"");
-                    po01.setPublishFromTime(need.getNeedFromTime());
-                    po01.setPublishEndTime(need.getNeedEndTime());
-                    po01.setFromType(3);
-                    po01.setFromId(order.getId());
-                    po01.setStatus(2);
-                    po01 = goodsPublishOrderRepository.saveAndFlush(po01);
-                    goodsPublishOrderIds = po01.getId()+"";
-                    GoodsPublishInfo p01 = new GoodsPublishInfo();
-                    BeanUtil.copyProperties(order, p01);
-                    p01.setId(null);
-                    p01.setPrice(hhtcHelper.calcPrice(need.getCommunityId(), need.getNeedType()));
-                    p01.setGoodsPublishOrderId(po01.getId());
-                    p01.setPublishFromTime(need.getNeedFromTime());
-                    p01.setPublishEndTime(need.getNeedEndTime());
-                    p01.setPublishFromDate(need.getNeedFromDate());
-                    if(need.getNeedType()==3 || (2==need.getNeedType() && need.getNeedEndTime()<need.getNeedFromTime())){
-                        try {
-                            p01.setPublishEndDate(Integer.parseInt(DateFormatUtils.format(DateUtils.addDays(DateUtils.parseDate(need.getNeedFromDate()+"", "yyyyMMdd"), 1), "yyyyMMdd")));
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    }else{
-                        p01.setPublishEndDate(need.getNeedFromDate());
-                    }
-                    p01.setFromType(3);
-                    p01.setFromIds(publish.getId()+"");
-                    p01.setStatus(2);
-                    p01 = goodsPublishRepository.saveAndFlush(p01);
-                    po01.setGoodsPublishIds(p01.getId()+"");
-                    po01.setPrice(p01.getPrice());
-                    goodsPublishOrderRepository.saveAndFlush(po01);
+                if(matchType==2  ){
+//                    GoodsPublishOrder po01 = new GoodsPublishOrder();
+//                    BeanUtil.copyProperties(order, po01);
+//                    po01.setGoodsPublishIds("");
+//                    po01.setPrice(new BigDecimal(0));
+//                    po01.setPublishFromDates(need.getNeedFromDate()+"");
+//                    po01.setPublishFromTime(need.getNeedFromTime());
+//                    po01.setPublishEndTime(need.getNeedEndTime());
+//                    po01.setFromType(3);
+//                    po01.setFromId(order.getId());
+//                    po01.setStatus(2);
+//                    po01 = goodsPublishOrderRepository.saveAndFlush(po01);
+//                    goodsPublishOrderIds = po01.getId()+"";
+//                    GoodsPublishInfo p01 = new GoodsPublishInfo();
+//                    BeanUtil.copyProperties(order, p01);
+//                    p01.setId(null);
+//                    p01.setPrice(hhtcHelper.calcPrice(need.getCommunityId(), need.getNeedType()));
+//                    p01.setGoodsPublishOrderId(po01.getId());
+//                    p01.setPublishFromTime(need.getNeedFromTime());
+//                    p01.setPublishEndTime(need.getNeedEndTime());
+//                    p01.setPublishFromDate(need.getNeedFromDate());
+//                    if(need.getNeedType()==3 || (2==need.getNeedType() && need.getNeedEndTime()<need.getNeedFromTime())){
+//                        try {
+//                            p01.setPublishEndDate(Integer.parseInt(DateFormatUtils.format(DateUtils.addDays(DateUtils.parseDate(need.getNeedFromDate()+"", "yyyyMMdd"), 1), "yyyyMMdd")));
+//                        } catch (ParseException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }else{
+//                        p01.setPublishEndDate(need.getNeedFromDate());
+//                    }
+//                    p01.setFromType(3);
+//                    p01.setFromIds(publish.getId()+"");
+//                    p01.setStatus(2);
+//                    p01 = goodsPublishRepository.saveAndFlush(p01);
+//                    po01.setGoodsPublishIds(p01.getId()+"");
+//                    po01.setPrice(p01.getPrice());
+//                    goodsPublishOrderRepository.saveAndFlush(po01);
                 }
                 //新增订单、修改车位信息、更新需求、分润
                 OrderInfo orderInfo = new OrderInfo();
@@ -358,7 +358,7 @@ public class GoodsNeedService {
                 orderInfo.setOpenFromTime(need.getNeedFromTime());
                 orderInfo.setOpenEndTime(need.getNeedEndTime());
                 orderInfo.setAppid(need.getAppid());
-                orderInfo.setOutTradeNo(hhtcHelper.buildOrderNo(9));
+//                orderInfo.setOutTradeNo(hhtcHelper.buildOrderNo(9));
                 orderInfo.setTotalFee(Long.parseLong(MoneyUtil.yuanToFen(need.getMoneyRent().toString())));
                 orderInfo.setDepositMoney(new BigDecimal(0));
                 orderInfo.setCanRefundMoney(new BigDecimal(0));
@@ -368,7 +368,7 @@ public class GoodsNeedService {
                 orderInfo = orderService.upsert(orderInfo);
                 goodsService.updateStatus(orderInfo.getGoodsId(), 2, 1);
                 goodsPublishRepository.updateStatus(publish.getId(), 2);
-                goodsPublishOrderRepository.updateStatus(publish.getGoodsPublishOrderId(), 2);
+//                goodsPublishOrderRepository.updateStatus(publish.getGoodsPublishOrderId(), 2);
                 orderInoutService.initInout(orderInfo, publish.getOpenid(), null);
                 need.setStatus(2);
                 need.setGoodsPublishOrderId(Long.parseLong(goodsPublishOrderIds));
@@ -377,138 +377,138 @@ public class GoodsNeedService {
                 /*
                  * 切割原发布信息
                  */
-                String[] pubIds = order.getGoodsPublishIds().split("`");
-                if(pubIds.length > 1){
-                    StringBuilder fromDates01 = new StringBuilder();
-                    StringBuilder fromDates02 = new StringBuilder();
-                    BigDecimal price01 = new BigDecimal(0);
-                    BigDecimal price02 = new BigDecimal(0);
-                    List<GoodsPublishInfo> pubList01 = new ArrayList<>();
-                    List<GoodsPublishInfo> pubList02 = new ArrayList<>();
-                    for(String obj : pubIds){
-                        if(obj.equals(publish.getId()+"")){
-                            break;
-                        }
-                        GoodsPublishInfo pub01 = goodsPublishService.get(Long.parseLong(obj));
-                        fromDates01.append("-").append(pub01.getPublishFromDate());
-                        price01 = price01.add(pub01.getPrice());
-                        pubList01.add(pub01);
-                    }
-                    for(String obj : pubIds){
-                        if(Long.parseLong(obj) > publish.getId()){
-                            GoodsPublishInfo pub02 = goodsPublishService.get(Long.parseLong(obj));
-                            fromDates02.append("-").append(pub02.getPublishFromDate());
-                            price02 = price02.add(pub02.getPrice());
-                            pubList02.add(pub02);
-                        }
-                    }
-                    if(StringUtils.isNotBlank(fromDates01.toString())){
-                        GoodsPublishOrder order01 = new GoodsPublishOrder();
-                        BeanUtil.copyProperties(order, order01);
-                        order01.setGoodsPublishIds("");
-                        order01.setPrice(price01);
-                        order01.setPublishFromDates(fromDates01.toString().substring(1));
-                        order01.setFromType(3);
-                        order01.setFromId(order.getId());
-                        order01.setStatus(0);
-                        order01 = goodsPublishOrderRepository.saveAndFlush(order01);
-                        StringBuilder p1ids = new StringBuilder();
-                        for(GoodsPublishInfo obj01 : pubList01){
-                            GoodsPublishInfo p1 = new GoodsPublishInfo();
-                            BeanUtil.copyProperties(obj01, p1);
-                            p1.setId(null);
-                            p1.setGoodsPublishOrderId(order01.getId());
-                            p1.setFromType(3);
-                            p1.setFromIds(obj01.getId()+"");
-                            p1.setStatus(0);
-                            p1 = goodsPublishService.upsert(p1);
-                            p1ids.append("`").append(p1.getId());
-                            obj01.setStatus(2);
-                            goodsPublishService.upsert(obj01);
-                        }
-                        order01.setGoodsPublishIds(p1ids.toString().substring(1));
-                        order01 = goodsPublishOrderRepository.saveAndFlush(order01);
-                        LogUtil.getQuartzLogger().info("定时任务：车位需求匹配：匹配处理-->开始处理[{}-{}]：needId={}：切割出-新发布orderId={}", len, currIndex, need.getId(), order01.getId());
-                    }
-                    if(StringUtils.isNotBlank(fromDates02.toString())){
-                        GoodsPublishOrder order02 = new GoodsPublishOrder();
-                        BeanUtil.copyProperties(order, order02);
-                        order02.setGoodsPublishIds("");
-                        order02.setPrice(price02);
-                        order02.setPublishFromDates(fromDates02.toString().substring(1));
-                        order02.setFromType(3);
-                        order02.setFromId(order.getId());
-                        order02.setStatus(0);
-                        order02 = goodsPublishOrderRepository.saveAndFlush(order02);
-                        StringBuilder p2ids = new StringBuilder();
-                        for(GoodsPublishInfo obj02 : pubList02){
-                            GoodsPublishInfo p2 = new GoodsPublishInfo();
-                            BeanUtil.copyProperties(obj02, p2);
-                            p2.setId(null);
-                            p2.setGoodsPublishOrderId(order02.getId());
-                            p2.setFromType(3);
-                            p2.setFromIds(obj02.getId()+"");
-                            p2.setStatus(0);
-                            p2 = goodsPublishService.upsert(p2);
-                            p2ids.append("`").append(p2.getId());
-                            obj02.setStatus(2);
-                            goodsPublishService.upsert(obj02);
-                        }
-                        order02.setGoodsPublishIds(p2ids.toString().substring(1));
-                        order02 = goodsPublishOrderRepository.saveAndFlush(order02);
-                        LogUtil.getQuartzLogger().info("定时任务：车位需求匹配：匹配处理-->开始处理[{}-{}]：needId={}：切割出-新发布orderId={}", len, currIndex, need.getId(), order02.getId());
-                    }
-                }
-                Date objStartDate = hhtcHelper.convertToDate(publish.getPublishFromDate(), publish.getPublishFromTime());
-                Date objEndDate = hhtcHelper.convertToDate(publish.getPublishEndDate(), publish.getPublishEndTime());
-                Date needStartDate = hhtcHelper.convertToDate(need.getNeedFromDate(), need.getNeedFromTime());
-                Date needEndDate = hhtcHelper.convertToDate(need.getNeedEndDate(), need.getNeedEndTime());
-                if(objStartDate.compareTo(needStartDate) < 0){
-                    int type = hhtcHelper.calcPublishTypeExt(publish.getPublishFromTime(), need.getNeedFromTime());
-                    switch(type){
-                        case 1 :
-                        case 2 :
-                        case 3 :
-                            this.newPublishOrder(type, publish, order, publish.getPublishFromTime(), need.getNeedFromTime(), publish.getPublishFromDate(), need.getNeedFromDate(), len, currIndex, need.getId());
-                            break;
-                        case 4 :
-                            //横跨（日间）
-                            this.newPublishOrder(2, publish, order, publish.getPublishFromTime(), this.timeDay, publish.getPublishFromDate(), need.getNeedFromDate(), len, currIndex, need.getId());
-                            this.newPublishOrder(1, publish, order, this.timeDay, need.getNeedFromTime(), publish.getPublishFromDate(), need.getNeedFromDate(), len, currIndex, need.getId());
-                            break;
-                        case 5 :
-                            //横跨（夜间）
-                            this.newPublishOrder(1, publish, order, publish.getPublishFromTime(), this.timeNight, publish.getPublishFromDate(), need.getNeedFromDate(), len, currIndex, need.getId());
-                            this.newPublishOrder(2, publish, order, this.timeNight, need.getNeedFromTime(), publish.getPublishFromDate(), need.getNeedFromDate(), len, currIndex, need.getId());
-                            break;
-                        case 6 :
-                            LogUtil.logToTask().error("致命异常：定时任务：车位需求匹配：匹配处理-->正在处理[{}-{}]：需求[{}]匹配到publishId=[{}]：计算切割后的发布类型，得值：[{}]", len, currIndex, need.getId(), publish.getId(), type);
-                            break;
-                    }
-                }
-                if(objEndDate.compareTo(needEndDate) > 0){
-                    int type = hhtcHelper.calcPublishTypeExt(need.getNeedEndTime(), publish.getPublishEndTime());
-                    switch(type){
-                        case 1 :
-                        case 2 :
-                        case 3 :
-                            this.newPublishOrder(type, publish, order, need.getNeedEndTime(), publish.getPublishEndTime(), need.getNeedEndDate(), publish.getPublishEndDate(), len, currIndex, need.getId());
-                            break;
-                        case 4 :
-                            //横跨（日间）
-                            this.newPublishOrder(2, publish, order, need.getNeedEndTime(), this.timeDay, need.getNeedEndDate(), publish.getPublishEndDate(), len, currIndex, need.getId());
-                            this.newPublishOrder(1, publish, order, this.timeDay, publish.getPublishEndTime(), need.getNeedEndDate(), publish.getPublishEndDate(), len, currIndex, need.getId());
-                            break;
-                        case 5 :
-                            //横跨（夜间）
-                            this.newPublishOrder(1, publish, order, need.getNeedEndTime(), this.timeNight, need.getNeedEndDate(), publish.getPublishEndDate(), len, currIndex, need.getId());
-                            this.newPublishOrder(2, publish, order, this.timeNight, publish.getPublishEndTime(), need.getNeedEndDate(), publish.getPublishEndDate(), len, currIndex, need.getId());
-                            break;
-                        case 6 :
-                            LogUtil.logToTask().error("致命异常：定时任务：车位需求匹配：匹配处理-->正在处理[{}-{}]：需求[{}]匹配到publishId=[{}]：计算切割后的发布类型，得值：[{}]", len, currIndex, need.getId(), publish.getId(), type);
-                            break;
-                    }
-                }
+//                String[] pubIds = order.getGoodsPublishIds().split("`");
+//                if(pubIds.length > 1){
+//                    StringBuilder fromDates01 = new StringBuilder();
+//                    StringBuilder fromDates02 = new StringBuilder();
+//                    BigDecimal price01 = new BigDecimal(0);
+//                    BigDecimal price02 = new BigDecimal(0);
+//                    List<GoodsPublishInfo> pubList01 = new ArrayList<>();
+//                    List<GoodsPublishInfo> pubList02 = new ArrayList<>();
+//                    for(String obj : pubIds){
+//                        if(obj.equals(publish.getId()+"")){
+//                            break;
+//                        }
+//                        GoodsPublishInfo pub01 = goodsPublishService.get(Long.parseLong(obj));
+//                        fromDates01.append("-").append(pub01.getPublishFromDate());
+//                        price01 = price01.add(pub01.getPrice());
+//                        pubList01.add(pub01);
+//                    }
+//                    for(String obj : pubIds){
+//                        if(Long.parseLong(obj) > publish.getId()){
+//                            GoodsPublishInfo pub02 = goodsPublishService.get(Long.parseLong(obj));
+//                            fromDates02.append("-").append(pub02.getPublishFromDate());
+//                            price02 = price02.add(pub02.getPrice());
+//                            pubList02.add(pub02);
+//                        }
+//                    }
+//                    if(StringUtils.isNotBlank(fromDates01.toString())){
+//                        GoodsPublishOrder order01 = new GoodsPublishOrder();
+//                        BeanUtil.copyProperties(order, order01);
+//                        order01.setGoodsPublishIds("");
+//                        order01.setPrice(price01);
+//                        order01.setPublishFromDates(fromDates01.toString().substring(1));
+//                        order01.setFromType(3);
+//                        order01.setFromId(order.getId());
+//                        order01.setStatus(0);
+//                        order01 = goodsPublishOrderRepository.saveAndFlush(order01);
+//                        StringBuilder p1ids = new StringBuilder();
+//                        for(GoodsPublishInfo obj01 : pubList01){
+//                            GoodsPublishInfo p1 = new GoodsPublishInfo();
+//                            BeanUtil.copyProperties(obj01, p1);
+//                            p1.setId(null);
+//                            p1.setGoodsPublishOrderId(order01.getId());
+//                            p1.setFromType(3);
+//                            p1.setFromIds(obj01.getId()+"");
+//                            p1.setStatus(0);
+//                            p1 = goodsPublishService.upsert(p1);
+//                            p1ids.append("`").append(p1.getId());
+//                            obj01.setStatus(2);
+//                            goodsPublishService.upsert(obj01);
+//                        }
+//                        order01.setGoodsPublishIds(p1ids.toString().substring(1));
+//                        order01 = goodsPublishOrderRepository.saveAndFlush(order01);
+//                        LogUtil.getQuartzLogger().info("定时任务：车位需求匹配：匹配处理-->开始处理[{}-{}]：needId={}：切割出-新发布orderId={}", len, currIndex, need.getId(), order01.getId());
+//                    }
+//                    if(StringUtils.isNotBlank(fromDates02.toString())){
+//                        GoodsPublishOrder order02 = new GoodsPublishOrder();
+//                        BeanUtil.copyProperties(order, order02);
+//                        order02.setGoodsPublishIds("");
+//                        order02.setPrice(price02);
+//                        order02.setPublishFromDates(fromDates02.toString().substring(1));
+//                        order02.setFromType(3);
+//                        order02.setFromId(order.getId());
+//                        order02.setStatus(0);
+//                        order02 = goodsPublishOrderRepository.saveAndFlush(order02);
+//                        StringBuilder p2ids = new StringBuilder();
+//                        for(GoodsPublishInfo obj02 : pubList02){
+//                            GoodsPublishInfo p2 = new GoodsPublishInfo();
+//                            BeanUtil.copyProperties(obj02, p2);
+//                            p2.setId(null);
+//                            p2.setGoodsPublishOrderId(order02.getId());
+//                            p2.setFromType(3);
+//                            p2.setFromIds(obj02.getId()+"");
+//                            p2.setStatus(0);
+//                            p2 = goodsPublishService.upsert(p2);
+//                            p2ids.append("`").append(p2.getId());
+//                            obj02.setStatus(2);
+//                            goodsPublishService.upsert(obj02);
+//                        }
+//                        order02.setGoodsPublishIds(p2ids.toString().substring(1));
+//                        order02 = goodsPublishOrderRepository.saveAndFlush(order02);
+//                        LogUtil.getQuartzLogger().info("定时任务：车位需求匹配：匹配处理-->开始处理[{}-{}]：needId={}：切割出-新发布orderId={}", len, currIndex, need.getId(), order02.getId());
+//                    }
+//                }
+//                Date objStartDate = hhtcHelper.convertToDate(publish.getPublishFromDate(), publish.getPublishFromTime());
+//                Date objEndDate = hhtcHelper.convertToDate(publish.getPublishEndDate(), publish.getPublishEndTime());
+//                Date needStartDate = hhtcHelper.convertToDate(need.getNeedFromDate(), need.getNeedFromTime());
+//                Date needEndDate = hhtcHelper.convertToDate(need.getNeedEndDate(), need.getNeedEndTime());
+//                if(objStartDate.compareTo(needStartDate) < 0){
+//                    int type = hhtcHelper.calcPublishTypeExt(publish.getPublishFromTime(), need.getNeedFromTime());
+//                    switch(type){
+//                        case 1 :
+//                        case 2 :
+//                        case 3 :
+//                            this.newPublishOrder(type, publish, order, publish.getPublishFromTime(), need.getNeedFromTime(), publish.getPublishFromDate(), need.getNeedFromDate(), len, currIndex, need.getId());
+//                            break;
+//                        case 4 :
+//                            //横跨（日间）
+//                            this.newPublishOrder(2, publish, order, publish.getPublishFromTime(), this.timeDay, publish.getPublishFromDate(), need.getNeedFromDate(), len, currIndex, need.getId());
+//                            this.newPublishOrder(1, publish, order, this.timeDay, need.getNeedFromTime(), publish.getPublishFromDate(), need.getNeedFromDate(), len, currIndex, need.getId());
+//                            break;
+//                        case 5 :
+//                            //横跨（夜间）
+//                            this.newPublishOrder(1, publish, order, publish.getPublishFromTime(), this.timeNight, publish.getPublishFromDate(), need.getNeedFromDate(), len, currIndex, need.getId());
+//                            this.newPublishOrder(2, publish, order, this.timeNight, need.getNeedFromTime(), publish.getPublishFromDate(), need.getNeedFromDate(), len, currIndex, need.getId());
+//                            break;
+//                        case 6 :
+//                            LogUtil.logToTask().error("致命异常：定时任务：车位需求匹配：匹配处理-->正在处理[{}-{}]：需求[{}]匹配到publishId=[{}]：计算切割后的发布类型，得值：[{}]", len, currIndex, need.getId(), publish.getId(), type);
+//                            break;
+//                    }
+//                }
+//                if(objEndDate.compareTo(needEndDate) > 0){
+//                    int type = hhtcHelper.calcPublishTypeExt(need.getNeedEndTime(), publish.getPublishEndTime());
+//                    switch(type){
+//                        case 1 :
+//                        case 2 :
+//                        case 3 :
+//                            this.newPublishOrder(type, publish, order, need.getNeedEndTime(), publish.getPublishEndTime(), need.getNeedEndDate(), publish.getPublishEndDate(), len, currIndex, need.getId());
+//                            break;
+//                        case 4 :
+//                            //横跨（日间）
+//                            this.newPublishOrder(2, publish, order, need.getNeedEndTime(), this.timeDay, need.getNeedEndDate(), publish.getPublishEndDate(), len, currIndex, need.getId());
+//                            this.newPublishOrder(1, publish, order, this.timeDay, publish.getPublishEndTime(), need.getNeedEndDate(), publish.getPublishEndDate(), len, currIndex, need.getId());
+//                            break;
+//                        case 5 :
+//                            //横跨（夜间）
+//                            this.newPublishOrder(1, publish, order, need.getNeedEndTime(), this.timeNight, need.getNeedEndDate(), publish.getPublishEndDate(), len, currIndex, need.getId());
+//                            this.newPublishOrder(2, publish, order, this.timeNight, publish.getPublishEndTime(), need.getNeedEndDate(), publish.getPublishEndDate(), len, currIndex, need.getId());
+//                            break;
+//                        case 6 :
+//                            LogUtil.logToTask().error("致命异常：定时任务：车位需求匹配：匹配处理-->正在处理[{}-{}]：需求[{}]匹配到publishId=[{}]：计算切割后的发布类型，得值：[{}]", len, currIndex, need.getId(), publish.getId(), type);
+//                            break;
+//                    }
+//                }
                 //模版CODE: SMS_86540104（車主）
                 //模版内容: 尊敬的手机尾号为${phone}的用户：根据您的停车需求，系统已成功为您匹配到与您需求相符的车位，车位信息：${carpark}
                 //模版CODE: SMS_86510101（車位主）

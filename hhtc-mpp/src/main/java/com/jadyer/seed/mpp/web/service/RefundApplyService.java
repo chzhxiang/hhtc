@@ -22,7 +22,7 @@ import com.jadyer.seed.mpp.web.model.RefundInfo;
 import com.jadyer.seed.mpp.web.model.UserFunds;
 import com.jadyer.seed.mpp.web.model.UserFundsFlow;
 import com.jadyer.seed.mpp.web.repository.GoodsNeedRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsRepository;
+import com.jadyer.seed.mpp.web.repository.GooRepository;
 import com.jadyer.seed.mpp.web.repository.OrderRepository;
 import com.jadyer.seed.mpp.web.repository.RedpackInfoRepository;
 import com.jadyer.seed.mpp.web.repository.RefundApplyRepository;
@@ -69,7 +69,7 @@ public class RefundApplyService {
     @Resource
     private RedpackService redpackService;
     @Resource
-    private GoodsRepository goodsRepository;
+    private GooRepository goodsRepository;
     @Resource
     private OrderRepository orderRepository;
     @Resource

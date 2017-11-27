@@ -1,5 +1,9 @@
 package com.jadyer.seed.mpp.web.service.async;
 
+
+import com.jadyer.seed.comm.constant.CodeEnum;
+import com.jadyer.seed.comm.constant.WxMsgEnum;
+import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
 import com.jadyer.seed.mpp.sdk.weixin.model.template.WeixinTemplateMsg;
@@ -22,6 +26,32 @@ public class WeixinTemplateMsgAsync {
     private String hhtcContextPath;
     @Value("${hhtc.portalUrl.center}")
     private String portalCenterUrl;
+
+
+    /**
+     * TOKGO 发送微信审核结果模板消息
+     * */
+    public void Send(String FirstData,String Key1Data,String Key2Data,String RemarkData
+            ,String appid,String openid,WxMsgEnum Template_id){
+        try {
+            WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
+            dataItem.put("first", new WeixinTemplateMsg.DItem(FirstData));
+            dataItem.put("keyword1", new WeixinTemplateMsg.DItem(Key1Data));
+            dataItem.put("keyword2", new WeixinTemplateMsg.DItem(Key2Data));
+            dataItem.put("remark", new WeixinTemplateMsg.DItem(RemarkData));
+            WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
+            templateMsg.setTemplate_id(Template_id.getID());
+            String url = this.hhtcContextPath + this.portalCenterUrl;
+            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+appid+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+appid+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
+            templateMsg.setUrl(url);
+            templateMsg.setTouser(openid);
+            templateMsg.setData(dataItem);
+            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(appid), templateMsg);
+        }catch (Exception ex){
+            new HHTCException(CodeEnum.SYSTEM_ERROR.getCode(),"微信模板消息错误");
+        }
+    }
+
 
     /**
      * 车主驶离时发送的模板消息
@@ -52,4 +82,9 @@ public class WeixinTemplateMsgAsync {
         templateMsg.setData(dataItem);
         WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(order.getAppid()), templateMsg);
     }
+
+
+
+
+
 }

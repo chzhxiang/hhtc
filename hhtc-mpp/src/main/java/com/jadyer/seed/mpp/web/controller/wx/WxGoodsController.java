@@ -23,41 +23,40 @@ public class WxGoodsController {
     @Resource
     private GoodsService goodsService;
 
+    //TODO
+    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
+
     /**
-     * 车位列表
+     * TOKGO 查询粉丝车位信息信息
      */
-    @GetMapping("/listAllByOpenid")
-    public CommonResult listAllByOpenid(HttpSession session){
-        return new CommonResult(goodsService.listAllByOpenid(hhtcHelper.getWxOpenidFromSession(session)));
+    @GetMapping("/get/CarPark")
+    public CommonResult getCarPark(HttpSession session){
+        //TODO
+        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(goodsService.getFansCarParkInfor(openid));
     }
 
 
     /**
-     * 添加车位
+     * 车位绑定
      */
-    @PostMapping("/add")
-    public CommonResult add(GoodsInfo goodsInfo, HttpSession session){
-        goodsInfo.setAppid(hhtcHelper.getWxAppidFromSession(session));
-        goodsInfo.setOpenid(hhtcHelper.getWxOpenidFromSession(session));
-        return new CommonResult(goodsService.add(goodsInfo));
+    @PostMapping("/infor/carParkBind")
+    public CommonResult BindCarPark(String carParkNumber, String carEquityImg,String carUsefulEndDate, HttpSession session){
+        //TODO
+        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(goodsService.regCarPark(openid
+                , carParkNumber, carEquityImg,carUsefulEndDate));
     }
 
 
     /**
-     * 删除车位（其会将该车位发布信息一并删除）
+     * TOKGO 车位注销
      */
-    @PostMapping("/del")
-    public CommonResult del(long id, HttpSession session){
-        goodsService.del(null, id);
-        return new CommonResult();
+    @PostMapping("/infor/carParkLogout")
+    public CommonResult LogoutFanscarPark(long id,String state , HttpSession session){
+        //TODO
+        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(goodsService.carParkLogout(openid, id,state));
     }
 
-
-    /**
-     * 修改车位
-     */
-    @PostMapping("/update")
-    public CommonResult update(long id, long communityId, String carParkNumber, String carEquityImg){
-        return new CommonResult(goodsService.update(id, communityId, carParkNumber, carEquityImg));
-    }
 }
