@@ -20,12 +20,8 @@ import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
 import com.jadyer.seed.mpp.sdk.weixin.model.pay.WeixinPayUnifiedorderReqData;
 import com.jadyer.seed.mpp.sdk.weixin.model.pay.WeixinPayUnifiedorderRespData;
-import com.jadyer.seed.mpp.web.model.CommunityInfo;
-import com.jadyer.seed.mpp.web.model.GoodsNeedInfo;
-import com.jadyer.seed.mpp.web.model.GoodsPublishInfo;
-import com.jadyer.seed.mpp.web.model.MppUserInfo;
-import com.jadyer.seed.mpp.web.model.OrderInfo;
-import com.jadyer.seed.mpp.web.model.SmsInfo;
+import com.jadyer.seed.mpp.web.model.*;
+import com.jadyer.seed.mpp.web.model.SmsInfor;
 import com.jadyer.seed.mpp.web.repository.GoodsNeedRepository;
 import com.jadyer.seed.mpp.web.repository.GoodsPublishRepository;
 import com.jadyer.seed.mpp.web.repository.MppUserInfoRepository;
@@ -141,33 +137,11 @@ public class HHTCHelper {
             return false;
         }
     }
+
+    /**
+     * TOKGO 发送验证码
+     * */
     public boolean sendSms(String phoneNo, String verifyCode){
-        List<SmsInfo> smsList = smsRepository.findFirst10ByPhoneNoOrderByIdDesc(phoneNo);
-        if(null!=smsList && !smsList.isEmpty()){
-            long smstime;
-            long currtime = new Date().getTime();
-            if(smsList.size() >= 1){
-                smstime = DateUtils.addMinutes(smsList.get(0).getTimeSend(), 1).getTime() + 1000;
-                if(smstime >= currtime){
-                    long second = (smstime-currtime) / 1000;
-                    throw new HHTCException(CodeEnum.HHTC_SMS_SEND_FAIL_1.getCode(), second+"");
-                }
-            }
-            if(smsList.size() >= 5){
-                smstime = DateUtils.addHours(smsList.get(4).getTimeSend(), 1).getTime() + 1000;
-                if(smstime >= currtime){
-                    long second = (smstime-currtime) / 1000;
-                    throw new HHTCException(CodeEnum.HHTC_SMS_SEND_FAIL_5.getCode(), second+"");
-                }
-            }
-            if(smsList.size() >= 10){
-                smstime = DateUtils.addDays(smsList.get(9).getTimeSend(), 1).getTime() + 1000;
-                if(smstime >= currtime){
-                    long second = (smstime-currtime) / 1000;
-                    throw new HHTCException(CodeEnum.HHTC_SMS_SEND_FAIL_10.getCode(), second+"");
-                }
-            }
-        }
         SendSmsRequest smsRequest = new SendSmsRequest();
         smsRequest.setPhoneNumbers(phoneNo);
         smsRequest.setSignName(smsSignName);

@@ -56,13 +56,14 @@ public class WxMarketTransactionController {
 
     /**
      * TOKGO 预约下单
+     * @param type  1----第一次请求  2----第二次请求
      */
     @PostMapping("/reservation")
-    public CommonResult Reservation(String orderid,String CarNuber ,HttpSession session){
+    public CommonResult Reservation(String orderid,String CarNuber,int type,HttpSession session){
         String appid = hhtcHelper.getWxAppidFromSession(session);
         //TODO
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
-        return new CommonResult(marketTransactionService.Reservation(openid,orderid,CarNuber));
+        return new CommonResult(marketTransactionService.Reservation(openid,orderid,CarNuber,type));
     }
 
     /**

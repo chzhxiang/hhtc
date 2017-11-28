@@ -29,12 +29,14 @@ get 查询历史投诉记录---/wx/advice/get
 
 get 获取可以发布的车位信息 --/wx/market/post/getcarparks
 post 车位发布------ /wx/market/post/postCarpark  long goodsId, String starttime,String endtime
-get  库存数量 获取市场的车位---/wx/market/post/inventory  long communityId
+get  库存数量 获取市场的车位---/wx/market/post/inventory  long communityId,String starttime
 
 get 车位主获取发布的订单  ---/wx/market/post/getorder
 post 车位主取消发布车位 ---- /wx/market/post/cancel  String orderid
 get 获取粉丝自己的订单 ---/wx/market/transaction /get/order  int type  type 1---预约订单  2----进行中的订单 3---所有
 post  取消订单 ----- /wx/market/transaction /cancel   String orderid，,String type
+
+get 查询粉丝资金情况 ---- /wx/userfunds/get
 
 
 

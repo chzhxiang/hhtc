@@ -158,7 +158,6 @@ public class FansService {
         //验证成功 进行电话写入，并修改状态
         fansInfor.setPhoneNo(phoneNO);
         UpdatedataInforSate(INFOR_STATE_PHOMENO_BIT,'1',fansInfor);
-        //TODO  是否删除历史验证码
         //返回当前状态码
         return fansInfor.getInfor_state();
     }
@@ -394,7 +393,7 @@ public class FansService {
         if(!smsService.smsVerify(phoneNo, verifyCode, type)){
             throw new HHTCException(CodeEnum.HHTC_SMS_VERIFY_FAIL);
         }
-        //SmsInfo smsInfo = smsRepository.findFirstByPhoneNoAndTypeOrderByIdDesc(phoneNo, type);
+        //SmsInfor smsInfo = smsRepository.findFirstByPhoneNoAndTypeOrderByIdDesc(phoneNo, type);
         //if(null==smsInfo || 1!=smsInfo.getUsedResult()){
         //    throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "未验证短信");
         //}

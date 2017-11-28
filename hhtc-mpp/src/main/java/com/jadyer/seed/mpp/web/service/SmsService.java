@@ -1,9 +1,10 @@
 package com.jadyer.seed.mpp.web.service;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.mpp.web.HHTCHelper;
-import com.jadyer.seed.mpp.web.model.SmsInfo;
+import com.jadyer.seed.mpp.web.model.SmsInfor;
 import com.jadyer.seed.mpp.web.repository.SmsRepository;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -28,21 +29,20 @@ public class SmsService {
     private SmsRepository smsRepository;
 
     /**
-     * 新增短信记录
+     * TOKGO 新增短信记录
      */
     @Transactional(rollbackFor=Exception.class)
-    public SmsInfo smsSend(String phoneNo, int type){
+    public SmsInfor smsSend(String phoneNo, int type){
+        CheckSMS();
         try {
             String verifyCode = RandomStringUtils.randomNumeric(6);
             if(hhtcHelper.sendSms(phoneNo, verifyCode)){
-                SmsInfo smsInfo = new SmsInfo();
-                smsInfo.setIsUsed(0);
-                smsInfo.setPhoneNo(phoneNo);
-                smsInfo.setVerifyCode(verifyCode);
-                smsInfo.setType(type);
-                smsInfo.setTimeSend(new Date());
-                smsInfo.setTimeExpire(DateUtils.addMinutes(new Date(), smsValidityMinute));
-                return smsRepository.saveAndFlush(smsInfo);
+                SmsInfor smsInfor = new SmsInfor();
+                smsInfor.setPhoneNo(phoneNo);
+                smsInfor.setVerifyCode(verifyCode);
+                smsInfor.setType(type);
+                smsInfor.setTimeExpire(new Date().getTime());
+                return smsRepository.saveAndFlush(smsInfor);
             }
         }catch (Exception ex) {
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "短信发送失败");
@@ -52,23 +52,33 @@ public class SmsService {
 
 
     /**
-     * 短信验证
+     * TOKGO 短信验证
      * @param type 短信类型：1—电话号码验证，2—电话号码注销，3—车主提现，4—车位主提现
      */
     @Transactional(rollbackFor=Exception.class)
     public boolean smsVerify(String phoneNo, String verifyCode, int type){
-        Date currentDate = new Date();
-        List<SmsInfo> smsInfoList = smsRepository.findByPhoneNoAndVerifyCodeOrderByIdDesc(phoneNo, verifyCode);
-        for(SmsInfo obj : smsInfoList){
+        CheckSMS();
+        List<SmsInfor> smsInforList = smsRepository.findByPhoneNoAndVerifyCodeOrderByIdDesc(phoneNo, verifyCode);
+        for(SmsInfor obj : smsInforList){
             if(obj.getType()==type ){
-                obj.setIsUsed(1);
-                obj.setUsedResult(1);
-                //TODO 验证码的有效期
-               // obj.setUsedTime(currentDate);
-                smsRepository.saveAndFlush(obj);
+                smsRepository.delete(obj.getId());
                 return true;
             }
         }
         return false;
     }
+
+    /**
+     * TOKGO 检查历史验证是否过期
+     * */
+    private void CheckSMS(){
+        long currentDate = new Date().getTime();
+        List<SmsInfor> smsInforList = smsRepository.findAll();
+        for(SmsInfor obj : smsInforList){
+            if((currentDate - obj.getTimeExpire())>= Constants.S_SMSFILEMAX)
+                smsRepository.delete(obj.getId());
+        }
+    }
+
+
 }

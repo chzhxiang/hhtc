@@ -1,5 +1,20 @@
 
     /**
+     * 查询粉丝押金是否足够
+     * <p>
+     *     目前该接口仅供车主预约下单后，预览订单时使用
+     * </p>
+     */
+    @GetMapping("/deposit/isenough")
+    public CommonResult depositIsenough(long communityId, HttpSession session){
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(userFundsService.depositIsenough(openid, communityId));
+    }
+
+
+
+
+    /**
      * 审核车主或车位主
      * @param id     粉丝ID
      * @param status 审核状态：2--审核通过，3--审核拒绝

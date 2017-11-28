@@ -137,8 +137,8 @@ public class WxOrderInoutController {
                 //}else if(null!=inout.getInTime() && null!=inout.getOutTime()){
                 //    //支持多次入场出场，故注释
                 //    respMsg = "无效通知：车主已离场";
-                }else if(userFundsService.depositIsenough(inout.getOpenid(), device.getCommunityId()).get("isenough").equals("0")){
-                    respMsg = "不能入场：车主押金不足";
+//                }else if(userFundsService.depositIsenough(inout.getOpenid(), device.getCommunityId()).get("isenough").equals("0")){
+//                    respMsg = "不能入场：车主押金不足";
                 }else{
                     communityDeviceFlow.setScanAllowOpen(1);
                     communityDeviceFlow.setOpenTime(new Date());

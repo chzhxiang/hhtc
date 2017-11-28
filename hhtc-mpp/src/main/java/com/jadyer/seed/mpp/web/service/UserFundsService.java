@@ -45,43 +45,26 @@ public class UserFundsService {
     @Resource
     private FansService fansService;
     @Resource
-    private OrderService orderService;
-    @Resource
-    private GoodsService goodsService;
-    @Resource
     private OrderRepository orderRepository;
     @Resource
     private CommunityService communityService;
     @Resource
-    private GoodsNeedRepository goodsNeedRepository;
-    @Resource
     private UserFundsRepository userFundsRepository;
     @Resource
     private MppUserInfoRepository mppUserInfoRepository;
-    @Resource
-    private UserFundsFlowRepository userFundsFlowRepository;
-    @Resource
-    private GoodsPublishOrderRepository goodsPublishOrderRepository;
-
     /**
-     * 车主预约下单以及发布需求时，查询粉丝押金是否足够
+     * TOKGO 车主预约下单以及发布需求时，查询粉丝押金是否足够
+     * @return true 押金足够
      */
-    public Map<String, String> depositIsenough(String openid, long communityId) {
-        Map<String, String> dataMap = new HashMap<>();
-        dataMap.put("isenough", "1");
-        dataMap.put("money", new BigDecimal(0).toString());
+    public boolean depositIsenough(String openid, long communityId) {
         BigDecimal moneyBase = this.get(openid).getMoneyBase();
         CommunityInfo communityInfo = communityService.get(communityId);
-        if(communityInfo.getMoneyBase().compareTo(moneyBase) > 0){
-            dataMap.put("isenough", "0");
-            dataMap.put("money", (communityInfo.getMoneyBase().subtract(moneyBase)).toString());
-        }
-        return dataMap;
+        return (communityInfo.getMoneyBase().compareTo(moneyBase) > 0);
     }
 
 
     /**
-     * 查询粉丝资金情况
+     * TOKGO 查询粉丝资金情况
      */
     public UserFunds get(String openid) {
         UserFunds funds = userFundsRepository.findByOpenid(openid);

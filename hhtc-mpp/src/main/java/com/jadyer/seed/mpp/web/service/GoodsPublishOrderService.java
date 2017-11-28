@@ -48,8 +48,6 @@ public class GoodsPublishOrderService {
     @Resource
     private GoodsService goodsService;
     @Resource
-    private GooRepository goodsRepository;
-    @Resource
     private OrderRepository orderRepository;
     @Resource
     private CommunityService communityService;
@@ -88,7 +86,11 @@ public class GoodsPublishOrderService {
         GoodsInfor goodsInfor = goodsInforRepository.findByOpenidAndId(openid, goodsId);
         if (goodsInfor ==null)
             throw new HHTCException(CodeEnum.SYSTEM_NULL);
-        //TODO  检测用户押金是否足够
+        //检查用户押金是否足够
+        if(!userFundsService.depositIsenough(openid,goodsInfor.getCommunityId())){
+            //押金不够
+            throw new HHTCException(CodeEnum.HHTC_FUNDS_DEPOSIT_NO);
+        }
         GoodsPublishOrder goodsPublishOrder = new GoodsPublishOrder();
         goodsPublishOrder.setOrderID(HHTCHelper.buildOrderNo());
         goodsPublishOrder.setOpenid(openid);
@@ -126,21 +128,21 @@ public class GoodsPublishOrderService {
      * TOKGO 库存数量 获取市场的车位
      */
     @Transactional(rollbackFor=Exception.class)
-    public List<GoodsPublishOrder> inventory(long communityId){
+    public List<GoodsPublishOrder> inventory(long communityId,String starttime){
         List<GoodsPublishOrder> goodsPublishOrderSends = new ArrayList<>();
         List<GoodsPublishOrder> goodsPublishOrders =goodsPublishOrderRepository.findByCommunityId(communityId);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-        long timeend;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        long timestart;
         try {
-            timeend= sdf.parse("2017-11-27 11:18").getTime();
+            timestart= new SimpleDateFormat("yyyy-MM-dd").parse(starttime).getTime();
+            //进行时间筛选
+            for (GoodsPublishOrder goodsPublishOrder:goodsPublishOrders){
+                if (sdf.parse(goodsPublishOrder.getPublishFromTime()).getTime()>=timestart){
+                    goodsPublishOrderSends.add(goodsPublishOrder);
+                }
+            }
         } catch (ParseException e) {
             throw new HHTCException(CodeEnum.SYSTEM_PARAM_TIME_ERROR);
-        }
-        for (GoodsPublishOrder goodsPublishOrder:goodsPublishOrders){
-            ////TODO 根据时间进行筛选
-            if (true){
-                goodsPublishOrderSends.add(goodsPublishOrder);
-            }
         }
         return goodsPublishOrderSends;
     }

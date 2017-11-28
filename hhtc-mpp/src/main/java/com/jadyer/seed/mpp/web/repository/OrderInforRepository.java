@@ -20,7 +20,6 @@ public interface OrderInforRepository extends BaseRepository<OrderInfor, Long> {
 //    long countByGoodsIdAndOrderTypeInAndOrderStatusIn(long goodsId, List<Integer> orderTypeList, List<Integer> orderStatusList);
 //
     OrderInfor findByOrderId(String orderid);
-
     List<OrderInfor> findByPostOpenid(String postopenid);
     List<OrderInfor> findByOwnersOpenid(String ownersopenid);
 

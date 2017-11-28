@@ -25,29 +25,13 @@ public class WxUserFundsController {
     @Resource
     private HHTCHelper hhtcHelper;
     @Resource
-    private FansService fansService;
-    @Resource
     private UserFundsService userFundsService;
-    @Resource
-    private GoodsPublishOrderRepository goodsPublishOrderRepository;
 
 
     //TODO
     String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
     /**
-     * 查询粉丝押金是否足够
-     * <p>
-     *     目前该接口仅供车主预约下单后，预览订单时使用
-     * </p>
-     */
-    @GetMapping("/deposit/isenough")
-    public CommonResult depositIsenough(long communityId, HttpSession session){
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
-        return new CommonResult(userFundsService.depositIsenough(openid, communityId));
-    }
-
-    /**
-     * 查询粉丝资金情况
+     * TOKGO 查询粉丝资金情况
      */
     @GetMapping("/get")
     public CommonResult get(HttpSession session){

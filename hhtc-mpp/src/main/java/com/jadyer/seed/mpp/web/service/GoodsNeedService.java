@@ -89,8 +89,6 @@ public class GoodsNeedService {
     @Resource
     private GoodsPublishRepository goodsPublishRepository;
     @Resource
-    private GoodsPublishOrderService goodsPublishOrderService;
-    @Resource
     private GoodsNeedHistoryRepository goodsNeedHistoryRepository;
     @Resource
     private GoodsPublishOrderRepository goodsPublishOrderRepository;

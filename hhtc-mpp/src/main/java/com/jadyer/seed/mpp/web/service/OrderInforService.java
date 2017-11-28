@@ -9,6 +9,7 @@ import com.jadyer.seed.mpp.web.repository.OrderInforRepository;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @描述
@@ -46,11 +47,16 @@ public class OrderInforService {
     /**
      * TOKGO 车主获取订单
      * */
-    public OrderInfor GetOrder(String ownersopenid,String orderid){
-//        return orderInforRepository.findByOrderIdAndOwnersOpenid(orderid,ownersopenid);
-        return null;
+    public List<OrderInfor> GetOwnersOrder(String ownersopenid){
+        return orderInforRepository.findByOwnersOpenid(ownersopenid);
     }
 
+    /**
+     * TOKGO 订单
+     * */
+    public OrderInfor GetOrder(String orderid){
+        return orderInforRepository.findByOrderId(orderid);
+    }
 
 
     /**

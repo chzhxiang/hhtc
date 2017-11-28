@@ -29,21 +29,22 @@ public enum CodeEnum {
     HHTC_INFOR_CARPARK     (3140,"已经提交了车位请求"),
     HHTC_INFOR_CARPARK_NO   (3141, "没有可使用的车位"),
 
-    HHTC_SMS_VERIFY_FAIL  (3100, "短信验证码错误"),
+    HHTC_SMS_VERIFY_FAIL  (3200, "短信验证码错误"),
+    HHTC_SMS_SEND_FAIL_1  (3210, "短信发送失败：每分钟只能发送一条"),
+    HHTC_SMS_SEND_FAIL_5  (3211, "短信发送失败：每小时最多发送五条"),
+    HHTC_SMS_SEND_FAIL_10 (3212, "短信发送失败：每天最多发送十条"),
 
-    HHTC_SMS_SEND_FAIL_1  (3110, "短信发送失败：每分钟只能发送一条"),
-    HHTC_SMS_SEND_FAIL_5  (3111, "短信发送失败：每小时最多发送五条"),
-    HHTC_SMS_SEND_FAIL_10 (3112, "短信发送失败：每天最多发送十条"),
+    HHTC_FUNDS_DEPOSIT_NO (3310, "押金不足"),
+    HHTC_FUNDS_BALANCE_NO (3320, "余额不足"),
 
-
-
+    HHTC_ORDER_PORT_TIMEERROR (3400, "和已有又，订单时间重叠"),
 
     HHTC_UNLOGIN          (3003, "请从微信菜单重新进入"),
-    HHTC_GOODS_MATCH_FAIL (3005, "未匹配到车位"),
+
     HHTC_GOODS_ORDER_FAIL (3006, "下单失败：您来晚了一步，该车位刚刚被其他人下单了"),
-    HHTC_UNREG            (3007, "既未注册车主也未注册车位主"),
-    HHTC_PUBLISH_NO_MONEY (3008, "押金已足，可直接发布车位"),
-    HHTC_NEED_NO_MONEY    (3009, "余额不足");
+    HHTC_UNREG            (3007, "既未注册车主也未注册车位主");
+
+
 
     private final int code;
     private final String msg;

@@ -35,8 +35,8 @@ public class WxMarketPostController {
      * TOKGO 库存数量 获取市场的车位
      * */
     @GetMapping("/inventory")
-    public CommonResult inventory(long communityId){
-        return new CommonResult(goodsPublishOrderService.inventory(communityId));
+    public CommonResult inventory(long communityId,String starttime){
+        return new CommonResult(goodsPublishOrderService.inventory(communityId,starttime));
 
     }
 
@@ -86,9 +86,5 @@ public class WxMarketPostController {
         goodsPublishOrderService.cancel(openid, orderid);
         return new CommonResult();
     }
-
-
-
-
 
 }

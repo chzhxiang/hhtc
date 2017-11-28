@@ -390,11 +390,12 @@ public class OrderService {
             orderList.add(pubOrder);
             price = price.add(pubOrder.getPrice());
         }
+        //TODO
         //校验押金是否足够
-        Map<String, String> dataMap = userFundsService.depositIsenough(fansInfo.getOpenid(), orderList.get(0).getCommunityId());
-        if("0".equals(dataMap.get("isenough"))){
-            throw new HHTCException(CodeEnum.HHTC_NEED_NO_MONEY.getCode(), "押金不足，缺少："+dataMap.get("money") + "元");
-        }
+//        Map<String, String> dataMap = userFundsService.depositIsenough(fansInfo.getOpenid(), orderList.get(0).getCommunityId());
+//        if("0".equals(dataMap.get("isenough"))){
+//            throw new HHTCException(CodeEnum.HHTC_NEED_NO_MONEY.getCode(), "押金不足，缺少："+dataMap.get("money") + "元");
+//        }
         //计算publishFromDates
         List<String> publishFromDateList = new ArrayList<>();
         for(GoodsPublishOrder obj : orderList){
