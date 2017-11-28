@@ -7,6 +7,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.util.Date;
 
 @Entity
@@ -24,6 +25,32 @@ public class FansInforAudit extends BaseEntity<Long>{
     private String imgurl2;
     private String audit_reason;
     private int audit_uid;
+
+    @Transient
+    private String nickname;
+    @Transient
+    private String headimgurl;
+    @Transient
+    private String phone;
+    @Transient
+    private String community;
+
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getCommunity() {
+        return community;
+    }
+
+    public void setCommunity(String community) {
+        this.community = community;
+    }
 
     public long getUid() {
         return uid;
@@ -95,5 +122,21 @@ public class FansInforAudit extends BaseEntity<Long>{
 
     public void setAudit_uid(int audit_uid) {
         this.audit_uid = audit_uid;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public String getHeadimgurl() {
+        return headimgurl;
+    }
+
+    public void setHeadimgurl(String headimgurl) {
+        this.headimgurl = headimgurl;
     }
 }

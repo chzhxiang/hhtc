@@ -1,6 +1,7 @@
 package com.jadyer.seed.mpp.web.controller.wx;
 
 import com.jadyer.seed.comm.constant.CommonResult;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.model.GoodsInfo;
 import com.jadyer.seed.mpp.web.service.GoodsService;
@@ -24,7 +25,7 @@ public class WxGoodsController {
     private GoodsService goodsService;
 
     //TODO
-    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
+    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
 
     /**
      * TOKGO 查询粉丝车位信息信息
@@ -32,7 +33,7 @@ public class WxGoodsController {
     @GetMapping("/get/CarPark")
     public CommonResult getCarPark(HttpSession session){
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsService.getFansCarParkInfor(openid));
     }
 
@@ -43,7 +44,7 @@ public class WxGoodsController {
     @PostMapping("/infor/carParkBind")
     public CommonResult BindCarPark(String carParkNumber, String carEquityImg,String carUsefulEndDate, HttpSession session){
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsService.regCarPark(openid
                 , carParkNumber, carEquityImg,carUsefulEndDate));
     }
@@ -55,7 +56,7 @@ public class WxGoodsController {
     @PostMapping("/infor/carParkLogout")
     public CommonResult LogoutFanscarPark(long id,String state , HttpSession session){
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsService.carParkLogout(openid, id,state));
     }
 

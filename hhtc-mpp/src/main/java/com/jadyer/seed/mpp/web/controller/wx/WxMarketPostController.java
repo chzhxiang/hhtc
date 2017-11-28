@@ -1,6 +1,7 @@
 package com.jadyer.seed.mpp.web.controller.wx;
 
 import com.jadyer.seed.comm.constant.CommonResult;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.service.GoodsPublishOrderService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +29,7 @@ public class WxMarketPostController {
 
 
     //TODO
-    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
+    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
 
     /**
      * TOKGO 库存数量 获取市场的车位
@@ -45,7 +46,7 @@ public class WxMarketPostController {
     @GetMapping("/getcarparks")
     public CommonResult cancel(HttpSession session) {
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsPublishOrderService.GetPublishCarpark(openid));
     }
 
@@ -58,7 +59,7 @@ public class WxMarketPostController {
     @PostMapping("/postCarpark")
     public CommonResult post(long goodsId, String starttime,String endtime,HttpSession session){
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         goodsPublishOrderService.postOrder(openid,goodsId,starttime,endtime);
         return new CommonResult();
     }
@@ -70,7 +71,7 @@ public class WxMarketPostController {
     @GetMapping("/getorder")
     public CommonResult getorder(HttpSession session){
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsPublishOrderService.Getfansorder(openid));
     }
 
@@ -81,7 +82,7 @@ public class WxMarketPostController {
     @PostMapping("/cancel")
     public CommonResult cancel(String orderid, HttpSession session){
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         goodsPublishOrderService.cancel(openid, orderid);
         return new CommonResult();
     }

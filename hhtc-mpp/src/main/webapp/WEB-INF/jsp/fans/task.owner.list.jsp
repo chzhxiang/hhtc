@@ -38,7 +38,7 @@ function audit(id, flag){
 </script>
 
 <div class="c_nav">
-    <div class="ti">车主审核</div>
+    <div class="ti">车牌审核</div>
 </div>
 <!--Content-->
 <div class="c_content">
@@ -48,24 +48,22 @@ function audit(id, flag){
             <th>头像</th>
             <th>昵称</th>
             <th>手机</th>
-            <th>小区名称</th>
-            <th>门牌号</th>
+            <th>住址</th>
             <th>车牌号</th>
-            <th>注册时间</th>
+            <th>提交时间</th>
             <th>审核</th>
         </tr>
-        <c:forEach items="${page.content}" var="fans">
+        <c:forEach items="${page.content}" var="audit">
             <tr>
-                <td><span><img alt="头像" src="${fans.headimgurl}" height="30px" width="30px"></span></td>
-                <td><span>${fans.nickname}</span></td>
-                <td><span>${fans.phoneNo}</span></td>
-                <td><span>${fans.carOwnerCommunityName}</span></td>
-                <td><span>${fans.houseNumber}</span></td>
-                <td><span>${fans.carNumber}</span></td>
-                <td><span><fmt:formatDate value="${fans.carOwnerRegTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>
+                <td><span><img alt="头像" src="${audit.headimgurl}" height="30px" width="30px"></span></td>
+                <td><span>${audit.nickname}</span></td>
+                <td><span>${audit.phone}</span></td>
+                <td><span>${audit.community}</span></td>
+                <td><span>${audit.content}</span></td>
+                <td><span><fmt:formatDate value="${audit.createTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>
                 <td>
-                    <a class="c09f mr_15" href="javascript:audit('${fans.id}', 2);">通过</a>
-                    <a class="c09f" href="javascript:audit('${fans.id}', 3);">拒绝</a>
+                    <a class="c09f mr_15" href="javascript:audit('${audit.id}', 2);">通过</a>
+                    <a class="c09f" href="javascript:audit('${audit.id}', 3);">拒绝</a>
                 </td>
             </tr>
         </c:forEach>

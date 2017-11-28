@@ -1,6 +1,7 @@
 package com.jadyer.seed.mpp.web.controller.wx;
 
 import com.jadyer.seed.comm.constant.CommonResult;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.service.UserFundsFlowService;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,10 +20,11 @@ public class WxUserFundsFlowController {
     private HHTCHelper hhtcHelper;
     @Resource
     private UserFundsFlowService userFundsFlowService;
-
+    //TODO
+    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
     @RequestMapping("/list")
     public CommonResult list(String pageNo, HttpSession session){
-        String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(userFundsFlowService.listViaPage(pageNo, openid));
     }
 }

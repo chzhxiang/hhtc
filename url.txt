@@ -11,7 +11,7 @@ post    车牌号绑定 ----/wx/fans/infor/carNumberBind  String carNumber, Stri
 post    车牌号注销  --- /wx/fans/infor/carNumberLogout  long id,String state ,
 
 post    车位号绑定 ----/wx/goods/infor/carParkBind String carParkNumber, String carEquityImg,String carUsefulEndDate,
-post    车位注销  --- /wx/goods/infor/carNumberLogout  long id,String state ,
+post    车位注销  --- /wx/goods/infor/carParkLogout  long id,String state ,
 
 post    发送验证码----/wx/common/sms/send
 get  根据城市名称获取小区名称列表 ------/wx/community/listByCityName

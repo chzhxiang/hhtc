@@ -2,6 +2,7 @@ package com.jadyer.seed.mpp.web.controller.wx;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.comm.constant.CommonResult;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.model.CommunityInfo;
@@ -50,13 +51,14 @@ public class WxGoodsPublishController {
     private GoodsPublishService goodsPublishService;
     @Resource
     private GoodsPublishOrderRepository goodsPublishOrderRepository;
-
+    //TODO
+    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
     /**
      * 发布的车位是否可合并
      */
     @RequestMapping("/add/canMerge")
     public CommonResult addCanMerge(long goodsId, int publishType, int publishFromTime, int publishEndTime, String publishFromDates, HttpSession session){
-        String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsPublishService.addCanMerge(openid, goodsId, publishType, publishFromTime, publishEndTime, publishFromDates));
     }
 
@@ -67,7 +69,7 @@ public class WxGoodsPublishController {
      */
     @RequestMapping("/add")
     public CommonResult add(long goodsId, int publishType, int publishFromTime, int publishEndTime, String publishFromDates, HttpSession session){
-        String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
 //        GoodsInfo goodsInfo = goodsPublishService.verifyBeforeAdd(openid, goodsId, publishType, publishFromTime, publishEndTime, publishFromDates);
         //校验押金是否足够（一个车位一份押金）
         Map<String, String> fundsMap = new HashMap<>();

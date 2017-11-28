@@ -1,6 +1,7 @@
 package com.jadyer.seed.mpp.web.controller.wx;
 
 import com.jadyer.seed.comm.constant.CommonResult;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.service.OrderService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,9 @@ public class WxOrderController {
     @Resource
     private OrderService orderService;
 
+    //TODO
+    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
+
     @GetMapping("/get")
     public CommonResult get(long id){
         return new CommonResult(orderService.get(id));
@@ -32,7 +36,7 @@ public class WxOrderController {
      */
     @RequestMapping("/list")
     public CommonResult list(String orderStatus, HttpSession session){
-        String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(orderService.list(orderStatus, openid));
     }
 

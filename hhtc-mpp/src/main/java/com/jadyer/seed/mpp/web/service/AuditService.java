@@ -2,13 +2,18 @@ package com.jadyer.seed.mpp.web.service;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.comm.exception.HHTCException;
+import com.jadyer.seed.comm.jpa.Condition;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
 import com.jadyer.seed.mpp.sdk.weixin.model.template.WeixinTemplateMsg;
 import com.jadyer.seed.mpp.web.model.FansInforAudit;
+import com.jadyer.seed.mpp.web.model.GoodsInfo;
+import com.jadyer.seed.mpp.web.model.GoodsInfor;
 import com.jadyer.seed.mpp.web.model.MppFansInfor;
 import com.jadyer.seed.mpp.web.repository.FansAuditRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -83,6 +88,11 @@ public class AuditService {
         return fansAuditRepository.getOne(id);
     }
 
-
+    /**
+     * TOKGO 分页查询
+     * **/
+    public Page<FansInforAudit> getpage(Condition<FansInforAudit> spec, Pageable pageable){
+        return fansAuditRepository.findAll(spec,pageable);
+    }
 
 }

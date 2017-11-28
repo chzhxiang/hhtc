@@ -1,6 +1,7 @@
 package com.jadyer.seed.mpp.web.controller.wx;
 
 import com.jadyer.seed.comm.constant.CommonResult;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.repository.GoodsPublishOrderRepository;
 import com.jadyer.seed.mpp.web.service.FansService;
@@ -30,6 +31,9 @@ public class WxUserFundsController {
     @Resource
     private GoodsPublishOrderRepository goodsPublishOrderRepository;
 
+
+    //TODO
+    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
     /**
      * 查询粉丝押金是否足够
      * <p>
@@ -38,7 +42,7 @@ public class WxUserFundsController {
      */
     @GetMapping("/deposit/isenough")
     public CommonResult depositIsenough(long communityId, HttpSession session){
-        String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(userFundsService.depositIsenough(openid, communityId));
     }
 
@@ -47,7 +51,7 @@ public class WxUserFundsController {
      */
     @GetMapping("/get")
     public CommonResult get(HttpSession session){
-        String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(userFundsService.get(openid));
     }
 

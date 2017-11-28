@@ -75,11 +75,7 @@ public class GoodsService {
             String[] T = fansInforAudit.getContent().split("@");
             hashMap.put("state","audit");
             hashMap.put("id",fansInforAudit.getId());
-            if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_CARPARK_BIT)=='1')
-                hashMap.put("communityName",mppFansInfor.getCommunityName());
-            else
-                hashMap.put("communityName",auditService.GetAudit(2,openid,1)
-                        .get(0).getContent().split("@")[1]);
+            hashMap.put("communityName",GetFansCommunityName(mppFansInfor));
             hashMap.put("parkNumber",T[0]);
             hashMap.put("endTime",T[1]);
             list.add(hashMap);
@@ -136,48 +132,28 @@ public class GoodsService {
         HashMap hashMap = new HashMap();
         hashMap.put("state","audit");
         hashMap.put("id",fansInforAudit.getId());
-        if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_CARPARK_BIT)=='1')
-            hashMap.put("communityName",mppFansInfor.getCommunityName());
-        else
-            hashMap.put("communityName",auditService.GetAudit(2,openid,1)
-                    .get(0).getContent().split("@")[1]);
+        hashMap.put("communityName",GetFansCommunityName(mppFansInfor));
         hashMap.put("parkNumber",carParkNumber);
         hashMap.put("endTime",carUsefulEndDate);
         return  hashMap;
     }
 
-
-
-
     /**
-     * 分页查询待审核的车位列表
-     * @param pageNo zero-based page index
-     */
-    public Page<GoodsInfo> listTaskViaPage(MppUserInfo userInfo, String pageNo){
-        //排序
-//        Sort sort = new Sort(Sort.Direction.ASC, "id");
-//        //分页
-//        Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
-//        //条件（物管只能查询自己小区的车位列表）
-//        Condition<GoodsInfo> spec = Condition.<GoodsInfo>and().eq("carAuditStatus", 1);
-//        if(userInfo.getType() == 2){
-//            List<Long> idList = new ArrayList<>();
-//            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
-//                idList.add(obj.getId());
-//            }
-//            spec.in("communityId", idList);
-//        }
-//        //执行
-//        Page<GoodsInfo> page = goodsRepository.findAll(spec, pageable);
-//        List<GoodsInfo> list = page.getContent();
-//        for(GoodsInfo obj : list){
-//            MppFansInfor fans = fansService.getByOpenid(obj.getOpenid());
-//            obj.setNickname(fans.getNickname());
-//            obj.setHeadimgurl(fans.getHeadimgurl());
-//        }
-//        return page;
-        return null;
+     * TOKGO 获取当前用户小区名
+     * */
+    private String GetFansCommunityName(MppFansInfor mppFansInfor){
+        if (mppFansInfor ==null)
+            return "";
+        if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_CARPARK_BIT)=='1')
+            return mppFansInfor.getCommunityName();
+        List<FansInforAudit>fansInforAudits = auditService.GetAudit(2,mppFansInfor.getOpenid(),1);
+        if (fansInforAudits.size()<1)
+            return "";
+        if (StringUtils.isBlank(fansInforAudits.get(0).getContent()))
+            return "";
+        return fansInforAudits.get(0).getContent().split(SPLITFLAG)[0];
     }
+
 
 
     public Page<GoodsInfo> listViaPage(MppUserInfo userInfo, String pageNo){

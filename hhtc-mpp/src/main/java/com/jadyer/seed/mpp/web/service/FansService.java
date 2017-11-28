@@ -204,14 +204,51 @@ public class FansService {
                 if (fansInforAudit.getState()==0)
                     throw  new HHTCException(CodeEnum.HHTC_INFOR_COMMUNITY);
         }
+        CommunityInfo communityInfo = communityService.get(CommunityID);
         //重组信息
-        String infor = CommunityID+"@"+houseNumber;
+        String infor = communityInfo.getName()+SPLITFLAG+houseNumber+SPLITFLAG+CommunityID;
         //写入审核
         auditService.AddAudit(MppFansInfor.getUid(),openid,1,0,infor);
         UpdatedataInforSate(INFOR_STATE_COMMUNITY_BIT,'2',MppFansInfor);
         //返回当前状态码
         return  fansInforRepository.findByOpenid(openid).getInfor_state();
     }
+
+
+
+    /**
+     * TOKGO 分页查询待审核的车位列表
+     * @param tuype 类型：1--住房地址，2--车位，3--车牌
+     * @param pageNo zero-based page index
+     */
+    public Page<FansInforAudit> TaskViaPagelist(MppUserInfo userInfo, String pageNo,int tuype){
+        //排序
+        Sort sort = new Sort(Sort.Direction.ASC, "id");
+        //分页
+        Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
+        //条件（物管只能查询自己小区的车位列表）
+        Condition<FansInforAudit> spec = Condition.<FansInforAudit>and().eq("type", tuype);
+        if(userInfo.getType() == 2){
+            List<Long> idList = new ArrayList<>();
+            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
+                idList.add(obj.getId());
+            }
+            spec.in("communityId", idList);
+        }
+        //执行
+        Page<FansInforAudit> page = auditService.getpage(spec, pageable);
+        List<FansInforAudit> list = page.getContent();
+        for(FansInforAudit obj : list){
+            MppFansInfor fans = getByOpenid(obj.getOpenid());
+            obj.setNickname(fans.getNickname());
+            obj.setHeadimgurl(fans.getHeadimgurl());
+            obj.setPhone(fans.getPhoneNo());
+            if (tuype != 1)
+                obj.setCommunity(fans.getCommunityName()+fans.getHouseNumber());
+        }
+        return page;
+    }
+
 
 
 
@@ -286,7 +323,7 @@ public class FansService {
     @Transactional(rollbackFor=Exception.class)
     public MppFansInfor getByOpenid(String openid){
         MppFansInfor MppFansInfor = fansInforRepository.findByOpenid(openid);
-        //查询不到：先关注的，但应用是后上线的
+        // TODO 查询不到：先关注的，但应用是后上线的
         if(null == MppFansInfor){
             MppFansInfor = new MppFansInfor();
             MppUserInfo mppUserInfo = mppUserInfoRepository.findByMptypeAndBindStatus(1, 1);
@@ -508,11 +545,12 @@ public class FansService {
         if (fansInforAudit.getType() == Constants.AUDTI_TEPY_COMMUNITY) {
             if (status == 1) {
                 FirstData = "尊敬的用户，你的地址审核通过了";
-                String[] addressInfor = fansInforAudit.getContent().split("@");
-                CommunityInfo communityInfo = communityService.get(Long.valueOf(addressInfor[0]));
+                String[] addressInfor = fansInforAudit.getContent().split(SPLITFLAG);
+                CommunityInfo communityInfo = communityService.get(Long.valueOf(addressInfor[2]));
                 fansInfor.setCommunityId(communityInfo.getId());
                 fansInfor.setCommunityName(communityInfo.getName());
                 fansInfor.setHouseNumber(addressInfor[1]);
+                //跟新状态并保存
                 UpdatedataInforSate(INFOR_STATE_COMMUNITY_BIT, '1', fansInfor);
             }else {
                 FirstData = "尊敬的用户，你的地址审核未通过";

@@ -4,41 +4,8 @@
 
 <jsp:include page="../comm/header.jsp"/>
 
-<script>
-/**
- * 审核备注
- */
-var remark = "approved";
-function inputRemark(){
-    var _remark = prompt("请输入拒绝原因", "");
-    if(!isEmpty(_remark)){
-        remark = _remark;
-        return true;
-    }else{
-        return false;
-    }
-}
-function audit(id, flag){
-    if(confirm("确定审核 [ " + (flag==2 ? "通过" : "拒绝") +" ] 此车位主么？")){
-        if(flag==2 || (flag==3 && inputRemark())){
-            $.post("${ctx}/fans/carAudit",
-                {id:id, status:flag, type:2, auditRemark: remark},
-                function(data){
-                    if(0 == data.code){
-                        alert("操作成功");
-                        location.href = "${ctx}/fans/task/park/list";
-                    }else{
-                        $.promptBox(data.msg, "#ffb848");
-                    }
-                }
-            );
-        }
-    }
-}
-</script>
-
 <div class="c_nav">
-    <div class="ti">车位主审核</div>
+    <div class="ti">车位审核</div>
 </div>
 <!--Content-->
 <div class="c_content">
@@ -47,21 +14,25 @@ function audit(id, flag){
         <tr>
             <th>头像</th>
             <th>昵称</th>
-            <th>手机</th>
-            <th>小区名称</th>
-            <th>注册时间</th>
-            <th>审核</th>
+            <th>电话</th>
+            <th>住址</th>
+            <th>车位</th>
+            <th>提交时间</th>
+            <th>操作</th>
         </tr>
-        <c:forEach items="${page.content}" var="fans">
+        <c:forEach items="${page.content}" var="audit">
             <tr>
-                <td><span><img alt="头像" src="${fans.headimgurl}" height="30px" width="30px"></span></td>
-                <td><span>${fans.nickname}</span></td>
-                <td><span>${fans.phoneNo}</span></td>
-                <td><span>${fans.carParkCommunityName}</span></td>
-                <td><span><fmt:formatDate value="${fans.carParkRegTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>
+                <td><span><img alt="头像" src="${audit.headimgurl}" height="30px" width="30px"></span></td>
+                <td><span>${audit.nickname}</span></td>
+                <td><span>${audit.phone}</span></td>
+                <td><span>${audit.community}</span></td>
+                <td><span>${audit.fans.content.split("@")[0]}</span></td>
+                <td><span><fmt:formatDate value="${audit.createTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>
                 <td>
-                    <a class="c09f mr_15" href="javascript:audit('${fans.id}', 2);">通过</a>
-                    <a class="c09f" href="javascript:audit('${fans.id}', 3);">拒绝</a>
+                    <a class="c09f mr_15" href="${ctx}/view?url=sys/goods&id=${audit.id}">查看</a>
+                    <%--<c:if test="${audit.carAuditStatus eq 1}">--%>
+                        <%--<a class="c09f" href="${ctx}/view?url=sys/goods&o=update&id=${audit.id}">编辑</a>--%>
+                    <%--</c:if>--%>
                 </td>
             </tr>
         </c:forEach>

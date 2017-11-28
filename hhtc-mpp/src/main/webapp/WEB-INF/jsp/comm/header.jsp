@@ -57,8 +57,8 @@
             <li ${currentMenu eq 'menu_fans' ? 'class="on"' : ''}>
                 <a href="#"><span>粉丝管理</span><i></i></a>
                 <div>
-                    <a href="${ctx}/fans/task/list"><span>车位审核</span></a>
-                    <a href="${ctx}/fans/task/park/list"><span>地址审核</span><i></i></a>
+                    <a href="${ctx}/fans/task/park/list"><span>车位审核</span></a>
+                    <a href="${ctx}/fans/task/community/list"><span>地址审核</span><i></i></a>
                     <a href="${ctx}/fans/task/owner/list"><span>车牌审核</span><i></i></a>
                     <a href="${ctx}/fans/list"><span>粉丝列表</span><i></i></a>
                     <a href="${ctx}/fans/advice/list"><span>意见反馈</span><i></i></a>

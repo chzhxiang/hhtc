@@ -28,44 +28,40 @@ public class FansController{
     @Resource
     private FansService fansService;
     @Resource
-    private AdviceService adviceService;
-    @Resource
     private AuditService auditService;
-    @Resource
-    private GoodsService goodsService;
 
     /**
-     * 分页查询待审核的车位列表
+     * TOKGO 分页查询待审核的车位列表
      * @param pageNo zero-based page index
      */
-    @RequestMapping("/task/list")
+    @RequestMapping("/task/park/list")
     public String listTaskViaPage(String pageNo, HttpServletRequest request){
         MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
-        request.setAttribute("page", goodsService.listTaskViaPage(userInfo, pageNo));
-        return "fans/task.list";
+        request.setAttribute("page", fansService.TaskViaPagelist(userInfo, pageNo,2));
+        return "fans/task.park.list";
     }
 
     /**
-     * 分页查询待审核的车主列表
+     * TOKGO 分页查询待审核的车主列表
      * @param pageNo zero-based page index
      */
     @RequestMapping("/task/owner/list")
     public String listTaskOwnerViaPage(String pageNo, HttpServletRequest request){
         MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
-        request.setAttribute("page", fansService.listTaskViaPage(userInfo, pageNo, 1));
+        request.setAttribute("page", fansService.TaskViaPagelist(userInfo, pageNo, 3));
         return "fans/task.owner.list";
     }
 
 
     /**
-     * 分页查询待审核的车位主列表
+     * TOKGO 分页查询待审核的地址列表
      * @param pageNo zero-based page index
      */
-    @RequestMapping("/task/park/list")
+    @RequestMapping("/task/community/list")
     public String listTaskParkViaPage(String pageNo, HttpServletRequest request){
         MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
-        request.setAttribute("page", fansService.listTaskViaPage(userInfo, pageNo, 2));
-        return "fans/task.park.list";
+        request.setAttribute("page", fansService.TaskViaPagelist(userInfo, pageNo, 1));
+        return "fans/task.community.list";
     }
 
     /**
@@ -81,26 +77,8 @@ public class FansController{
         MppUserInfo userInfo = (MppUserInfo)session.getAttribute(Constants.WEB_SESSION_USER);
         FansInforAudit fansInforAudit = auditService.GetOne(id);
         fansService.Audit(userInfo, fansInforAudit,status, auditRemark, appid);
-
         return new CommonResult();
     }
-
-
-    /**
-     * 审核车主或车位主
-     * @param id     粉丝ID
-     * @param status 审核状态：2--审核通过，3--审核拒绝
-     * @param type   类型：1--车主，2--车位主
-     */
-    @ResponseBody
-    @RequestMapping("/carAudit")
-    public CommonResult carAudit(long id, int status, int type, String auditRemark, HttpSession session){
-          String appid = hhtcHelper.getWxAppidFromSession(session);
-        MppUserInfo userInfo = (MppUserInfo)session.getAttribute(Constants.WEB_SESSION_USER);
-        //fansService.carAudit(userInfo, id, status, type, auditRemark, appid);
-        return new CommonResult();
-    }
-
 
     /**
      * 分页查询粉丝信息

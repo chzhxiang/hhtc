@@ -2,6 +2,7 @@ package com.jadyer.seed.mpp.web.controller.wx;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.comm.constant.CommonResult;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.model.MppFansInfor;
@@ -37,6 +38,10 @@ public class WxGoodsNeedController {
     @Resource
     private GoodsNeedService goodsNeedService;
 
+    //TODO
+    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
+
+
     @GetMapping("/get")
     public CommonResult get(long id){
         return new CommonResult(goodsNeedService.get(id));
@@ -45,7 +50,7 @@ public class WxGoodsNeedController {
 
     @RequestMapping("/list")
     public CommonResult list(String pageNo, HttpSession session){
-        String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsNeedService.listViaPage(openid, pageNo));
     }
 
@@ -56,7 +61,7 @@ public class WxGoodsNeedController {
     @PostMapping("/add")
     public CommonResult add(String communityId, String carNumber, int needType, int needFromTime, int needEndTime, int needFromDate, int needEndDate, HttpSession session){
         String appid = hhtcHelper.getWxAppidFromSession(session);
-        String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         //校验是否注册车主
         MppFansInfor fansInfor = fansService.getByOpenid(openid);
         //TODO

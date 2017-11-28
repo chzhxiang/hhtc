@@ -29,7 +29,7 @@ public interface Constants {
     int ORDER_STATE_ING =1;
     int ORDER_STATE_PAY =2;
 
-
+    String SPLITFLAG ="@";
     //系统中的部分常量 且都已 S_ 开头
     //用户车牌数据最大值
     int S_CARNUMBERMAX = 2;
@@ -37,6 +37,7 @@ public interface Constants {
 
 
     boolean ISSMS = false;
+    boolean ISWEIXIN = false;
 
 
 }

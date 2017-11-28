@@ -56,7 +56,7 @@ public class OrderInfor extends BaseEntity<Long> {
     @Column(name="post_openid")
     private String postOpenid;
     @Column(name="owners_openid")
-    private String OwnersOpenid;
+    private String ownersOpenid;
     @Column(name="bank_type")
     private String bankType;
     @Column(name="cash_fee")
@@ -123,11 +123,11 @@ public class OrderInfor extends BaseEntity<Long> {
     }
 
     public String getOwnersOpenid() {
-        return OwnersOpenid;
+        return ownersOpenid;
     }
 
     public void setOwnersOpenid(String ownersOpenid) {
-        OwnersOpenid = ownersOpenid;
+        this.ownersOpenid = ownersOpenid;
     }
 
     public String getCarParkNumber() {

@@ -1,6 +1,7 @@
 package com.jadyer.seed.mpp.web.controller.wx;
 
 import com.jadyer.seed.comm.constant.CommonResult;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.service.AdviceService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +24,7 @@ public class WxAdviceController {
     private AdviceService adviceService;
 
     //TODO
-    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
+    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
 
     /**
      * TOKGO 新增意见反馈
@@ -31,7 +32,7 @@ public class WxAdviceController {
     @PostMapping("/add")
     public CommonResult add(String content, String img,HttpSession session){
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         adviceService.add(openid, content,img);
         return new CommonResult();
     }
@@ -43,7 +44,8 @@ public class WxAdviceController {
     @GetMapping("/get")
     public CommonResult get(HttpSession session){
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN)
+            openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(adviceService.Get(openid));
     }
 

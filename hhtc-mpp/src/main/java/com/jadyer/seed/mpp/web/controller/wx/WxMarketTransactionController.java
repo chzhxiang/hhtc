@@ -1,6 +1,7 @@
 package com.jadyer.seed.mpp.web.controller.wx;
 
 import com.jadyer.seed.comm.constant.CommonResult;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.service.MarketTransactionService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +28,7 @@ public class WxMarketTransactionController {
 
 
     //TODO
-    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
+    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
 
     /**
      * TOKGO 获取粉丝自己的订单
@@ -37,7 +38,7 @@ public class WxMarketTransactionController {
     public CommonResult GetOrder(int type,HttpSession session){
         String appid = hhtcHelper.getWxAppidFromSession(session);
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(marketTransactionService.GetOrder(openid,type));
     }
 
@@ -48,7 +49,7 @@ public class WxMarketTransactionController {
     public CommonResult CancelOrder(String orderid,String type ,HttpSession session){
         String appid = hhtcHelper.getWxAppidFromSession(session);
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         marketTransactionService.CancelOrder(openid,orderid,type);
         return new CommonResult();
     }
@@ -60,7 +61,7 @@ public class WxMarketTransactionController {
     public CommonResult Reservation(String orderid,String CarNuber ,HttpSession session){
         String appid = hhtcHelper.getWxAppidFromSession(session);
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(marketTransactionService.Reservation(openid,orderid,CarNuber));
     }
 
@@ -71,7 +72,7 @@ public class WxMarketTransactionController {
     public CommonResult ReservationLogout(String orderid,HttpSession session){
         String appid = hhtcHelper.getWxAppidFromSession(session);
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(marketTransactionService.ReservationLogout(openid,orderid));
     }
 
@@ -82,7 +83,7 @@ public class WxMarketTransactionController {
     public CommonResult StartOrder(String orderid,HttpSession session){
         String appid = hhtcHelper.getWxAppidFromSession(session);
         //TODO
-        //String openid = hhtcHelper.getWxOpenidFromSession(session);
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(marketTransactionService.StartOrder(openid,orderid));
     }
 
