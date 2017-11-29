@@ -140,7 +140,7 @@ rent_ratio_carparker   INT           NOT NULL COMMENT '分润比例，比如80%�
 car_park_number_prefix VARCHAR(999)  NOT NULL COMMENT '车位号前缀，组成为：楼层+区域',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
-)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='小区信息表（小区若有多个车场，则创建多笔记录）';
+)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='小区信息表（小区若有多个车场，则创建多笔记录）TOKGO';
 
 
 DROP TABLE IF EXISTS t_community_device;
@@ -186,8 +186,6 @@ car_park_number      VARCHAR(32)  NOT NULL COMMENT '车位号',
 car_park_img         VARCHAR(999) COMMENT '车位平面图',
 car_equity_img       VARCHAR(999) COMMENT '车位产权证明图片（多张则以`分隔）',
 car_useful_end_date  VARCHAR(32)          COMMENT '车位可用的截止有效期，格式为20170712',
-is_used              TINYINT(1)   NOT NULL COMMENT '是否使用：0--待发布，1--发布中，2--已被预约',
-is_repetition        TINYINT(1)   NOT NULL COMMENT '是否重复：0--未重复，1--重复',
 car_audit_uid        INT          COMMENT '车位审核人的uid,，对应t_mpp_user_info#id',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
@@ -381,7 +379,7 @@ order_id                 VARCHAR(50)  NOT NULL COMMENT '商品发布的订单ID�
 car_park_number         VARCHAR(32)   COMMENT '车位号，冗余自t_goods_info#car_park_number',
 car_park_img            VARCHAR(999)  COMMENT '车位平面图，冗余自t_goods_info#car_park_img',
 car_number              VARCHAR(16)   COMMENT '车牌号，即发生交易时车主使用的车牌',
-reservation_from_time   VARCHAR(32)           COMMENT '车位预约停车起始时间，格式为2017-11-27 1:18',
+reservation_from_time   VARCHAR(32)   COMMENT '车位预约停车起始时间，格式为2017-11-27 1:18',
 appid                   VARCHAR(32)   COMMENT 'wxpay-appid',
 body                    VARCHAR(512)  COMMENT 'wxpay-商品描述',
 attach                  VARCHAR(512)  COMMENT 'wxpay-附加数据',
@@ -406,47 +404,22 @@ INDEX index_outTradeNo(order_id)
 DROP TABLE IF EXISTS t_order_history;
 CREATE TABLE t_order_history(
 id                      INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
-order_id                INT           NOT NULL COMMENT '订单ID，对应t_order_info#id',
+order_id                INT           NOT NULL COMMENT '订单ID，对应t_order_infor#id',
+post_openid             VARCHAR(64)   NOT NULL COMMENT '车位主的标识',
+owners_openid              VARCHAR(64)   NOT NULL COMMENT '车主的标识',
 community_id            INT           NOT NULL COMMENT '小区ID，对应t_community_info#id',
 community_name          VARCHAR(32)   NOT NULL COMMENT '小区名称，冗余自t_community_info#name',
 goods_id                INT           COMMENT '商品ID，即车位ID，对应t_goods_info#id',
-goods_publish_order_ids VARCHAR(999)  COMMENT '商品发布的订单ID，对应t_goods_publish_order#id，多个ID则以`分隔',
-goods_need_id           INT           COMMENT '车主发布的需求ID，对应t_goods_need_info#id',
 car_park_number         VARCHAR(32)   COMMENT '车位号，冗余自t_goods_info#car_park_number',
 car_park_img            VARCHAR(999)  COMMENT '车位平面图，冗余自t_goods_info#car_park_img',
 car_number              VARCHAR(16)   COMMENT '车牌号，即发生交易时车主使用的车牌',
-open_type               TINYINT(1)    COMMENT '车位预约停车类型：1--日间，2--夜间，3--全天',
-open_from_time          INT           COMMENT '车位预约停车起始时间，格式为930则表示09:30（24小时制）',
-open_end_time           INT           COMMENT '车位预约停车截止时间，格式为1600则表示16:00（24小时制）',
-open_from_dates         VARCHAR(999)  COMMENT '车位预约停车起始日期集合，以半角横杠分隔，示例：20170719-20170727-20170727',
+open_from_time          VARCHAR(32)   COMMENT '订单起始时间，格式为2017-11-27 1:18',
+open_end_time           VARCHAR(32)   COMMENT '订单截止时间，格式为2017-11-27 1:18',
+price                   DECIMAL(16,4) COMMENT 'wxpay-notify-金额',
 appid                   VARCHAR(32)   COMMENT 'wxpay-appid',
-body                    VARCHAR(512)  COMMENT 'wxpay-商品描述',
-attach                  VARCHAR(512)  COMMENT 'wxpay-附加数据',
-out_trade_no            VARCHAR(32)   NOT NULL COMMENT 'wxpay-商户订单号',
-total_fee               INT           NOT NULL COMMENT 'wxpay-标价金额，即订单总金额，单位为分',
-deposit_money           DECIMAL(16,4) NOT NULL COMMENT '押金，单位：元',
-can_refund_money        DECIMAL(16,4) NOT NULL COMMENT '剩余可退款金额，单位：元',
-spbill_create_ip        VARCHAR(23)   COMMENT 'wxpay-终端IP',
-time_start              CHAR(14)      COMMENT 'wxpay-交易起始时间，即订单生成时间，格式为yyyyMMddHHmmss',
-time_expire             CHAR(14)      COMMENT 'wxpay-交易结束时间，即订单失效时间，格式为yyyyMMddHHmmss（最短失效必须大于5分钟）',
-notify_url              VARCHAR(512)  COMMENT 'wxpay-通知地址',
-trade_type              VARCHAR(8)    COMMENT 'wxpay-交易类型：JSAPI--公众号支付、NATIVE--原生扫码支付、APP--app支付',
-product_id              INT           COMMENT 'wxpay-商品ID',
-openid                  VARCHAR(64)   NOT NULL COMMENT 'wxpay-用户标识，trade_type=JSAPI时（即公众号支付），此参数必传，此参数为微信用户在商户对应appid下的唯一标识',
-is_subscribe            CHAR(1)       COMMENT 'wxpay-notify-用户是否关注公众账号，Y--关注，N--未关注，仅在公众账号类型支付有效',
-bank_type               VARCHAR(16)   COMMENT 'wxpay-notify-付款银行，其为采用字符串类型的银行标识',
-cash_fee                INT           COMMENT 'wxpay-notify-现金支付金额',
-transaction_id          VARCHAR(64)   COMMENT 'wxpay-notify-微信支付订单号',
-time_end                CHAR(14)      COMMENT 'wxpay-notify-支付完成时间，格式为yyyyMMddHHmmss，如2009年12月25日9点10分10秒表示为20091225091010',
-trade_state_desc        VARCHAR(512)  COMMENT 'wxpay-query-交易状态描述（对当前查询订单状态的描述和下一步操作的指引）',
-notify_time             DATETIME      COMMENT '后台通知的时间',
-is_notify               TINYINT(1)    COMMENT '是否已后台通知：0--未通知，1--已通知',
-order_type              TINYINT(1)    NOT NULL COMMENT '订单类型：1--车主预约下单，2--车主需求下单，10--个人中心充值，11--车位主发布车位充值，12--车主预约下单充值，13--车主发布需求充值',
-order_status            TINYINT(1)    NOT NULL COMMENT '订单状态：0--待支付，1--支付中，2--支付成功，3--支付失败，4--已关闭，5--转入退款，6--已撤销（刷卡支付），9--已转租，99--订单生命周期已结束',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
-INDEX index_openid(openid)
-)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='订单历史表（存储已完成的或未支付成功的过期订单）';
+update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
+)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='订单历史表（存储已完成的或未支付成功的过期订单） TOKGO';
 
 
 DROP TABLE IF EXISTS t_redpack_info;

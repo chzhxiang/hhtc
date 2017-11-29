@@ -1,4 +1,57 @@
 
+
+  /*
+        {{first.DATA}}
+        订单编号：{{keyword1.DATA}}
+        停车位：{{keyword2.DATA}}
+        车牌号：{{keyword3.DATA}}
+        预计到达时间：{{keyword4.DATA}}
+        预计离开时间：{{keyword5.DATA}}
+        {{remark.DATA}}
+
+        尊敬的客户，您已成功预约珠江帝景A00停车位
+        订单编号：1000387777
+        停车位：珠江帝景A00
+        车牌号：粤A0397Z
+        预计到达时间：2016年5月19日 18:00
+        预计离开时间：2016年5月19日 20:00
+        优泊停车提醒您，请注意帐号防盗 如有疑问，请拨打咨询热线020-38383888。
+        */
+        WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
+        dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的车主，您已成功预约车位："+orderInfo.getCommunityName()+"-" +orderInfo.getCarParkNumber()));
+        dataItem.put("keyword1", new WeixinTemplateMsg.DItem(orderInfo.getOutTradeNo()));
+        dataItem.put("keyword2", new WeixinTemplateMsg.DItem(orderInfo.getCarParkNumber()));
+        dataItem.put("keyword3", new WeixinTemplateMsg.DItem(orderInfo.getCarNumber()));
+        dataItem.put("keyword4", new WeixinTemplateMsg.DItem(DateFormatUtils.format(hhtcHelper.convertToDate(hhtcHelper.calcOrderFromDate(orderInfo), orderInfo.getOpenFromTime()), "yyyy-MM-dd HH:mm")));
+        dataItem.put("keyword5", new WeixinTemplateMsg.DItem(DateFormatUtils.format(hhtcHelper.convertToDate(hhtcHelper.calcOrderEndDate(orderInfo), orderInfo.getOpenEndTime()), "yyyy-MM-dd HH:mm")));
+        dataItem.put("remark", new WeixinTemplateMsg.DItem("吼吼共享停车提醒您：请注意停车时间，避免错过。"));
+        String url = this.hhtcContextPath + this.templateUrlNeed.replace("{orderId}", orderInfo.getId()+"");
+        url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+orderInfo.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+orderInfo.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
+        WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
+        templateMsg.setTemplate_id("vkWecSSZW6qJQ4qXXX1iH7QaRvV1HJrcmky208AKx88");
+        templateMsg.setUrl(url);
+        templateMsg.setTouser(orderInfo.getOpenid());
+        templateMsg.setData(dataItem);
+        WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(orderInfo.getAppid()), templateMsg);
+        dataItem = new WeixinTemplateMsg.DataItem();
+        dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的车位主，您的车位已被预约："+orderInfo.getCommunityName()+"-" +orderInfo.getCarParkNumber()));
+        dataItem.put("keyword1", new WeixinTemplateMsg.DItem(orderInfo.getOutTradeNo()));
+        dataItem.put("keyword2", new WeixinTemplateMsg.DItem(orderInfo.getCarParkNumber()));
+        dataItem.put("keyword3", new WeixinTemplateMsg.DItem(orderInfo.getCarNumber()));
+        dataItem.put("keyword4", new WeixinTemplateMsg.DItem(DateFormatUtils.format(hhtcHelper.convertToDate(hhtcHelper.calcOrderFromDate(orderInfo), orderInfo.getOpenFromTime()), "yyyy-MM-dd HH:mm")));
+        dataItem.put("keyword5", new WeixinTemplateMsg.DItem(DateFormatUtils.format(hhtcHelper.convertToDate(hhtcHelper.calcOrderEndDate(orderInfo), orderInfo.getOpenEndTime()), "yyyy-MM-dd HH:mm")));
+        dataItem.put("remark", new WeixinTemplateMsg.DItem("吼吼共享停车提醒您：本次的车位预约所获得租金已打到您的余额中。"));
+        url = this.hhtcContextPath + this.portalCenterUrl;
+        url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+orderInfo.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+orderInfo.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
+        templateMsg = new WeixinTemplateMsg();
+        templateMsg.setTemplate_id("vkWecSSZW6qJQ4qXXX1iH7QaRvV1HJrcmky208AKx88");
+        templateMsg.setUrl(url);
+        templateMsg.setTouser(orderList.get(0).getOpenid());
+        templateMsg.setData(dataItem);
+        WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(orderInfo.getAppid()), templateMsg);
+
+
+
     /**
      * 查询粉丝押金是否足够
      * <p>

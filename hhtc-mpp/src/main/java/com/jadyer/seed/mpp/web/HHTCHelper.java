@@ -296,26 +296,6 @@ public class HHTCHelper {
     }
 
 
-    ///**
-    // * 订单状态转换
-    // * @return 7—已预约，8—停车中，9—超时中，10—已完成
-    // */
-    //public int convertOrderStatus(int orderType, int orderStatus, int settleStatus, Date inTime, Date outTime, int doEndDate, int doEndTime){
-    //    //车主预约
-    //    if((orderType==1 || orderType==2) && orderStatus==2){
-    //        if(null!=inTime && null==outTime && new Date().getTime()<this.convertToDate(doEndDate,doEndTime).getTime()){
-    //            return 8;
-    //        }else if(null!=inTime && null==outTime && new Date().getTime()>=this.convertToDate(doEndDate, doEndTime).getTime()){
-    //            return 9;
-    //        }else if(1==settleStatus || (null==inTime && null==outTime && new Date().getTime()>=this.convertToDate(doEndDate, doEndTime).getTime())){
-    //            return 10;
-    //        }else{
-    //            return  7;
-    //        }
-    //    }
-    //    return orderStatus;
-    //}
-
 
     /**
      * 时间段的校验（车主发布需求或者车位主发布车位信息时）
@@ -387,20 +367,6 @@ public class HHTCHelper {
         }
     }
 
-
-    ///**
-    // * 计算发布类型（仅供需求匹配时使用）
-    // * @return 1--日间，2--夜间，3--全天
-    // */
-    //public int calcPublishType(int fromTime, int endTime){
-    //    if(fromTime==endTime && (fromTime==this.timeDay || fromTime==this.timeNight)){
-    //        return 3;
-    //    }
-    //    if(endTime>fromTime && fromTime>=this.timeDay && endTime<=this.timeNight){
-    //        return 1;
-    //    }
-    //    return 2;
-    //}
 
 
     /**

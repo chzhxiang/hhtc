@@ -528,6 +528,9 @@ public class FansService {
                 FirstData = "尊敬的用户，你的地址审核通过了";
                 String[] addressInfor = fansInforAudit.getContent().split(SPLITFLAG);
                 CommunityInfo communityInfo = communityService.get(Long.valueOf(addressInfor[2]));
+                //如果以前有小区信息 而且小区和当前小区不同则删除历史车位
+                if (!StringUtils.isBlank(fansInfor.getCommunityName()) && fansInfor.getCommunityId()!=communityInfo.getId())
+                    goodsInforRepository.delete(goodsInforRepository.findByOpenid(fansInfor.getOpenid()));
                 fansInfor.setCommunityId(communityInfo.getId());
                 fansInfor.setCommunityName(communityInfo.getName());
                 fansInfor.setHouseNumber(addressInfor[1]);
@@ -535,7 +538,12 @@ public class FansService {
                 UpdatedataInforSate(INFOR_STATE_COMMUNITY_BIT, '1', fansInfor);
             }else {
                 FirstData = "尊敬的用户，你的地址审核未通过";
-                UpdatedataInforSate(INFOR_STATE_COMMUNITY_BIT, '0', fansInfor);
+                //如果小区审核没有通过 但是其历史绑定过，则使用原来的小区
+                if (!StringUtils.isBlank(fansInfor.getCommunityName()))
+                    UpdatedataInforSate(INFOR_STATE_COMMUNITY_BIT, '1', fansInfor);
+                else {
+                    UpdatedataInforSate(INFOR_STATE_COMMUNITY_BIT, '0', fansInfor);
+                }
             }
         }
         //车位审核
@@ -609,16 +617,7 @@ public class FansService {
         goodsInfor.setCarEquityImg(fansInforAudit.getImgurl1());
         //TODO 这里缺少uid
 //        goodsInfor.setCarAuditUid(userInfo.getUuid());
-        goodsInfor.setIsUsed(0);
         goodsInfor.setCarUsefulEndDate(fansInforAudit.getContent().split("@")[1]);
-        goodsInfor.setIsRepetition(0);
-//        // 是否重复
-//        List<GoodsInfo> byCarParkNumber = goodsRepository.findByCarParkNumber(goodsInfo.getCarParkNumber());
-//        if(byCarParkNumber.size()>0){
-//            goodsInfo.setIsRepetition(1);
-//            // 更新所有车位为重复
-//            goodsRepository.updateStatus(goodsInfo.getCarParkNumber(),1);
-//        }
         goodsInforRepository.saveAndFlush(goodsInfor);
 //        return fansInfo.getCarOwnerStatus() == 0;
 

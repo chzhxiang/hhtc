@@ -33,10 +33,6 @@ public class GoodsInfor extends BaseEntity<Long> {
     private String carEquityImg;
     @Column(name="car_useful_end_date")
     private String carUsefulEndDate;
-    @Column(name="is_used")
-    private int isUsed;
-    @Column(name="is_repetition")
-    private int isRepetition;
     @Column(name="car_audit_uid")
     private long carAuditUid;
     @Transient
@@ -59,14 +55,6 @@ public class GoodsInfor extends BaseEntity<Long> {
 
     public void setCommunityName(String communityName) {
         this.communityName = communityName;
-    }
-
-    public int getIsRepetition() {
-        return isRepetition;
-    }
-
-    public void setIsRepetition(int isRepetition) {
-        this.isRepetition = isRepetition;
     }
 
     public String getAppid() {
@@ -115,14 +103,6 @@ public class GoodsInfor extends BaseEntity<Long> {
 
     public void setCarUsefulEndDate(String carUsefulEndDate) {
         this.carUsefulEndDate = carUsefulEndDate;
-    }
-
-    public int getIsUsed() {
-        return isUsed;
-    }
-
-    public void setIsUsed(int isUsed) {
-        this.isUsed = isUsed;
     }
 
     public long getCarAuditUid() {

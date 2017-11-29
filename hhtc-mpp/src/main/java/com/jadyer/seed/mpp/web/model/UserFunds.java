@@ -22,8 +22,6 @@ public class UserFunds extends BaseEntity<Long> {
     private String openid;
     @Column(name="money_base")
     private BigDecimal moneyBase;
-    @Column(name="money_freeze")
-    private BigDecimal moneyFreeze;
     @Column(name="money_balance")
     private BigDecimal moneyBalance;
 
@@ -49,14 +47,6 @@ public class UserFunds extends BaseEntity<Long> {
 
     public void setMoneyBase(BigDecimal moneyBase) {
         this.moneyBase = moneyBase;
-    }
-
-    public BigDecimal getMoneyFreeze() {
-        return moneyFreeze;
-    }
-
-    public void setMoneyFreeze(BigDecimal moneyFreeze) {
-        this.moneyFreeze = moneyFreeze;
     }
 
     public BigDecimal getMoneyBalance() {

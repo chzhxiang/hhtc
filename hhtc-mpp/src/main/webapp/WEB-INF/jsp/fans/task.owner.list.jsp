@@ -48,7 +48,6 @@ function audit(id, flag){
             <th>头像</th>
             <th>昵称</th>
             <th>手机</th>
-            <th>住址</th>
             <th>车牌号</th>
             <th>提交时间</th>
             <th>审核</th>
@@ -58,7 +57,6 @@ function audit(id, flag){
                 <td><span><img alt="头像" src="${audit.headimgurl}" height="30px" width="30px"></span></td>
                 <td><span>${audit.nickname}</span></td>
                 <td><span>${audit.phone}</span></td>
-                <td><span>${audit.community}</span></td>
                 <td><span>${audit.content}</span></td>
                 <td><span><fmt:formatDate value="${audit.createTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>
                 <td>

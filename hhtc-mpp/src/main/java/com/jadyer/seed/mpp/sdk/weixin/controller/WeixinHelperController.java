@@ -189,7 +189,9 @@ public class WeixinHelperController {
         Map<String, String> dataMap = XmlUtil.xmlToMap(reqData);
         WeixinHelper.payVerifyIfSuccess(dataMap);
         WeixinHelper.payVerifySign(dataMap, dataMap.get("appid"));
-        OrderInfo orderInfo = orderService.getByOrderNo(dataMap.get("out_trade_no"));
+        //TODO
+//        OrderInfo orderInfo = orderService.getByOrderNo(dataMap.get("out_trade_no"));
+        OrderInfo orderInfo =null;
         if(!StringUtils.equals(orderInfo.getTotalFee()+"", dataMap.get("total_fee"))){
             throw new IllegalArgumentException("微信公众号支付后台通知订单总金额与商户订单金额不符");
         }

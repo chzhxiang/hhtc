@@ -59,7 +59,15 @@ public class UserFundsService {
     public boolean depositIsenough(String openid, long communityId) {
         BigDecimal moneyBase = this.get(openid).getMoneyBase();
         CommunityInfo communityInfo = communityService.get(communityId);
-        return (communityInfo.getMoneyBase().compareTo(moneyBase) > 0);
+        return (communityInfo.getMoneyBase().compareTo(moneyBase) >= 0);
+    }
+
+    /**
+     * TOKGO 检查余额是否足够
+     * */
+    public boolean BalanceIsenough(String openid, BigDecimal perice){
+        BigDecimal moneyBase = this.get(openid).getMoneyBase();
+        return (perice.compareTo(moneyBase) <= 0);
     }
 
 
@@ -72,7 +80,6 @@ public class UserFundsService {
             funds = new UserFunds();
             funds.setOpenid(openid);
             funds.setMoneyBase(new BigDecimal(0));
-            funds.setMoneyFreeze(new BigDecimal(0));
             funds.setMoneyBalance(new BigDecimal(0));
         }
         return funds;
@@ -92,7 +99,6 @@ public class UserFundsService {
         if(null == funds){
             funds = new UserFunds();
             funds.setOpenid(openid);
-            funds.setMoneyFreeze(new BigDecimal(0));
             funds.setMoneyBase(new BigDecimal(0));
             funds.setMoneyBalance(money);
         }else{
@@ -100,6 +106,7 @@ public class UserFundsService {
         }
         return userFundsRepository.saveAndFlush(funds);
     }
+
     @Transactional(rollbackFor=Exception.class)
     public UserFunds addMoneyBalanceForPlatform(BigDecimal money){
         MppUserInfo mppUserInfo = mppUserInfoRepository.findByMptypeAndBindStatus(1, 1);
@@ -110,7 +117,6 @@ public class UserFundsService {
         if(null == funds){
             funds = new UserFunds();
             funds.setUid(mppUserInfo.getId());
-            funds.setMoneyFreeze(new BigDecimal(0));
             funds.setMoneyBase(new BigDecimal(0));
             funds.setMoneyBalance(money);
         }else{
@@ -118,13 +124,13 @@ public class UserFundsService {
         }
         return userFundsRepository.saveAndFlush(funds);
     }
+
     @Transactional(rollbackFor=Exception.class)
     public UserFunds addMoneyBaseForFans(String openid, BigDecimal money){
         UserFunds funds = userFundsRepository.findByOpenid(openid);
         if(null == funds){
             funds = new UserFunds();
             funds.setOpenid(openid);
-            funds.setMoneyFreeze(new BigDecimal(0));
             funds.setMoneyBalance(new BigDecimal(0));
             funds.setMoneyBase(money);
         }else{
@@ -135,7 +141,7 @@ public class UserFundsService {
 
 
     /**
-     * 扣除余额（流水需单独增加）
+     * TOKGO 扣除余额（流水需单独增加）
      * <p>
      *     如果传入的金额大于现有余额，则抛异常
      * </p>
@@ -145,7 +151,7 @@ public class UserFundsService {
     public UserFunds subtractMoneyBalanceForFans(String openid, BigDecimal money){
         UserFunds funds = userFundsRepository.findByOpenid(openid);
         if(money.compareTo(funds.getMoneyBalance()) == 1){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "余额不足");
+            throw new HHTCException(CodeEnum.HHTC_FUNDS_BALANCE_NO);
         }
         funds.setMoneyBalance(funds.getMoneyBalance().subtract(money));
         return userFundsRepository.saveAndFlush(funds);
@@ -163,7 +169,7 @@ public class UserFundsService {
     public UserFunds subtractMoneyBaseForFans(String openid, BigDecimal money){
         UserFunds funds = userFundsRepository.findByOpenid(openid);
         if(money.compareTo(funds.getMoneyBase()) == 1){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "现有押金不足");
+            throw new HHTCException(CodeEnum.HHTC_FUNDS_DEPOSIT_NO);
         }
         funds.setMoneyBase(funds.getMoneyBase().subtract(money));
         return userFundsRepository.saveAndFlush(funds);

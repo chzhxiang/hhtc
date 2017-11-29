@@ -62,7 +62,6 @@ public class OrderInoutService {
      * 初始化订单出入明细及停车卡
      * @param goodsOpenid 车位主openid
      * @param firstInTime 首次駛入的時間（僅供需要初始化首次駛入信息時，傳值）
-     * @param inoutMsgid  首次駛入時收到的消息ID（僅供需要初始化首次駛入信息時，傳值）
      */
     @Transactional(rollbackFor=Exception.class)
     public void initInout(OrderInfo order, String goodsOpenid, Date firstInTime) {
@@ -194,7 +193,7 @@ public class OrderInoutService {
                 }
             }
             //处理业务
-            OrderInfo order = orderService.getByOrderNo(obj.getOrderNo());
+            OrderInfo order = null;
             String phone = fansService.getByOpenid(obj.getOpenid()).getPhoneNo();
             //提前30分钟通知车主（提前30分钟到27分钟的3分钟以內）
             if(currdate.compareTo(DateUtils.addMinutes(edate, -30))>=0 && currdate.compareTo(DateUtils.addMinutes(edate, -27))<=0){

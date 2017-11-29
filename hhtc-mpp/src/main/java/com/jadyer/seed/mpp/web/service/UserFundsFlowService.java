@@ -146,7 +146,6 @@ public class UserFundsFlowService {
             funds = new UserFunds();
             funds.setOpenid(orderInfo.getOpenid());
             funds.setMoneyBase(new BigDecimal(0));
-            funds.setMoneyFreeze(new BigDecimal(0));
             funds.setMoneyBalance(new BigDecimal(0));
         }
         if(orderInfo.getOrderType()==10 || orderInfo.getOrderType()==12 || orderInfo.getOrderType()==13){

@@ -94,14 +94,11 @@ public class RocketmqMessageListener implements MessageListener {
                     return Action.CommitMessage;
                 }
                 //订单生命周期已结束
-                OrderInfo order = orderService.getByOrderNo(inout.getOrderNo());
+//                OrderInfo order = orderService.getByOrderNo(inout.getOrderNo());
+                OrderInfo order =null;
                 if(inout.getCardNo().endsWith(JadyerUtil.leftPadUseZero(inout.getMaxIndex()+"", 3))){
                     order.setOrderStatus(99);
                     orderService.upsert(order);
-                    //更新车位的使用状态
-                    if(orderService.countByGoodsIdAndOrderTypeInAndOrderStatusIn(order.getGoodsId(), Arrays.asList(1, 2), Arrays.asList(2, 9)) == 0){
-                        goodsService.updateStatus(order.getGoodsId(), 1, 2);
-                    }
                 }
                 inout.setOutTime(DateUtils.parseDate(map.get("outtime"), "yyyy-MM-dd HH:mm:ss"));
                 /*

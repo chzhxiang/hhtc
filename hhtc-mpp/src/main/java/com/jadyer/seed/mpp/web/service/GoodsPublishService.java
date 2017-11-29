@@ -90,9 +90,6 @@ public class GoodsPublishService {
 //            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_PARK);
 //        }
         GoodsInfor goodsInfor = goodsService.get(goodsId);
-        if(goodsInfor.getIsUsed() == 3){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "车位无效（已删除）");
-        }
         try {
             Date endDate = DateUtils.parseDate(dateList.get(dateList.size()-1), "yyyyMMdd");
             if(publishType==3 || (2==publishType && publishEndTime<publishFromTime)){
@@ -223,119 +220,7 @@ public class GoodsPublishService {
     }
 
 
-    /**
-     * 预约下单
-     */
-    @Transactional(rollbackFor=Exception.class)
-    public Object order(String appid, String openid, String carNumber, BigDecimal price, String ids, String publishFromDates, List<GoodsPublishOrder> orderList, MppFansInfor fansInfo){
-        //锁定发布信息
-        goodsPublishOrderService.lock(orderList);
-        //下单
-        OrderInfo orderInfo = new OrderInfo();
-        orderInfo.setCommunityId(orderList.get(0).getCommunityId());
-        orderInfo.setCommunityName(orderList.get(0).getCommunityName());
-        orderInfo.setGoodsId(orderList.get(0).getGoodsId());
-        orderInfo.setGoodsPublishOrderIds(ids);
-        orderInfo.setCarParkNumber(orderList.get(0).getCarParkNumber());
-        orderInfo.setCarParkImg(orderList.get(0).getCarParkImg());
-        orderInfo.setCarNumber(carNumber);
-//        orderInfo.setOpenType(orderList.get(0).getPublishType());
-//        orderInfo.setOpenFromDates(publishFromDates);
-//        orderInfo.setOpenFromTime(orderList.get(0).getPublishFromTime());
-//        orderInfo.setOpenEndTime(orderList.get(orderList.size()-1).getPublishEndTime());
-//        orderInfo.setOutTradeNo(hhtcHelper.buildOrderNo(8));
-        orderInfo.setTotalFee(Long.parseLong(MoneyUtil.yuanToFen(price.toString())));
-        orderInfo.setDepositMoney(new BigDecimal(0));
-        orderInfo.setCanRefundMoney(new BigDecimal(0));
-        orderInfo.setOpenid(openid);
-        orderInfo.setAppid(appid);
-        orderInfo.setOrderType(1);
-        orderInfo.setOrderStatus(2);
-        orderInfo = orderService.upsert(orderInfo);
-        goodsPublishOrderService.updateStatusToUsed(orderList);
-        orderInoutService.initInout(orderInfo, orderList.get(0).getOpenid(), null);
-        //分润（先要扣减车主余额，然后再分）
-        UserFunds funds = userFundsService.subtractMoneyBalanceForFans(openid, price);
-        UserFundsFlow fundsFlow = new UserFundsFlow();
-        fundsFlow.setFundsId(funds.getId());
-        fundsFlow.setOpenid(openid);
-        fundsFlow.setMoney(price);
-        fundsFlow.setInOut("out");
-        fundsFlow.setInOutDesc("预约下单时扣减余额");
-        fundsFlow.setInOutType(4);
-        fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-        fundsFlow.setBizDateTime(new Date());
-        userFundsFlowService.upsert(fundsFlow);
-        BigDecimal moneyCarparker = orderRentService.rent(1, orderList.get(0).getOpenid(), orderInfo);
-        //模版CODE: SMS_86510100（車主）
-        //模版内容: 尊敬的手机尾号为${phone}的用户：您已成功预约[${community}+${carpark}]车位，本次停车金额${money}，请您及时入场停车
-        Map<String, String> paramMap = new HashMap<>();
-        paramMap.put("phone", fansInfo.getPhoneNo().substring(7, 11));
-        paramMap.put("community", orderInfo.getCommunityName());
-        paramMap.put("carpark", orderInfo.getCarParkNumber());
-        paramMap.put("money", price.toString() + "元");
-        hhtcHelper.sendSms(fansInfo.getPhoneNo(), "SMS_86510100", paramMap);
-        //TODO 长期车位订单金额超过小区全天金额时，会在8、18、28才结算给车位主，这种情况的提示方式待修改
-        //模版CODE: SMS_86745123（車位主）
-        //模版内容: 尊敬的手机尾号为${phone}的用户：您的${carpark}车位已于${time}交易成功，${money}停车收益已到账。
-        String phone = fansService.getByOpenid(orderList.get(0).getOpenid()).getPhoneNo();
-        paramMap = new HashMap<>();
-        paramMap.put("phone", phone.substring(7, 11));
-        paramMap.put("carpark", orderInfo.getCarParkNumber());
-        paramMap.put("time", DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
-        paramMap.put("money", moneyCarparker.toString() + "元");
-        hhtcHelper.sendSms(phone, "SMS_86745123", paramMap);
-        /*
-        {{first.DATA}}
-        订单编号：{{keyword1.DATA}}
-        停车位：{{keyword2.DATA}}
-        车牌号：{{keyword3.DATA}}
-        预计到达时间：{{keyword4.DATA}}
-        预计离开时间：{{keyword5.DATA}}
-        {{remark.DATA}}
 
-        尊敬的客户，您已成功预约珠江帝景A00停车位
-        订单编号：1000387777
-        停车位：珠江帝景A00
-        车牌号：粤A0397Z
-        预计到达时间：2016年5月19日 18:00
-        预计离开时间：2016年5月19日 20:00
-        优泊停车提醒您，请注意帐号防盗 如有疑问，请拨打咨询热线020-38383888。
-        */
-        WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
-        dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的车主，您已成功预约车位："+orderInfo.getCommunityName()+"-" +orderInfo.getCarParkNumber()));
-        dataItem.put("keyword1", new WeixinTemplateMsg.DItem(orderInfo.getOutTradeNo()));
-        dataItem.put("keyword2", new WeixinTemplateMsg.DItem(orderInfo.getCarParkNumber()));
-        dataItem.put("keyword3", new WeixinTemplateMsg.DItem(orderInfo.getCarNumber()));
-        dataItem.put("keyword4", new WeixinTemplateMsg.DItem(DateFormatUtils.format(hhtcHelper.convertToDate(hhtcHelper.calcOrderFromDate(orderInfo), orderInfo.getOpenFromTime()), "yyyy-MM-dd HH:mm")));
-        dataItem.put("keyword5", new WeixinTemplateMsg.DItem(DateFormatUtils.format(hhtcHelper.convertToDate(hhtcHelper.calcOrderEndDate(orderInfo), orderInfo.getOpenEndTime()), "yyyy-MM-dd HH:mm")));
-        dataItem.put("remark", new WeixinTemplateMsg.DItem("吼吼共享停车提醒您：请注意停车时间，避免错过。"));
-        String url = this.hhtcContextPath + this.templateUrlNeed.replace("{orderId}", orderInfo.getId()+"");
-        url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+orderInfo.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+orderInfo.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
-        WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
-        templateMsg.setTemplate_id("vkWecSSZW6qJQ4qXXX1iH7QaRvV1HJrcmky208AKx88");
-        templateMsg.setUrl(url);
-        templateMsg.setTouser(orderInfo.getOpenid());
-        templateMsg.setData(dataItem);
-        WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(orderInfo.getAppid()), templateMsg);
-        dataItem = new WeixinTemplateMsg.DataItem();
-        dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的车位主，您的车位已被预约："+orderInfo.getCommunityName()+"-" +orderInfo.getCarParkNumber()));
-        dataItem.put("keyword1", new WeixinTemplateMsg.DItem(orderInfo.getOutTradeNo()));
-        dataItem.put("keyword2", new WeixinTemplateMsg.DItem(orderInfo.getCarParkNumber()));
-        dataItem.put("keyword3", new WeixinTemplateMsg.DItem(orderInfo.getCarNumber()));
-        dataItem.put("keyword4", new WeixinTemplateMsg.DItem(DateFormatUtils.format(hhtcHelper.convertToDate(hhtcHelper.calcOrderFromDate(orderInfo), orderInfo.getOpenFromTime()), "yyyy-MM-dd HH:mm")));
-        dataItem.put("keyword5", new WeixinTemplateMsg.DItem(DateFormatUtils.format(hhtcHelper.convertToDate(hhtcHelper.calcOrderEndDate(orderInfo), orderInfo.getOpenEndTime()), "yyyy-MM-dd HH:mm")));
-        dataItem.put("remark", new WeixinTemplateMsg.DItem("吼吼共享停车提醒您：本次的车位预约所获得租金已打到您的余额中。"));
-        url = this.hhtcContextPath + this.portalCenterUrl;
-        url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+orderInfo.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+orderInfo.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
-        templateMsg = new WeixinTemplateMsg();
-        templateMsg.setTemplate_id("vkWecSSZW6qJQ4qXXX1iH7QaRvV1HJrcmky208AKx88");
-        templateMsg.setUrl(url);
-        templateMsg.setTouser(orderList.get(0).getOpenid());
-        templateMsg.setData(dataItem);
-        WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(orderInfo.getAppid()), templateMsg);
-        return orderInfo;
-    }
 
 
 

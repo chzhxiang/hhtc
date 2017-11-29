@@ -71,18 +71,21 @@ public class MarketTransactionService {
         HashMap hashMap;
         for (OrderInfor orderInfor:orderInfors){
             hashMap = new HashMap();
-            if (state == 1)
-                hashMap.put("type","owners");
-            else
-                hashMap.put("type","carpark");
+            if (state == 1) {
+                hashMap.put("type", "owners");
+                //TODO 电话获取
+                hashMap.put("phone","");
+            }
+            else {
+                hashMap.put("type", "carpark");
+                hashMap.put("phone","");
+            }
             hashMap.put("orderid",orderInfor.getOrderId());
             hashMap.put("communityName",orderInfor.getCommunityName());
             hashMap.put("carParkNumber",orderInfor.getCarParkNumber());
             hashMap.put("begintime",orderInfor.getTimeStart());
             hashMap.put("endtime",orderInfor.getTimeEnd());
             hashMap.put("price",orderInfor.getPrice());
-            ////TODO 电话先空着
-            hashMap.put("phone","");
             list.add(hashMap);
         }
 
@@ -108,7 +111,6 @@ public class MarketTransactionService {
             if (!openid.equals(orderInfor.getPostOpenid()))
                 throw new HHTCException(CodeEnum.SYSTEM_PARAM_ERROR);
             orderInforRepository.delete(orderInfor);
-            goodsService.updateStatus(orderInfor.getGoodsId(),0,1);
         }
         //TODO 微信模板消息通知车主
         //TODO 暂时没有返回
@@ -132,26 +134,25 @@ public class MarketTransactionService {
             //押金不够
             throw new HHTCException(CodeEnum.HHTC_FUNDS_DEPOSIT_NO);
         }
-
-
-
+        //检测用户余额是否足够
+        if (!userFundsService.BalanceIsenough(openid,goodsPublishOrder.getPrice())){
+            //余额不足
+            throw new HHTCException(CodeEnum.HHTC_FUNDS_BALANCE_NO);
+        }
         //订单时间冲突检查
         if (type == 1&& OrderTimeCheck(goodsPublishOrder,openid)){
             throw new HHTCException(CodeEnum.HHTC_ORDER_PORT_TIMEERROR);
         }
         //进行订单预约
         OrderInfor orderInfor = orderInforService.AddOrder(fansInfor,goodsPublishOrder,CarNumber);
+        //扣除用户的余额
+        userFundsService.subtractMoneyBalanceForFans(openid,goodsPublishOrder.getPrice());
         //市场消除订单
         goodsPublishOrderRepository.delete(goodsPublishOrder.getId());
         //TODO 微信模板消息通知车主
         //TODO 暂时没有返回
         return "";
     }
-
-    /****/
-
-
-
 
     /**
      * TOKGO 订单时间冲突检查

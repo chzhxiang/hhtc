@@ -32,6 +32,16 @@ public class WxOrderController {
 
 
     /**
+     * TOKGO 获取历史数据 每次返回10条数据
+     * */
+    @GetMapping("/gethistory")
+    public CommonResult get(String pageNo, HttpSession session){
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(orderService.Gethistory(openid,pageNo));
+    }
+
+
+    /**
      * @param orderStatus 1—支付中，3—支付失败，7—已预约，8—停车中，9—超时中，10—已完成
      */
     @RequestMapping("/list")
@@ -40,14 +50,4 @@ public class WxOrderController {
         return new CommonResult(orderService.list(orderStatus, openid));
     }
 
-
-    /**
-     * 转租
-     * @param id 订单id
-     */
-    @RequestMapping("/rent")
-    public CommonResult rent(long id, HttpSession session){
-        orderService.rent(id, hhtcHelper.getWxOpenidFromSession(session));
-        return new CommonResult();
-    }
 }

@@ -27,18 +27,16 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -85,8 +83,46 @@ public class OrderService {
     @Resource
     private GoodsPublishOrderRepository goodsPublishOrderRepository;
 
-    public OrderInfo getByOrderNo(String orderNo){
-        return orderRepository.findByOutTradeNo(orderNo);
+    /**
+     *TOKGO获取用户历史当担信息
+     * */
+    public List<HashMap> Gethistory(String openid, String pageNo){
+        List<HashMap> hashMapList = new ArrayList<>();
+        //排序
+        Sort sort = new Sort(Sort.Direction.ASC, "id");
+        //分页
+        Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
+//        //条件  TODO 现在还没有写 不会
+        Condition<OrderHistory> spec = Condition.<OrderHistory>and().eq("post_openid", openid);
+        //执行
+        Page<OrderHistory> page = orderHistoryRepository.findAll(spec, pageable);
+        List<OrderHistory> list = page.getContent();
+        for (OrderHistory orderHistory:list){
+            loaddata(orderHistory,hashMapList,openid);
+        }
+        return hashMapList;
+    }
+
+    /**
+     * TOKGO 数据装填
+     * **/
+    private void loaddata(OrderHistory orderHistory,List<HashMap> list,String openid) {
+        HashMap hashMap = new HashMap();
+        if (openid.equals(orderHistory.getOwnersOpenid())) {
+            hashMap.put("type", "owners");
+            //TODO 电话获取
+            hashMap.put("phone", "");
+        } else {
+            hashMap.put("type", "carpark");
+            hashMap.put("phone", "");
+        }
+        hashMap.put("orderid", orderHistory.getOrderId());
+        hashMap.put("communityName", orderHistory.getCommunityName());
+        hashMap.put("carParkNumber", orderHistory.getCarParkNumber());
+        hashMap.put("begintime", orderHistory.getOpenFromTime());
+        hashMap.put("endtime", orderHistory.getOpenEndTime());
+        hashMap.put("price", orderHistory.getPrice());
+        list.add(hashMap);
     }
 
 
@@ -192,65 +228,6 @@ public class OrderService {
 
 
     /**
-     * 转租
-     * @param id     订单id
-     * @param openid 发起转租的人的openid（也即订单的openid）
-     */
-    @Transactional(rollbackFor=Exception.class)
-    public void rent(long id, String openid) {
-        OrderInfo order = orderRepository.findOne(id);
-        if(order.getOrderType()!=1 && order.getOrderType()!=2){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "非车位订单不能转租");
-        }
-        //校验：订单状态必须是支付成功
-        if(order.getOrderStatus()!=2 && order.getOrderStatus()!=9){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "原订单未支付成功");
-        }
-        //校验：只能转租一次
-        if(order.getOrderStatus() == 9){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "只能转租一次");
-        }
-        //校验：须提前一小时转租
-        if(DateUtils.addHours(new Date(), 1).compareTo(hhtcHelper.convertToDate(hhtcHelper.calcOrderFromDate(order), order.getOpenFromTime())) == 1){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "转租至少提前一个小时发起");
-        }
-        //转租
-        for(String obj : order.getGoodsPublishOrderIds().split("`")){
-            GoodsPublishOrder po = goodsPublishOrderRepository.findOne(Long.parseLong(obj));
-            GoodsPublishOrder newpo = new GoodsPublishOrder();
-            BeanUtil.copyProperties(po, newpo);
-            newpo.setId(null);
-            newpo.setOpenid(openid);
-            newpo.setFromType(2);
-            newpo.setFromId(po.getId());
-//            newpo.setStatus(0);
-            //newpo.setGoodsPublishIds();
-            newpo = goodsPublishOrderRepository.saveAndFlush(newpo);
-            String pubids = "";
-            List<GoodsPublishInfo> list22 = goodsPublishRepository.findByGoodsPublishOrderId(po.getId());
-            for(GoodsPublishInfo info : list22){
-                GoodsPublishInfo newinfo = new GoodsPublishInfo();
-                BeanUtil.copyProperties(info, newinfo);
-                newinfo.setId(null);
-                newinfo.setGoodsPublishOrderId(newpo.getId());
-                newinfo.setOpenid(openid);
-                newinfo.setFromType(2);
-                newinfo.setFromIds(info.getId()+"");
-                newinfo.setStatus(0);
-                newinfo = goodsPublishRepository.saveAndFlush(newinfo);
-                pubids = pubids + "`" + newinfo.getId();
-            }
-//            newpo.setGoodsPublishIds(pubids.substring(1));
-            goodsPublishOrderRepository.saveAndFlush(newpo);
-        }
-        //更新原订单信息
-        order.setOrderStatus(9);
-        orderRepository.saveAndFlush(order);
-        orderInoutRepository.deleteByOrderNo(order.getOutTradeNo());
-    }
-
-
-    /**
      * 归档订单
      */
     @Transactional(rollbackFor=Exception.class)
@@ -267,10 +244,6 @@ public class OrderService {
                 if(null!=inout.getOutTime() || (null==inout.getInTime()&&null==inout.getOutTime())){
                     obj.setOrderStatus(99);
                     this.upsert(obj);
-                    //更新车位的使用状态
-                    if(this.countByGoodsIdAndOrderTypeInAndOrderStatusIn(obj.getGoodsId(), Arrays.asList(1, 2), Arrays.asList(2, 9)) == 0){
-                        goodsService.updateStatus(obj.getGoodsId(), 1, 2);
-                    }
                 }
             }
         }
@@ -390,8 +363,6 @@ public class OrderService {
             publishFromDates = publishFromDates + "-" + obj;
         }
         publishFromDates = publishFromDates.substring(1);
-        //锁定发布信息
-        goodsPublishOrderService.lock(orderList);
         //將原訂單置為已完成
         order.setOrderStatus(99);
         this.upsert(order);
@@ -420,7 +391,6 @@ public class OrderService {
         orderInfo.setOrderType(1);
         orderInfo.setOrderStatus(2);
         orderInfo = this.upsert(orderInfo);
-        goodsPublishOrderService.updateStatusToUsed(orderList);
         orderInoutService.initInout(orderInfo, orderList.get(0).getOpenid(), inout.getInTime());
         //分润（分潤使用的金額為新訂單的发布信息總金額）
         BigDecimal oldPrice = new BigDecimal(MoneyUtil.fenToYuan(order.getTotalFee()+""));
@@ -431,7 +401,6 @@ public class OrderService {
             if(null == funds){
                 funds = new UserFunds();
                 funds.setUid(mppUserInfo.getId());
-                funds.setMoneyFreeze(new BigDecimal(0));
                 funds.setMoneyBase(new BigDecimal(0));
                 funds.setMoneyBalance(new BigDecimal(0));
             }

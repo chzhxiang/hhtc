@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
+import java.math.BigDecimal;
 
 /**
  * @描述
@@ -41,7 +42,7 @@ public class WxMarketPostController {
     }
 
     /**
-     * TOKGO 获取可以发布的车位信息
+     * TOKGO 获取粉丝的车位信息
      * */
     @GetMapping("/getcarparks")
     public CommonResult cancel(HttpSession session) {
@@ -57,10 +58,10 @@ public class WxMarketPostController {
      * @param goodsId zero-based page index
      */
     @PostMapping("/postCarpark")
-    public CommonResult post(long goodsId, String starttime,String endtime,HttpSession session){
+    public CommonResult post(long goodsId, BigDecimal price,String starttime,String endtime, HttpSession session){
         //TODO
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
-        goodsPublishOrderService.postOrder(openid,goodsId,starttime,endtime);
+        goodsPublishOrderService.postOrder(openid,goodsId,price,starttime,endtime);
         return new CommonResult();
     }
 
@@ -86,5 +87,15 @@ public class WxMarketPostController {
         goodsPublishOrderService.cancel(openid, orderid);
         return new CommonResult();
     }
+
+
+    /***
+     * TOKGO 获得订单价格
+     * */
+    @GetMapping("/getorderprice")
+    public CommonResult GetOrderPrice(long communityId, String starttime,String endtime){
+        return new CommonResult(goodsPublishOrderService.GetPrice(communityId,starttime,endtime));
+    }
+
 
 }

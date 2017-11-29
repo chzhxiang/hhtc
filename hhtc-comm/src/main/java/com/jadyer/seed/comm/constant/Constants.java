@@ -35,6 +35,12 @@ public interface Constants {
     int S_CARNUMBERMAX = 2;
     //短信生命周期长度（30分钟）
     long S_SMSFILEMAX = 1800000;
+    //订单间隔时间（30分钟）
+    long S_ORDERINTERVAL = 1800000;
+    //计算常量
+    long S_DATE_TIMES_DAY = 86400000;
+    //计算常量
+    long S_DATE_TIMES_HOUR = 3600000;
 
     boolean ISWEIXIN = false;
 

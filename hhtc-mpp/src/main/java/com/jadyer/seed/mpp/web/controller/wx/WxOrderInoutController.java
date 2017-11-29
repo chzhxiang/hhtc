@@ -71,20 +71,20 @@ public class WxOrderInoutController {
      */
     private OrderInout findMatchInout(List<OrderInout> inoutList, int type){
         OrderInout inout = null;
-        for(OrderInout obj : inoutList){
-            OrderInfo order = orderService.getByOrderNo(obj.getOrderNo());
-            if(order.getOrderStatus() == 99){
-                continue;
-            }
-            if(1==type && new Date().compareTo(hhtcHelper.convertToDate(obj.getEndDate(), obj.getEndTime()))<0){
-                inout = obj;
-                break;
-            }
-            if(2==type && null!=obj.getInTime() && null==obj.getOutTime()){
-                inout = obj;
-                break;
-            }
-        }
+//        for(OrderInout obj : inoutList){
+//            OrderInfo order = orderService.getByOrderNo(obj.getOrderNo());
+//            if(order.getOrderStatus() == 99){
+//                continue;
+//            }
+//            if(1==type && new Date().compareTo(hhtcHelper.convertToDate(obj.getEndDate(), obj.getEndTime()))<0){
+//                inout = obj;
+//                break;
+//            }
+//            if(2==type && null!=obj.getInTime() && null==obj.getOutTime()){
+//                inout = obj;
+//                break;
+//            }
+//        }
         return inout;
     }
 
@@ -178,19 +178,19 @@ public class WxOrderInoutController {
                         respMsg = "out success";
                         communityDeviceFlow.setOpenResult(1);
                         //订单生命周期已结束
-                        OrderInfo order = orderService.getByOrderNo(inout.getOrderNo());
-                        Date orderEndDate = hhtcHelper.convertToDate(hhtcHelper.calcOrderEndDate(order), order.getOpenEndTime());
-                        if(inout.getCardNo().endsWith(JadyerUtil.leftPadUseZero(inout.getMaxIndex()+"", 3)) && orderEndDate.compareTo(new Date())<1){
-                            order.setOrderStatus(99);
-                            orderService.upsert(order);
-                            //更新车位的使用状态
-                            if(orderService.countByGoodsIdAndOrderTypeInAndOrderStatusIn(order.getGoodsId(), Arrays.asList(1, 2), Arrays.asList(2, 9)) == 0){
-                                goodsService.updateStatus(order.getGoodsId(), 1, 2);
-                            }
-                        }
-                        inout.setOutTime(new Date());
-                        orderInoutRepository.saveAndFlush(inout);
-                        weixinTemplateMsgAsync.sendForCarownerOut(inout, order);
+//                        OrderInfo order = orderService.getByOrderNo(inout.getOrderNo());
+//                        Date orderEndDate = hhtcHelper.convertToDate(hhtcHelper.calcOrderEndDate(order), order.getOpenEndTime());
+//                        if(inout.getCardNo().endsWith(JadyerUtil.leftPadUseZero(inout.getMaxIndex()+"", 3)) && orderEndDate.compareTo(new Date())<1){
+//                            order.setOrderStatus(99);
+//                            orderService.upsert(order);
+//                            //更新车位的使用状态
+//                            if(orderService.countByGoodsIdAndOrderTypeInAndOrderStatusIn(order.getGoodsId(), Arrays.asList(1, 2), Arrays.asList(2, 9)) == 0){
+//                                goodsService.updateStatus(order.getGoodsId(), 1, 2);
+//                            }
+//                        }
+//                        inout.setOutTime(new Date());
+//                        orderInoutRepository.saveAndFlush(inout);
+//                        weixinTemplateMsgAsync.sendForCarownerOut(inout, order);
                     }else{
                         respMsg = "开闸失败（出口）";
                         //TODO 开闸失败需要通知运营

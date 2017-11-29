@@ -139,24 +139,6 @@ public class MppQuartz {
 
 
     /**
-     * 归档发布信息（半个小时一次）
-     */
-    @Scheduled(cron="0 0/30 * * * ?")
-    void publishHistory(){
-        goodsPublishOrderService.history();
-    }
-
-
-    /**
-     * 车位需求匹配（2分钟一次）
-     */
-    @Scheduled(cron="0 0/2 * * * ?")
-    void needMatch(){
-        goodsNeedService.needMatch();
-    }
-
-
-    /**
      * 订单归档（4分钟一次）
      * <p>
      *     一般是处理那种在充值页面，弹出来微信支付密码框之后，粉丝没有输入密码去支付，的订单

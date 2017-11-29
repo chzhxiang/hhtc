@@ -125,6 +125,7 @@ public class GoodsService {
                         throw new HHTCException(CodeEnum.HHTC_INFOR_CARPARK);
                 }
         }
+        //TODO  记录这个车位主 是租赁的还是自己拥有的
         //写入审核
         FansInforAudit fansInforAudit = auditService.AddAudit(mppFansInfor.getUid(),openid
                 ,2,0,carParkNumber+"@"+carUsefulEndDate,carEquityImg);
@@ -291,15 +292,5 @@ public class GoodsService {
 //        return goodsInfo;
 //    }
 
-
-
-    /**
-     * TOKGO 更新状态
-     * @param preIsUsed 本次欲更新的状态的前置状态
-     */
-    @Transactional(rollbackFor=Exception.class)
-    public boolean updateStatus(long id, int isUsed, int preIsUsed){
-        return 1 == goodsInforRepository.updateStatus(id, isUsed, preIsUsed);
-    }
 
 }

@@ -67,7 +67,7 @@ public class SmsService {
 //                return true;
 //            }
 //        }
-        //TODO 该
+        //TODO 短信验证有问题 调试的时候改
 //        return true;
     }
 
@@ -78,8 +78,12 @@ public class SmsService {
         long currentDate = new Date().getTime();
         List<SmsInfor> smsInforList = smsRepository.findAll();
         for(SmsInfor obj : smsInforList){
-            if((currentDate - obj.getTimeExpire())>= Constants.S_SMSFILEMAX)
-                smsRepository.delete(obj.getId());
+            if((currentDate - obj.getTimeExpire())>= Constants.S_SMSFILEMAX){
+                //TODO 测试阶段 不删除验证码
+//                smsRepository.delete(obj.getId());
+                ;
+            }
+
         }
     }
 

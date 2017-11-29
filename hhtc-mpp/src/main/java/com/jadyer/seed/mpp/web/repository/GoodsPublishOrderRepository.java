@@ -15,11 +15,10 @@ public interface GoodsPublishOrderRepository extends BaseRepository<GoodsPublish
 
 
     List<GoodsPublishOrder> findByCommunityId(long communityId);
-//    List<GoodsPublishOrder> findByCommunityIdAndStatusAndPublishTypeAndPublishFromTimeGreaterThanAndPublishEndTimeGreaterThanEqual(long communityId, int status, int publishType, int publishFromTime, int publishEndTime);
-//
     List<GoodsPublishOrder> findByOpenid(String openid);
 
     GoodsPublishOrder findByOrderID(String orderID);
+    GoodsPublishOrder findByOpenidAndOrderID(String openid,String orderID);
 
     List<GoodsPublishOrder> findByGoodsIdAndOpenid(long goodsId, String openid);
 
@@ -33,10 +32,4 @@ public interface GoodsPublishOrderRepository extends BaseRepository<GoodsPublish
     @Query("DELETE FROM GoodsPublishOrder WHERE orderID=?1")
     void deleteByOrderID(String orderID);
 
-
-
-//    /**
-//     * 定时任务：记录过期的发布信息到历史表
-//     */
-//    List<GoodsPublishOrder> findByPublishFromDatesEndingWith(String publishEndDate);
 }
