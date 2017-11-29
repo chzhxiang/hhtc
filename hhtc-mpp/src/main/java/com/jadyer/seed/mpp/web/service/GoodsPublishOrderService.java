@@ -44,13 +44,11 @@ public class GoodsPublishOrderService {
     @Resource
     private HHTCHelper hhtcHelper;
     @Resource
-    private OrderService orderService;
+    private FansService fansService;
     @Resource
     private GoodsService goodsService;
     @Resource
-    private OrderRepository orderRepository;
-    @Resource
-    private CommunityService communityService;
+    private OrderService orderService;
     @Resource
     private UserFundsService userFundsService;
 
@@ -86,11 +84,21 @@ public class GoodsPublishOrderService {
         GoodsInfor goodsInfor = goodsInforRepository.findByOpenidAndId(openid, goodsId);
         if (goodsInfor ==null)
             throw new HHTCException(CodeEnum.SYSTEM_NULL);
+        //检测用户是否具有车主身份
+        fansService.CheckOwners(fansService.getByOpenid(openid));
         //检查用户押金是否足够
         if(!userFundsService.depositIsenough(openid,goodsInfor.getCommunityId())){
             //押金不够
             throw new HHTCException(CodeEnum.HHTC_FUNDS_DEPOSIT_NO);
         }
+        //检测用户余额是否足够
+        //获取这次订单所需金额
+        BigDecimal price = GetPrice(starttime,endtime);
+
+//        if ()
+
+
+
         GoodsPublishOrder goodsPublishOrder = new GoodsPublishOrder();
         goodsPublishOrder.setOrderID(HHTCHelper.buildOrderNo());
         goodsPublishOrder.setOpenid(openid);
@@ -99,7 +107,7 @@ public class GoodsPublishOrderService {
         goodsPublishOrder.setGoodsId(goodsInfor.getId());
         goodsPublishOrder.setCarParkNumber(goodsInfor.getCarParkNumber());
         goodsPublishOrder.setCarParkImg(goodsInfor.getCarParkImg());
-        goodsPublishOrder.setPrice(GetPrice(starttime,endtime));
+        goodsPublishOrder.setPrice(price);
         goodsPublishOrder.setPublishFromTime(starttime);
         goodsPublishOrder.setPublishEndTime(endtime);
         //更改车位当前状态
@@ -159,7 +167,18 @@ public class GoodsPublishOrderService {
      * TOKGO 订单取消 回归市场
      * */
     public void BackMarket( OrderInfor orderInfor){
-        //TODO 订单回归市场 操作
+        GoodsPublishOrder goodsPublishOrder = new GoodsPublishOrder();
+        goodsPublishOrder.setOrderID(orderInfor.getOrderId());
+        goodsPublishOrder.setOpenid(orderInfor.getPostOpenid());
+        goodsPublishOrder.setCommunityId(orderInfor.getCommunityId());
+        goodsPublishOrder.setCommunityName(orderInfor.getCommunityName());
+        goodsPublishOrder.setGoodsId(orderInfor.getGoodsId());
+        goodsPublishOrder.setCarParkNumber(orderInfor.getCarParkNumber());
+        goodsPublishOrder.setCarParkImg(orderInfor.getCarParkImg());
+        goodsPublishOrder.setPrice(orderInfor.getPrice());
+        goodsPublishOrder.setPublishFromTime(orderInfor.getTimeStart());
+        goodsPublishOrder.setPublishEndTime(orderInfor.getTimeEnd());
+        goodsPublishOrderRepository.save(goodsPublishOrder);
     }
 
 

@@ -3,7 +3,6 @@ package com.jadyer.seed.mpp.web.controller.wx;
 import com.jadyer.seed.comm.constant.CommonResult;
 import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.HHTCHelper;
-import com.jadyer.seed.mpp.web.model.GoodsInfo;
 import com.jadyer.seed.mpp.web.service.GoodsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

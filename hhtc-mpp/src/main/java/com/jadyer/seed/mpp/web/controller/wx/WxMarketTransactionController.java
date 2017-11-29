@@ -44,6 +44,7 @@ public class WxMarketTransactionController {
 
     /**
      * TOKGO 取消订单
+     * @param type "owners"代表是车主取消  其他：车位主取消
      */
     @PostMapping("/cancel")
     public CommonResult CancelOrder(String orderid,String type ,HttpSession session){

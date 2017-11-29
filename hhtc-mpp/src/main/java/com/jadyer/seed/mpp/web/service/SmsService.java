@@ -30,6 +30,7 @@ public class SmsService {
 
     /**
      * TOKGO 新增短信记录
+     * @param type 短信类型：0--通用，1--电话号码验证，2--车位主注册，3--车主提现，4--车位主提现
      */
     @Transactional(rollbackFor=Exception.class)
     public SmsInfor smsSend(String phoneNo, int type){
@@ -58,14 +59,16 @@ public class SmsService {
     @Transactional(rollbackFor=Exception.class)
     public boolean smsVerify(String phoneNo, String verifyCode, int type){
         CheckSMS();
-        List<SmsInfor> smsInforList = smsRepository.findByPhoneNoAndVerifyCodeOrderByIdDesc(phoneNo, verifyCode);
-        for(SmsInfor obj : smsInforList){
-            if(obj.getType()==type ){
-                smsRepository.delete(obj.getId());
-                return true;
-            }
-        }
-        return false;
+        List<SmsInfor> smsInforList = smsRepository.findByPhoneNoAndVerifyCode(phoneNo, verifyCode);
+        return true;
+//        for(SmsInfor obj : smsInforList){
+//            if(obj.getType()==type ){
+//                smsRepository.delete(obj.getId());
+//                return true;
+//            }
+//        }
+        //TODO 该
+//        return true;
     }
 
     /**

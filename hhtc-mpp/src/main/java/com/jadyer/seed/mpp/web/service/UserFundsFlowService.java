@@ -4,7 +4,6 @@ import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.jpa.Condition;
 import com.jadyer.seed.comm.util.DateUtil;
-import com.jadyer.seed.mpp.web.model.GoodsInfo;
 import com.jadyer.seed.mpp.web.model.OrderInfo;
 import com.jadyer.seed.mpp.web.model.UserFunds;
 import com.jadyer.seed.mpp.web.model.UserFundsFlow;

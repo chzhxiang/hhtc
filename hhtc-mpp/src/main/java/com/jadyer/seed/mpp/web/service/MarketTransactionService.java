@@ -31,7 +31,10 @@ public class MarketTransactionService {
     @Resource
     private GoodsService goodsService;
     @Resource
+    private UserFundsService userFundsService;
+    @Resource
     private OrderInforService orderInforService;
+
     @Resource
     private OrderInforRepository orderInforRepository;
     @Resource
@@ -77,7 +80,7 @@ public class MarketTransactionService {
             hashMap.put("carParkNumber",orderInfor.getCarParkNumber());
             hashMap.put("begintime",orderInfor.getTimeStart());
             hashMap.put("endtime",orderInfor.getTimeEnd());
-            hashMap.put("price",orderInfor.getCashFee());
+            hashMap.put("price",orderInfor.getPrice());
             ////TODO 电话先空着
             hashMap.put("phone","");
             list.add(hashMap);
@@ -119,11 +122,19 @@ public class MarketTransactionService {
      * */
     public String Reservation(String openid,String orderid,String CarNumber,int type){
         MppFansInfor fansInfor = fansService.getByOpenid(openid);
-        if(fansInfor.getInfor_state().charAt(Constants.INFOR_STATE_CARNUMBE_BIT)!='1'){
-            throw new HHTCException(CodeEnum.HHTC_INFOR_CARNUMBER_NO);
-        }
+        //检测用户是否具有使用资格
+        fansService.CheckOwners(fansInfor);
+        ////TODO 订单 超时删除
         //获取订单
         GoodsPublishOrder goodsPublishOrder = goodsPublishOrderRepository.findByOrderID(orderid);
+        //检查用户押金是否足够
+        if(!userFundsService.depositIsenough(openid,goodsPublishOrder.getCommunityId())){
+            //押金不够
+            throw new HHTCException(CodeEnum.HHTC_FUNDS_DEPOSIT_NO);
+        }
+
+
+
         //订单时间冲突检查
         if (type == 1&& OrderTimeCheck(goodsPublishOrder,openid)){
             throw new HHTCException(CodeEnum.HHTC_ORDER_PORT_TIMEERROR);
@@ -136,6 +147,11 @@ public class MarketTransactionService {
         //TODO 暂时没有返回
         return "";
     }
+
+    /****/
+
+
+
 
     /**
      * TOKGO 订单时间冲突检查
@@ -195,7 +211,6 @@ public class MarketTransactionService {
         //TODO 微信模板消息通知车主
         return "";
     }
-
 
 
 

@@ -19,10 +19,10 @@ function inputRemark(){
     }
 }
 function audit(id, flag){
-    if(confirm("确定审核 [ " + (flag==2 ? "通过" : "拒绝") +" ] 此车主么？")){
-        if(flag==2 || (flag==3 && inputRemark())){
-            $.post("${ctx}/fans/carAudit",
-                {id:id, status:flag, type:1, auditRemark: remark},
+    if(confirm("确定审核 [ " + (flag==1 ? "通过" : "拒绝") +" ] 此车牌号么？")){
+        if(flag==1 || (flag==2 && inputRemark())){
+            $.post("${ctx}/fans/Audit",
+                {id:id, status:flag,  auditRemark: remark},
                 function(data){
                     if(0 == data.code){
                         alert("操作成功");
@@ -62,8 +62,8 @@ function audit(id, flag){
                 <td><span>${audit.content}</span></td>
                 <td><span><fmt:formatDate value="${audit.createTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>
                 <td>
-                    <a class="c09f mr_15" href="javascript:audit('${audit.id}', 2);">通过</a>
-                    <a class="c09f" href="javascript:audit('${audit.id}', 3);">拒绝</a>
+                    <a class="c09f mr_15" href="javascript:audit('${audit.id}', 1);">通过</a>
+                    <a class="c09f" href="javascript:audit('${audit.id}', 2);">拒绝</a>
                 </td>
             </tr>
         </c:forEach>

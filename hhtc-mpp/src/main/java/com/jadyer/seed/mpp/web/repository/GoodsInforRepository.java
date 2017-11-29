@@ -1,7 +1,6 @@
 package com.jadyer.seed.mpp.web.repository;
 
 import com.jadyer.seed.comm.jpa.BaseRepository;
-import com.jadyer.seed.mpp.web.model.GoodsInfo;
 import com.jadyer.seed.mpp.web.model.GoodsInfor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

@@ -156,7 +156,7 @@ public class GoodsService {
 
 
 
-    public Page<GoodsInfo> listViaPage(MppUserInfo userInfo, String pageNo){
+//    public Page<GoodsInfo> listViaPage(MppUserInfo userInfo, String pageNo){
 //        Sort sort = new Sort(Sort.Direction.ASC, "id");
 //        Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
 //        Condition<GoodsInfo> spec = null;
@@ -175,8 +175,8 @@ public class GoodsService {
 //            obj.setNickname(fans.getNickname());
 //            obj.setHeadimgurl(fans.getHeadimgurl());
 //        }
-        return null;
-    }
+//        return null;
+//    }
 
 
 //    public List<GoodsInfo> listAllByOpenid(String openid){
@@ -208,24 +208,24 @@ public class GoodsService {
     }
 
 
-    /**
-     * 审核通过或拒绝车位
-     */
-    @Transactional(rollbackFor=Exception.class)
-    public GoodsInfo audit(MppUserInfo userInfo, GoodsInfo goodsInfo){
-        if(goodsInfo.getCarAuditStatus() == 1){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "审核时传输的状态无效");
-        }
-        //物管只能审核自己小区的车位
-        if(userInfo.getType() == 2){
-            List<Long> idList = new ArrayList<>();
-            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
-                idList.add(obj.getId());
-            }
-            if(!idList.contains(goodsInfo.getCommunityId())){
-                throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "只能审核自己小区的车位");
-            }
-        }
+//    /**
+//     * 审核通过或拒绝车位
+//     */
+//    @Transactional(rollbackFor=Exception.class)
+//    public GoodsInfo audit(MppUserInfo userInfo, GoodsInfo goodsInfo){
+//        if(goodsInfo.getCarAuditStatus() == 1){
+//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "审核时传输的状态无效");
+//        }
+//        //物管只能审核自己小区的车位
+//        if(userInfo.getType() == 2){
+//            List<Long> idList = new ArrayList<>();
+//            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
+//                idList.add(obj.getId());
+//            }
+//            if(!idList.contains(goodsInfo.getCommunityId())){
+//                throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "只能审核自己小区的车位");
+//            }
+//        }
         //TODO
 //        //校验是否注册车位主
 //        MppFansInfor fansInfo = fansService.getByOpenid(goodsInfo.getOpenid());
@@ -288,8 +288,8 @@ public class GoodsService {
 //            templateMsg.setData(dataItem);
 //            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(goodsInfo.getAppid()), templateMsg);
 //        }
-        return goodsInfo;
-    }
+//        return goodsInfo;
+//    }
 
 
 

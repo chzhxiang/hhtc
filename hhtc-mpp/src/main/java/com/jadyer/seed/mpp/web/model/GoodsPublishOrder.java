@@ -44,12 +44,6 @@ public class GoodsPublishOrder extends BaseEntity<Long> {
     private int fromType;
     @Column(name="from_id")
     private long fromId;
-    /**
-     * 发布车位的三合一校验时使用
-     */
-    @Transient
-    private long deleteId;
-
 
     public String getOrderID() {
         return orderID;
@@ -156,11 +150,4 @@ public class GoodsPublishOrder extends BaseEntity<Long> {
         this.carParkNumber = carParkNumber;
     }
 
-    public long getDeleteId() {
-        return deleteId;
-    }
-
-    public void setDeleteId(long deleteId) {
-        this.deleteId = deleteId;
-    }
 }

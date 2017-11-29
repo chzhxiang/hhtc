@@ -47,7 +47,6 @@ public class WxFansController {
     }
 
 
-
     /*
     * TOKGO 用户授权查询 查询该用户是否授权
     * */
@@ -70,6 +69,7 @@ public class WxFansController {
         }
         return new CommonResult(CodeEnum.HHTC_INFOR_ACCREDIT_ERROR);
     }
+
 
     /**
      * TOKGO用户电话绑定

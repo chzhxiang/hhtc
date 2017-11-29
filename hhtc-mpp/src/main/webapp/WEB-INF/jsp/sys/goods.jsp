@@ -103,14 +103,14 @@ function inputRemark(){
 }
 function audit(flag){
     $("#car_audit_status_hidden").val(flag);
-    if(validateForm(flag) && confirm("确定审核 [ " + (flag==2 ? "通过" : "拒绝") +" ] 此车位么？")){
-        if(flag==2 || (flag==3 && inputRemark())){
-            $.post("${ctx}/goods/audit",
-                $("#goodsForm").serialize(),
+    if(validateForm(flag) && confirm("确定审核 [ " + (flag==1 ? "通过" : "拒绝") +" ] 此车位么？")){
+        if(flag==1 || (flag==2 && inputRemark())){
+            $.post("${ctx}/fans/Audit",
+                {id:${id}, status:flag,  auditRemark: ""},
                 function(data){
                     if(0 == data.code){
-                        alert('操作成功');
-                        location.href = "${ctx}/goods/task/list";
+                        alert("操作成功");
+                        location.href = "${ctx}/fans/task/park/list";
                     }else{
                         $.promptBox(data.msg, "#ffb848");
                     }
@@ -210,8 +210,8 @@ function audit(flag){
             <tr>
                 <td class="txt_l">
                     <a class="btn_r mr_15" href="javascript:history.back();">返回</a>
-                    <a class="btn_g mr_15" href="javascript:audit(2);">审核通过</a>
-                    <a class="btn_g" href="javascript:audit(3);">审核拒绝</a>
+                    <a class="btn_g mr_15" href="javascript:audit(1);">审核通过</a>
+                    <a class="btn_g" href="javascript:audit(2);">审核拒绝</a>
                 </td>
             </tr>
         </table>

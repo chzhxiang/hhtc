@@ -26,13 +26,11 @@
                 <td><span>${audit.nickname}</span></td>
                 <td><span>${audit.phone}</span></td>
                 <td><span>${audit.community}</span></td>
-                <td><span>${audit.fans.content.split("@")[0]}</span></td>
+                <td><span>${audit.content.split("@")[0]}</span></td>
                 <td><span><fmt:formatDate value="${audit.createTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>
                 <td>
                     <a class="c09f mr_15" href="${ctx}/view?url=sys/goods&id=${audit.id}">查看</a>
-                    <%--<c:if test="${audit.carAuditStatus eq 1}">--%>
-                        <%--<a class="c09f" href="${ctx}/view?url=sys/goods&o=update&id=${audit.id}">编辑</a>--%>
-                    <%--</c:if>--%>
+                    <a class="c09f" href="${ctx}/view?url=sys/goods&o=update&id=${audit.id}">编辑</a>
                 </td>
             </tr>
         </c:forEach>

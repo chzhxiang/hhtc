@@ -59,8 +59,8 @@ public class OrderInfor extends BaseEntity<Long> {
     private String ownersOpenid;
     @Column(name="bank_type")
     private String bankType;
-    @Column(name="cash_fee")
-    private long cashFee;
+    @Column(name="price")
+    private BigDecimal price;
     @Column(name="transaction_id")
     private String transactionId;
     @Column(name="time_end")
@@ -242,12 +242,12 @@ public class OrderInfor extends BaseEntity<Long> {
         this.bankType = bankType;
     }
 
-    public long getCashFee() {
-        return cashFee;
+    public BigDecimal getPrice() {
+        return price;
     }
 
-    public void setCashFee(long cashFee) {
-        this.cashFee = cashFee;
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 
     public String getTransactionId() {

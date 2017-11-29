@@ -318,32 +318,6 @@ public class OrderService {
     }
 
 
-    /**
-     * 后台運營主動匹配訂單（注意匹配時的起始日期取的是當天）
-     */
-    public Object matchNewGoods(long orderId) {
-        OrderInfo order = this.get(orderId);
-        String publishFromDate = DateUtil.getCurrentDate();
-        String publishEndDate = hhtcHelper.calcOrderEndDate(order) + "";
-        String publishFromTime = order.getOpenFromTime() + "";
-        String publishEndTime = order.getOpenEndTime() + "";
-        List<Map<String, String>> list = goodsPublishService.matchlist(order.getCommunityId(), order.getOpenType(), publishFromDate, publishEndDate, publishFromTime, publishEndTime);
-        CopyOnWriteArrayList<Map<String, String>> matchList = new CopyOnWriteArrayList<>(list);
-        for(Map<String, String> obj : matchList){
-            String[] fromDates = obj.get("publishFromDates").split("-");
-            obj.put("dateStartEnd", fromDates[0] + " - " + fromDates[fromDates.length-1]);
-            obj.put("timeStartEnd", DateFormatUtils.format(hhtcHelper.convertToDate(Integer.parseInt(DateUtil.getCurrentDate()), Integer.parseInt(obj.get("publishFromTime"))), "HH:mm") + " - " + DateFormatUtils.format(hhtcHelper.convertToDate(Integer.parseInt(DateUtil.getCurrentDate()), Integer.parseInt(obj.get("publishEndTime"))), "HH:mm"));
-            //匹配到的價格是否比原訂單的多，若多則計算多出來多少
-            BigDecimal price = new BigDecimal(obj.get("price"));
-            BigDecimal oldPrice = new BigDecimal(MoneyUtil.fenToYuan(order.getTotalFee()+""));
-            if(price.compareTo(oldPrice) == 1){
-                obj.put("paymoney", price.subtract(oldPrice).intValue()+"");
-            }else{
-                obj.put("paymoney", "0");
-            }
-        }
-        return matchList;
-    }
 
 
     /**

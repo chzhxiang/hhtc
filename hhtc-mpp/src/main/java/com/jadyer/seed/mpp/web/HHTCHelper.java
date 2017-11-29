@@ -179,7 +179,7 @@ public class HHTCHelper {
         String openid = (String)session.getAttribute(Constants.WEB_SESSION_WX_OPENID);
         LogUtil.getLogger().info("Session get openid=[{}]", openid);
         if(StringUtils.isBlank(openid)){
-            throw new HHTCException(CodeEnum.HHTC_UNLOGIN);
+            throw new HHTCException(CodeEnum.SYSTEM_UNLOGIN);
         }
         return openid;
     }

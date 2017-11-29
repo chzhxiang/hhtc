@@ -22,7 +22,6 @@ import com.jadyer.seed.mpp.web.model.RefundInfo;
 import com.jadyer.seed.mpp.web.model.UserFunds;
 import com.jadyer.seed.mpp.web.model.UserFundsFlow;
 import com.jadyer.seed.mpp.web.repository.GoodsNeedRepository;
-import com.jadyer.seed.mpp.web.repository.GooRepository;
 import com.jadyer.seed.mpp.web.repository.OrderRepository;
 import com.jadyer.seed.mpp.web.repository.RedpackInfoRepository;
 import com.jadyer.seed.mpp.web.repository.RefundApplyRepository;
@@ -68,8 +67,6 @@ public class RefundApplyService {
     private RefundService refundService;
     @Resource
     private RedpackService redpackService;
-    @Resource
-    private GooRepository goodsRepository;
     @Resource
     private OrderRepository orderRepository;
     @Resource
@@ -127,9 +124,9 @@ public class RefundApplyService {
         if(goodsNeedRepository.countByOpenidAndStatus(openid, 1) > 0){
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "退款失败：存在匹配中的需求");
         }
-        if(goodsRepository.countByOpenidAndIsUsedIn(openid, Arrays.asList(1, 2)) > 0){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "退款失败：存在发布中或已使用的车位");
-        }
+//        if(goodsRepository.countByOpenidAndIsUsedIn(openid, Arrays.asList(1, 2)) > 0){
+//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "退款失败：存在发布中或已使用的车位");
+//        }
         if(orderRepository.countByOpenidAndOrderTypeInAndOrderStatusIn(openid, Arrays.asList(1, 2), Arrays.asList(0, 1, 2)) > 0){
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "退款失败：存在未完成订单");
         }

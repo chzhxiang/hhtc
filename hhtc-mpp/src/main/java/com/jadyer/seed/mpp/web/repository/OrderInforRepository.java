@@ -31,9 +31,9 @@ public interface OrderInforRepository extends BaseRepository<OrderInfor, Long> {
 //    List<OrderInfo> findByOrderStatusAndOpenFromDatesEndingWith(int orderStatus, String openFromDates);
 //
 
-//    @Modifying
-//    @Transactional
-//    @Query("UPDATE OrderInfor SET orderStatus=?1 WHERE orderId=?2")
-//    int updateOrderState(int orderStatus, String orderid);
+    @Modifying
+    @Transactional
+    @Query("UPDATE OrderInfor SET orderStatus=?1 WHERE orderId=?2")
+    int updateOrderState(int orderStatus, String orderid);
 
 }

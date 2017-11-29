@@ -42,8 +42,6 @@ public class MppFansInfor extends BaseEntity<Long> {
     private String CommunityName;
     @Column(name="house_number")
     private String houseNumber;
-    @Column(name="car_number")
-    private String carNumber;
 
     public long getUid() {
         return uid;
@@ -180,14 +178,6 @@ public class MppFansInfor extends BaseEntity<Long> {
 
     public void setHouseNumber(String houseNumber) {
         this.houseNumber = houseNumber;
-    }
-
-    public String getCarNumber() {
-        return carNumber;
-    }
-
-    public void setCarNumber(String carNumber) {
-        this.carNumber = carNumber;
     }
 
 }

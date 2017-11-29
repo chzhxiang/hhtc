@@ -65,11 +65,13 @@ public class OrderInforService {
     public boolean StartOrder(OrderInfor orderInfor){
         if (orderInfor.getOrderStatus()==0)
         {
-//            orderInforRepository.updateOrderState(1,orderInfor.getOrderId());
+            orderInforRepository.updateOrderState(1,orderInfor.getOrderId());
             return true;
         }
         return false;
     }
+
+
 
 
 

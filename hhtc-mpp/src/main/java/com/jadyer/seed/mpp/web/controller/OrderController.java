@@ -36,18 +36,18 @@ public class OrderController {
     }
 
 
-    @RequestMapping("/matchNewGoods")
-    public String matchNewGoods(String phoneNo, long orderId, HttpServletRequest request){
-        MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
-        if(userInfo.getType() != 1){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "只有平台运营才可以匹配订单");
-        }
-        request.setAttribute("phoneNo", phoneNo);
-        request.setAttribute("orderId", orderId);
-        request.setAttribute("list", orderService.search(phoneNo));
-        request.setAttribute("matchList", orderService.matchNewGoods(orderId));
-        return "funds/order.allocate.match.list";
-    }
+//    @RequestMapping("/matchNewGoods")
+//    public String matchNewGoods(String phoneNo, long orderId, HttpServletRequest request){
+//        MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
+//        if(userInfo.getType() != 1){
+//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "只有平台运营才可以匹配订单");
+//        }
+//        request.setAttribute("phoneNo", phoneNo);
+//        request.setAttribute("orderId", orderId);
+//        request.setAttribute("list", orderService.search(phoneNo));
+//        request.setAttribute("matchList", orderService.matchNewGoods(orderId));
+//        return "funds/order.allocate.match.list";
+//    }
 
 
     @ResponseBody

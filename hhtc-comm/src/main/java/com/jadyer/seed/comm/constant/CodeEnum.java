@@ -10,6 +10,9 @@ public enum CodeEnum {
     SYSTEM_PARAM_NULL      (1110, "含有空参数"),
     SYSTEM_PARAM_ERROR     (1120, "参数结构错误"),
     SYSTEM_PARAM_TIME_ERROR     (1130, "参数时间结构错误"),
+    SYSTEM_UNLOGIN          (1200, "请从微信菜单重新进入"),
+    SYSTEM_PERMISSIONS          (1200, "你的权限不够"),
+
 
     FILE_NOT_FOUND        (1003, "文件未找到"),
     FILE_TRANSFER_FAIL    (1004, "文件传输失败"),
@@ -22,6 +25,8 @@ public enum CodeEnum {
     HHTC_INFOR_PHOMENO_USED     (3111, "用户电话号码已经使用"),
 
     HHTC_INFOR_COMMUNITY   (3120, "用户住房信息审核,重复提交"),
+    HHTC_INFOR_COMMUNITY_NO   (3121, "没有通过住房审核"),
+
     HHTC_INFOR_CARNUMBERFULL  (3130,"车牌审核或车牌数已满"),
     HHTC_INFOR_CARNUMBER_USED  (3131,"已经提交了车牌请求"),
     HHTC_INFOR_CARNUMBER_NO  (3132, "没有可使用的车牌"),
@@ -37,11 +42,10 @@ public enum CodeEnum {
     HHTC_FUNDS_DEPOSIT_NO (3310, "押金不足"),
     HHTC_FUNDS_BALANCE_NO (3320, "余额不足"),
 
-    HHTC_ORDER_PORT_TIMEERROR (3400, "和已有又，订单时间重叠"),
+    HHTC_ORDER_PORT_TIMEERROR (3400, "和已有订单时间重叠"),
 
-    HHTC_UNLOGIN          (3003, "请从微信菜单重新进入"),
 
-    HHTC_GOODS_ORDER_FAIL (3006, "下单失败：您来晚了一步，该车位刚刚被其他人下单了"),
+    HHTC_GOODS_ORDER_FAIL (306, "下单失败：您来晚了一步，该车位刚刚被其他人下单了"),
     HHTC_UNREG            (3007, "既未注册车主也未注册车位主");
 
 

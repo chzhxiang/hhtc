@@ -66,7 +66,6 @@ groupid                  VARCHAR(16)  COMMENT '粉丝用户所在的分组ID',
 community_id             INT          COMMENT '粉丝所在的小区ID，对应t_community_info#id',
 community_name           VARCHAR(32)  COMMENT '粉丝所在的小区名称，冗余自t_community_info#name',
 house_number             VARCHAR(32)  COMMENT '门牌号',
-car_number               VARCHAR(100) COMMENT '车牌号（多个则以`分割）',
 -- house_equity_img VARCHAR(999) COMMENT '房产证/租房合同图片（多张则以`分隔）',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
@@ -181,7 +180,7 @@ CREATE TABLE t_goods_infor(
 id                   INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
 community_id         INT          NOT NULL COMMENT '小区ID，对应t_community_info#id',
 community_name       VARCHAR(32)  NOT NULL COMMENT '小区名称，冗余自t_community_info#name',
-appid                VARCHAR(64)  NOT NULL COMMENT '粉丝關注的公眾號的appid',
+appid                VARCHAR(64)  NOT NULL COMMENT '粉丝关注的公众号的appid',
 openid               VARCHAR(64)  NOT NULL COMMENT '粉丝的openid',
 car_park_number      VARCHAR(32)  NOT NULL COMMENT '车位号',
 car_park_img         VARCHAR(999) COMMENT '车位平面图',
@@ -191,9 +190,23 @@ is_used              TINYINT(1)   NOT NULL COMMENT '是否使用：0--待发布�
 is_repetition        TINYINT(1)   NOT NULL COMMENT '是否重复：0--未重复，1--重复',
 car_audit_uid        INT          COMMENT '车位审核人的uid,，对应t_mpp_user_info#id',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 UNIQUE INDEX unique_index_openid_carParkNumber(openid, car_park_number)
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='商品信息表（存储车位信息）TOKGO';
+
+
+DROP TABLE IF EXISTS t_owners_infor;
+CREATE TABLE t_owners_infor(
+id                   INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+community_id         INT          NOT NULL COMMENT '小区ID，对应t_community_info#id',
+community_name       VARCHAR(32)  NOT NULL COMMENT '小区名称，冗余自t_community_info#name',
+openid               VARCHAR(64)  NOT NULL COMMENT '粉丝的openid',
+car_number         VARCHAR(32)  NOT NULL COMMENT '车牌号',
+car_number_img      VARCHAR(500) COMMENT '车牌平面图',
+car_audit_uid        INT          COMMENT '车牌审核人的uid,，对应t_mpp_user_info#id',
+create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='商品信息表（存储车牌信息）TOKGO';
 
 
 DROP TABLE IF EXISTS t_goods_need_info;
@@ -379,14 +392,14 @@ notify_url              VARCHAR(512)  COMMENT 'wxpay-通知地址',
 trade_type              VARCHAR(8)    COMMENT 'wxpay-交易类型：JSAPI--公众号支付、NATIVE--原生扫码支付、APP--app支付',
 product_id              INT           COMMENT 'wxpay-商品ID',
 bank_type               VARCHAR(16)   COMMENT 'wxpay-notify-付款银行，其为采用字符串类型的银行标识',
-cash_fee                INT           COMMENT 'wxpay-notify-现金支付金额',
+price                   DECIMAL(16,4) COMMENT 'wxpay-notify-金额',
 transaction_id          VARCHAR(64)   COMMENT 'wxpay-notify-微信支付订单号',
 time_end                CHAR(14)      COMMENT 'wxpay-notify-支付完成时间，格式为yyyyMMddHHmmss，如2009年12月25日9点10分10秒表示为20091225091010',
 trade_state_desc        VARCHAR(512)  COMMENT 'wxpay-query-交易状态描述（对当前查询订单状态的描述和下一步操作的指引）',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
 INDEX index_openid(openid),
-INDEX index_outTradeNo(orde_id)
+INDEX index_outTradeNo(order_id)
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='订单信息表（存储车位已被预约的信息）TOKGO';
 
 
@@ -568,7 +581,7 @@ INSERT INTO t_mpp_reply_info(uid, category, type) VALUES(2, 0, 4);
 INSERT INTO t_mpp_reply_info(uid, category, type, content) VALUES(2, 1, 0, '海量车位，吼吼停车，让天下没有难停的车！！');
 INSERT INTO t_mpp_reply_info(uid, category, type, keyword, content) VALUES(2, 2, 0, '联系客服', '客服电话：400-400-400');
 INSERT INTO t_mpp_user_info(id, pid, username, password, type, mptype, bind_status) VALUES(1, 0, 'admin', 'admin', 0, 0, 0);
-INSERT INTO t_mpp_user_info(id, pid, username, password, type, uuid, mptype, bind_status) VALUES(2, 1, 'hhyy', '5cd57d747b5b7632efa82e67ea3c4e43', 1, REPLACE(UUID(),'-',''), 1, 0);
+INSERT INTO t_mpp_user_info(id, pid, username, password, type, uuid, mptype, bind_status) VALUES(2, 1, 'hhyy', '66af8cb9a18a11e7a78000163e0f0256', 1, REPLACE(UUID(),'-',''), 1, 0);
 
 
 
