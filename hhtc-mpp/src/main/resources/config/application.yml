@@ -66,10 +66,10 @@ aliyun:
     validityMinute: 3
 hhtc:
   publishTime:
-    day: 900
-    night: 1700 # 发布时间段中的日间和夜间分隔点
+    day: 9   #9 白天 9代表上午9点钟  这里只能输入整点 0-23
+    night: 17 # 发布时间段中的日间和夜间分隔点 这里只能输入整点 0-23
   orderLock:
-    minute: 6   # 订单锁定时长（单位：分钟，微信要求必须大于5）
+    lock: 3   # 订单不能预约的时间（单位：小时）
   needExpire:
     minute: 60  # 主动需求匹配过期的提前时长（假设配置30，表示起始时间的30分钟前仍未匹配到，则置其为过期）
   portalUrl:

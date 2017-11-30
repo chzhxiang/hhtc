@@ -25,23 +25,24 @@ public class AuditService {
     /**
      * TOKGO 添加审核
      * */
-    public FansInforAudit AddAudit(long uid, String openid,int type,int State,String Content){
-        return AddAudit(uid,openid,type,State,Content,"");
+    public FansInforAudit AddAudit(long uid, String openid,int type,long communityId,String communityName,String Content){
+        return AddAudit(uid,openid,type,communityId,communityName,Content,"");
     }
     /**
      * TOKGO 添加审核
      * */
-    public FansInforAudit AddAudit(long uid, String openid,int type,int State,String Content,String imageurl1){
-        return AddAudit(uid,openid,type,State,Content,"","");
+    public FansInforAudit AddAudit(long uid, String openid,int type,long communityId,String communityName,String Content,String imageurl1){
+        return AddAudit(uid,openid,type,communityId,communityName,Content,"","");
     }
     /**
      * TOKGO 添加审核
      * */
-    public FansInforAudit AddAudit(long uid, String openid,int type,int State,String Content,String imageurl1,String imageurl2){
+    public FansInforAudit AddAudit(long uid, String openid,int type,long communityId,String communityName,String Content,String imageurl1,String imageurl2){
         FansInforAudit fansInforAudit = new FansInforAudit();
         fansInforAudit.setUid(uid);
         fansInforAudit.setOpenid(openid);
-        fansInforAudit.setState(State);
+        fansInforAudit.setCommunityId(communityId);
+        fansInforAudit.setCommunityName(communityName);
         fansInforAudit.setType(type);
         fansInforAudit.setContent(Content);
         fansInforAudit.setImgurl1(imageurl1);

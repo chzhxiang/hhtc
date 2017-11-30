@@ -58,8 +58,8 @@ function audit(id, flag){
                 <td><span><img alt="头像" src="${audit.headimgurl}" height="30px" width="30px"></span></td>
                 <td><span>${audit.nickname}</span></td>
                 <td><span>${audit.phone}</span></td>
-                <td><span>${audit.content.split("@")[0]}</span></td>
-                <td><span>${audit.content.split("@")[1]}</span></td>
+                <td><span>${audit.communityName}</span></td>
+                <td><span>${audit.content}</span></td>
                 <td><span><fmt:formatDate value="${audit.createTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>
                 <td>
                     <a class="c09f mr_15" href="javascript:audit('${audit.id}', 1);">通过</a>

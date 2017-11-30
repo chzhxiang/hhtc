@@ -12,7 +12,6 @@ import com.jadyer.seed.mpp.sdk.weixin.model.template.WeixinTemplateMsg;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.model.*;
 import com.jadyer.seed.mpp.web.repository.GoodsPublishHistoryRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsPublishOrderRepository;
 import com.jadyer.seed.mpp.web.repository.GoodsPublishRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -53,28 +52,11 @@ public class GoodsPublishService {
     private FansService fansService;
     @Resource
     private GoodsService goodsService;
-    @Resource
-    private OrderService orderService;
-    @Resource
-    private UserFundsService userFundsService;
-    @Resource
-    private CommunityService communityService;
-    @Resource
-    private GoodsNeedService goodsNeedService;
-    @Resource
-    private OrderRentService orderRentService;
-    @Resource
-    private OrderInoutService orderInoutService;
-    @Resource
-    private GoodsPublishService goodsPublishService;
-    @Resource
-    private UserFundsFlowService userFundsFlowService;
+
     @Resource
     private GoodsPublishRepository goodsPublishRepository;
     @Resource
     private GoodsPublishOrderService goodsPublishOrderService;
-    @Resource
-    private GoodsPublishOrderRepository goodsPublishOrderRepository;
     @Resource
     private GoodsPublishHistoryRepository goodsPublishHistoryRepository;
 
@@ -105,92 +87,6 @@ public class GoodsPublishService {
         hhtcHelper.verifyOfTimeCross(dateList, goodsId, publishFromTime, publishEndTime);
         return goodsInfor;
     }
-
-
-    /**
-     * 时间段连接：三合一
-     * <p>
-     *     注意：该方法返回的是t_goods_publish_info，而非t_goods_publish_order
-     * </p>
-     * @return 返回合并后的信息（如果存在三合一，则返回的信息中deleteId属性会记录需要删除的信息）
-     */
-    private GoodsPublishInfo threeToOne(long goodsId, int publishType, int publishFromTime, int publishEndTime, int publishFromDate, int publishEndDate){
-        GoodsPublishInfo info = new GoodsPublishInfo();
-        //标记是否已合并了头部和尾部
-        boolean matchHeader = false;
-        boolean matchFooter = false;
-        //连接到数据库中的头部
-        Condition<GoodsPublishInfo> spec01 = Condition.and();
-        spec01.eq("goodsId", goodsId);
-        spec01.eq("status", 0);
-        spec01.eq("publishType", publishType);
-        spec01.eq("publishFromDate", publishEndDate);
-        spec01.eq("publishFromTime", publishEndTime);
-        List<GoodsPublishInfo> list01 = goodsPublishRepository.findAll(spec01);
-        if(!list01.isEmpty()){
-            matchHeader = true;
-            BeanUtil.copyProperties(list01.get(0), info);
-            info.setId(list01.get(0).getId());
-            info.setPublishFromDate(publishFromDate);
-            info.setPublishFromTime(publishFromTime);
-        }
-        //连接到数据库中的尾部
-        Condition<GoodsPublishInfo> spec02 = Condition.and();
-        spec02.eq("goodsId", goodsId);
-        spec02.eq("status", 0);
-        spec02.eq("publishType", publishType);
-        spec02.eq("publishEndDate", publishFromDate);
-        spec02.eq("publishEndTime", publishFromTime);
-        List<GoodsPublishInfo> list02 = goodsPublishRepository.findAll(spec02);
-        if(!list02.isEmpty()){
-            matchFooter = true;
-            BeanUtil.copyProperties(list02.get(0), info);
-            info.setId(list02.get(0).getId());
-            if(matchHeader){
-                info.setPublishEndDate(list01.get(0).getPublishEndDate());
-                info.setPublishEndTime(list01.get(0).getPublishEndTime());
-            }else{
-                info.setPublishEndDate(publishEndDate);
-                info.setPublishEndTime(publishEndTime);
-            }
-        }
-        if(matchHeader && matchFooter){
-            info.setDeleteId(list01.get(0).getId());
-        }
-        //最后判断info所属的order是否是大于24小时发布的那种
-        if(null!=info.getId() && info.getId()>0){
-//            GoodsPublishOrder order = goodsPublishOrderRepository.findByGoodsPublishIdsLike("%"+info.getId()+"%");
-//            if(null!=order && order.getId()>0 && order.getPublishFromDates().contains("-")){
-//                return new GoodsPublishInfo();
-//            }
-        }
-        return info;
-    }
-
-
-    /**
-     * 发布的车位是否可合并
-     */
-    public boolean addCanMerge(String openid, long goodsId, int publishType, int publishFromTime, int publishEndTime, String publishFromDates){
-//        GoodsInfo goodsInfo = this.verifyBeforeAdd(openid, goodsId, publishType, publishFromTime, publishEndTime, publishFromDates);
-        //全天或超过24小时的发布订单，都不合并
-        if(publishFromDates.contains("-") || publishType==3){
-            return false;
-        }
-        //计算起止日期（注意夜间跨天）
-        int publishFromDate = Integer.parseInt(publishFromDates);
-        int publishEndDate = Integer.parseInt(publishFromDates);
-        if(2==publishType && publishEndTime<publishFromTime){
-            try {
-                publishEndDate = Integer.parseInt(DateFormatUtils.format(DateUtils.addDays(DateUtils.parseDate(publishEndDate+"", "yyyyMMdd"), 1), "yyyyMMdd"));
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
-        GoodsPublishInfo info = this.threeToOne(goodsId, publishType, publishFromTime, publishEndTime, publishFromDate, publishEndDate);
-        return null!=info.getId() && info.getId()>0;
-    }
-
 
 
 

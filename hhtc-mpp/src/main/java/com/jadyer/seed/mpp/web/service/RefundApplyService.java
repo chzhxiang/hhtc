@@ -1,6 +1,7 @@
 package com.jadyer.seed.mpp.web.service;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.jpa.Condition;
 import com.jadyer.seed.comm.util.DateUtil;
@@ -14,13 +15,7 @@ import com.jadyer.seed.mpp.sdk.weixin.model.redpack.WeixinRedpackSendReqData;
 import com.jadyer.seed.mpp.sdk.weixin.model.redpack.WeixinRedpackSendRespData;
 import com.jadyer.seed.mpp.sdk.weixin.model.template.WeixinTemplateMsg;
 import com.jadyer.seed.mpp.web.HHTCHelper;
-import com.jadyer.seed.mpp.web.model.MppUserInfo;
-import com.jadyer.seed.mpp.web.model.OrderInfo;
-import com.jadyer.seed.mpp.web.model.RedpackInfo;
-import com.jadyer.seed.mpp.web.model.RefundApply;
-import com.jadyer.seed.mpp.web.model.RefundInfo;
-import com.jadyer.seed.mpp.web.model.UserFunds;
-import com.jadyer.seed.mpp.web.model.UserFundsFlow;
+import com.jadyer.seed.mpp.web.model.*;
 import com.jadyer.seed.mpp.web.repository.GoodsNeedRepository;
 import com.jadyer.seed.mpp.web.repository.OrderRepository;
 import com.jadyer.seed.mpp.web.repository.RedpackInfoRepository;
@@ -63,6 +58,8 @@ public class RefundApplyService {
     private HHTCHelper hhtcHelper;
     @Resource
     private FansService fansService;
+    @Resource
+    private AuditService auditService;
     @Resource
     private RefundService refundService;
     @Resource
@@ -264,7 +261,7 @@ public class RefundApplyService {
         if(userInfo.getType() != 1){
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "只有平台运营才可以查看退款列表");
         }
-        Sort sort = new Sort(Sort.Direction.DESC, "id");
+        Sort sort = new Sort(Sort.Direction.ASC, "id");
         Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
         return refundApplyRepository.findAll(pageable);
     }
@@ -273,14 +270,30 @@ public class RefundApplyService {
     /**
      * 退款审核列表
      */
-    public Page<RefundApply> listTaskViaPage(MppUserInfo userInfo, String pageNo){
+    public Page<FansInforAudit> listTaskViaPage(MppUserInfo userInfo, String pageNo){
         if(userInfo.getType() != 1){
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "只有平台运营才可以查看退款审核列表");
         }
         Sort sort = new Sort(Sort.Direction.ASC, "id");
         Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
-        Condition<RefundApply> spec = Condition.<RefundApply>and().eq("auditStatus", 1);
-        return refundApplyRepository.findAll(spec, pageable);
+        Condition<FansInforAudit> spec = Condition.<FansInforAudit>or().eq("type", Constants.AUDTI_TEPY_BALANCE)
+                .eq("type", Constants.AUDTI_TEPY_DEPOSIT);
+        //执行
+        Page<FansInforAudit> page = auditService.getpage(spec, pageable);
+        List<FansInforAudit> list = page.getContent();
+        for(FansInforAudit obj : list){
+            MppFansInfor fans = fansService.getByOpenid(obj.getOpenid());
+            //检测住址是否验证 如果住址未审核通过 不给与显示
+            if (fans.getInfor_state().charAt(Constants.INFOR_STATE_COMMUNITY_BIT)!='1'){
+                list.remove(obj);
+                continue;
+            }
+            obj.setNickname(fans.getNickname());
+            obj.setHeadimgurl(fans.getHeadimgurl());
+            obj.setPhone(fans.getPhoneNo());
+            obj.setCommunity(fans.getCommunityName()+fans.getHouseNumber());
+        }
+        return page;
     }
 
 
@@ -293,17 +306,17 @@ public class RefundApplyService {
         apply.setAuditTime(new Date());
         apply.setAuditStatus(auditStatus);
         refundApplyRepository.saveAndFlush(apply);
-        if(auditStatus == 2){
+        if(auditStatus == 1){
             if(apply.getApplyType() == 1){
                 //模版CODE: SMS_86520128
                 //模版内容: 尊敬的手机尾号为${phone}的用户，您申请押金退回已通过平台审核，您交付平台的押金已退回您原支付账户，预计1~7个工作日到账，请注意查收。
                 String phone = fansService.getByOpenid(apply.getOpenid()).getPhoneNo();
-                Map<String, String> paramMap = new HashMap<>();
-                paramMap.put("phone", phone.substring(7, 11));
-                hhtcHelper.sendSms(phone, "SMS_86520128", paramMap);
+//                Map<String, String> paramMap = new HashMap<>();
+//                paramMap.put("phone", phone.substring(7, 11));
+//                hhtcHelper.sendSms(phone, "SMS_86520128", paramMap);
             }
         }
-        if(auditStatus == 3){
+        if(auditStatus == 2){
             /*
             {{first.DATA}}
             提现金额：{{keyword1.DATA}}
@@ -315,19 +328,19 @@ public class RefundApplyService {
             失败原因：仍有未完成的订单
             请您做出相应调整后，再申请提现。
             */
-            WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
-            dataItem.put("first", new WeixinTemplateMsg.DItem("您申请的" + (apply.getApplyType()==1?"退款":"提现") + "业务未通过审核"));
-            dataItem.put("keyword1", new WeixinTemplateMsg.DItem(MoneyUtil.fenToYuan(apply.getRefundFee()+"") + "元"));
-            dataItem.put("keyword2", new WeixinTemplateMsg.DItem("仍有未完成的订单或系统交易忙"));
-            dataItem.put("remark", new WeixinTemplateMsg.DItem("请您做出相应调整后，再申请提现。"));
-            String url = this.hhtcContextPath + this.portalCenterUrl;
-            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+apply.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+apply.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
-            WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
-            templateMsg.setTemplate_id("ZhGiBnC7ugrDs-raCC0E1kJ2aaRl_i1by8bwAkBIGtA");
-            templateMsg.setUrl(url);
-            templateMsg.setTouser(apply.getOpenid());
-            templateMsg.setData(dataItem);
-            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(apply.getAppid()), templateMsg);
+//            WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
+//            dataItem.put("first", new WeixinTemplateMsg.DItem("您申请的" + (apply.getApplyType()==1?"退款":"提现") + "业务未通过审核"));
+//            dataItem.put("keyword1", new WeixinTemplateMsg.DItem(MoneyUtil.fenToYuan(apply.getRefundFee()+"") + "元"));
+//            dataItem.put("keyword2", new WeixinTemplateMsg.DItem("仍有未完成的订单或系统交易忙"));
+//            dataItem.put("remark", new WeixinTemplateMsg.DItem("请您做出相应调整后，再申请提现。"));
+//            String url = this.hhtcContextPath + this.portalCenterUrl;
+//            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+apply.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+apply.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
+//            WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
+//            templateMsg.setTemplate_id("ZhGiBnC7ugrDs-raCC0E1kJ2aaRl_i1by8bwAkBIGtA");
+//            templateMsg.setUrl(url);
+//            templateMsg.setTouser(apply.getOpenid());
+//            templateMsg.setData(dataItem);
+//            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(apply.getAppid()), templateMsg);
         }
     }
 

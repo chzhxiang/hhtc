@@ -1,5 +1,7 @@
 package com.jadyer.seed.mpp.web.model;
 
+import com.jadyer.seed.comm.constant.CodeEnum;
+import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.jpa.BaseEntity;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -9,6 +11,8 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -23,6 +27,8 @@ public class GoodsPublishOrder extends BaseEntity<Long> {
     @Column(name="order_id")
     private String orderID;
     private String openid;
+    @Column(name="phone_no")
+    private String phoneNO;
     @Column(name="community_id")
     private long communityId;
     @Column(name="community_name")
@@ -33,17 +39,31 @@ public class GoodsPublishOrder extends BaseEntity<Long> {
     private String carParkNumber;
     @Column(name="car_park_img")
     private String carParkImg;
+
     private BigDecimal price;
-    @Column(name="publish_from_dates")
-    private String publishFromDates;
+    @Column(name="from_dates_calculate")
+    private long fromdateCalculate;
     @Column(name="publish_from_time")
     private String publishFromTime;
     @Column(name="publish_end_time")
     private String publishEndTime;
-    @Column(name="from_type")
-    private int fromType;
-    @Column(name="from_id")
-    private long fromId;
+
+
+    public String getPhoneNO() {
+        return phoneNO;
+    }
+
+    public void setPhoneNO(String phoneNO) {
+        this.phoneNO = phoneNO;
+    }
+
+    public void setFromdateCalculate(long fromdateCalculate) {
+        this.fromdateCalculate = fromdateCalculate;
+    }
+
+    public long getFromdateCalculate() {
+        return fromdateCalculate;
+    }
 
     public String getOrderID() {
         return orderID;
@@ -58,8 +78,13 @@ public class GoodsPublishOrder extends BaseEntity<Long> {
     }
 
     public void setPublishFromTime(String publishFromTime) {
+        try {
+            this.fromdateCalculate= new SimpleDateFormat("yyyy-MM-dd hh:mm").parse(publishFromTime).getTime();
+        } catch (ParseException e) {
+            throw new HHTCException(CodeEnum.SYSTEM_NULL); }
         this.publishFromTime = publishFromTime;
     }
+
 
     public String getPublishEndTime() {
         return publishEndTime;
@@ -107,31 +132,6 @@ public class GoodsPublishOrder extends BaseEntity<Long> {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
-    }
-
-    public String getPublishFromDates() {
-        return publishFromDates;
-    }
-
-    public void setPublishFromDates(String publishFromDates) {
-        this.publishFromDates = publishFromDates;
-    }
-
-
-    public int getFromType() {
-        return fromType;
-    }
-
-    public void setFromType(int fromType) {
-        this.fromType = fromType;
-    }
-
-    public long getFromId() {
-        return fromId;
-    }
-
-    public void setFromId(long fromId) {
-        this.fromId = fromId;
     }
 
     public String getCommunityName() {

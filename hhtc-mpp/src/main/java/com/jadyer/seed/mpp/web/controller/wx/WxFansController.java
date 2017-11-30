@@ -25,7 +25,7 @@ public class WxFansController {
     private FansService fansService;
 
     //TODO
-    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
+    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
     /**
      * TOKGO 查询粉丝信息
      */

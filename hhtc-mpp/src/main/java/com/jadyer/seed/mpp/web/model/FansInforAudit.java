@@ -5,6 +5,7 @@ import com.jadyer.seed.comm.jpa.BaseEntity;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -17,14 +18,16 @@ import java.util.Date;
 public class FansInforAudit extends BaseEntity<Long>{
     private static final long serialVersionUID = 238782664479331959L;
     private long uid;
-    private int state;
+    @Column(name="community_id")
+    private long communityId;
+    @Column(name="community_name")
+    private String communityName;
     private String openid;
     private int type;
+    private int state;
     private String content;
     private String imgurl1;
     private String imgurl2;
-    private String audit_reason;
-    private int audit_uid;
 
     @Transient
     private String nickname;
@@ -35,6 +38,29 @@ public class FansInforAudit extends BaseEntity<Long>{
     @Transient
     private String community;
 
+
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
+
+    public long getCommunityId() {
+        return communityId;
+    }
+    public void setCommunityId(long communityId) {
+        this.communityId = communityId;
+    }
+
+    public String getCommunityName() {
+        return communityName;
+    }
+
+    public void setCommunityName(String communityName) {
+        this.communityName = communityName;
+    }
 
     public String getPhone() {
         return phone;
@@ -60,13 +86,6 @@ public class FansInforAudit extends BaseEntity<Long>{
         this.uid = uid;
     }
 
-    public int getState() {
-        return state;
-    }
-
-    public void setState(int state) {
-        this.state = state;
-    }
 
     public String getOpenid() {
         return openid;
@@ -106,22 +125,6 @@ public class FansInforAudit extends BaseEntity<Long>{
 
     public void setImgurl2(String imgurl2) {
         this.imgurl2 = imgurl2;
-    }
-
-    public String getAudit_reason() {
-        return audit_reason;
-    }
-
-    public void setAudit_reason(String audit_reason) {
-        this.audit_reason = audit_reason;
-    }
-
-    public int getAudit_uid() {
-        return audit_uid;
-    }
-
-    public void setAudit_uid(int audit_uid) {
-        this.audit_uid = audit_uid;
     }
 
     public String getNickname() {

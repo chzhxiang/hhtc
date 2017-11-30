@@ -3,7 +3,6 @@ package com.jadyer.seed.mpp.web.controller.wx;
 import com.jadyer.seed.comm.constant.CommonResult;
 import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.HHTCHelper;
-import com.jadyer.seed.mpp.web.repository.GoodsPublishOrderRepository;
 import com.jadyer.seed.mpp.web.service.FansService;
 import com.jadyer.seed.mpp.web.service.UserFundsService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,16 +28,28 @@ public class WxUserFundsController {
 
 
     //TODO
-    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
+    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
     /**
      * TOKGO 查询粉丝资金情况
      */
     @GetMapping("/get")
     public CommonResult get(HttpSession session){
+        //TODO
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(userFundsService.get(openid));
     }
 
+    /**
+     * TOKGO 提现请求
+     *@param  type 4---余额提现 5---押金提现
+     * */
+    @PostMapping("/withdraw")
+    public CommonResult Wthdraw(double amount, int type , HttpSession session){
+        //TODO
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        userFundsService.WthdrawApplication(openid,amount,type);
+        return new CommonResult();
+    }
 
     /**
      * 充值

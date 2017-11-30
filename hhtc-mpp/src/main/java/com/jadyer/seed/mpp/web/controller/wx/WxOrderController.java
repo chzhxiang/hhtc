@@ -3,6 +3,7 @@ package com.jadyer.seed.mpp.web.controller.wx;
 import com.jadyer.seed.comm.constant.CommonResult;
 import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.HHTCHelper;
+import com.jadyer.seed.mpp.web.service.OrderInforService;
 import com.jadyer.seed.mpp.web.service.OrderService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,34 +21,34 @@ public class WxOrderController {
     @Resource
     private HHTCHelper hhtcHelper;
     @Resource
-    private OrderService orderService;
+    private OrderInforService orderInforService;
 
     //TODO
-    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
+    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
 
-    @GetMapping("/get")
-    public CommonResult get(long id){
-        return new CommonResult(orderService.get(id));
-    }
+//    @GetMapping("/get")
+//    public CommonResult get(long id){
+//        return new CommonResult(orderService.get(id));
+//    }
 
 
     /**
      * TOKGO 获取历史数据 每次返回10条数据
      * */
     @GetMapping("/gethistory")
-    public CommonResult get(String pageNo, HttpSession session){
+    public CommonResult get(int pageNo, HttpSession session){
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
-        return new CommonResult(orderService.Gethistory(openid,pageNo));
+        return new CommonResult(orderInforService.Gethistory(openid,pageNo));
     }
 
 
-    /**
-     * @param orderStatus 1—支付中，3—支付失败，7—已预约，8—停车中，9—超时中，10—已完成
-     */
-    @RequestMapping("/list")
-    public CommonResult list(String orderStatus, HttpSession session){
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
-        return new CommonResult(orderService.list(orderStatus, openid));
-    }
+//    /**
+//     * @param orderStatus 1—支付中，3—支付失败，7—已预约，8—停车中，9—超时中，10—已完成
+//     */
+//    @RequestMapping("/list")
+//    public CommonResult list(String orderStatus, HttpSession session){
+//        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+//        return new CommonResult(orderService.list(orderStatus, openid));
+//    }
 
 }

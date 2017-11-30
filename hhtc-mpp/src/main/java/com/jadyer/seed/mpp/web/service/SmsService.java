@@ -59,16 +59,15 @@ public class SmsService {
     @Transactional(rollbackFor=Exception.class)
     public boolean smsVerify(String phoneNo, String verifyCode, int type){
         CheckSMS();
-        List<SmsInfor> smsInforList = smsRepository.findByPhoneNoAndVerifyCode(phoneNo, verifyCode);
-        return true;
-//        for(SmsInfor obj : smsInforList){
-//            if(obj.getType()==type ){
+        List<SmsInfor> smsInforList = smsRepository.findByPhoneNoAndVerifyCode(phoneNo,verifyCode);
+        for(SmsInfor obj : smsInforList){
+            if(obj.getType()==type ){
+                //TODO 测试阶段 不删除验证码
 //                smsRepository.delete(obj.getId());
-//                return true;
-//            }
-//        }
-        //TODO 短信验证有问题 调试的时候改
-//        return true;
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -83,8 +82,8 @@ public class SmsService {
 //                smsRepository.delete(obj.getId());
                 ;
             }
-
         }
+        smsRepository.flush();
     }
 
 

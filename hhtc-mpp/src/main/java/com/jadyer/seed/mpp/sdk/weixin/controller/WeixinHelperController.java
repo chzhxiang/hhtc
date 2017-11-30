@@ -84,9 +84,9 @@ public class WeixinHelperController {
                 session.setAttribute(Constants.WEB_SESSION_WX_APPID, appid);
                 session.setAttribute(Constants.WEB_SESSION_WX_OPENID, oauthAccessToken.getOpenid());
                 if(fullURI.endsWith(this.portalCenterUrl)){
-//                    MppFansInfo fansInfo = fansService.getByOpenid(oauthAccessToken.getOpenid());
-                    MppFansInfo fansInfo =null;
-                    if(2!=fansInfo.getCarOwnerStatus() && 2!=fansInfo.getCarParkStatus()){
+                    MppFansInfor fansInfor = fansService.getByOpenid(oauthAccessToken.getOpenid());
+                    if('1'!=fansInfor.getInfor_state().charAt(Constants.INFOR_STATE_CARPARK_BIT)
+                            && '1'!=fansInfor.getInfor_state().charAt(Constants.INFOR_STATE_CARNUMBE_BIT) ){
                         response.sendRedirect(hhtcContextPath + portalLoginUrl);
                         return null;
                     }

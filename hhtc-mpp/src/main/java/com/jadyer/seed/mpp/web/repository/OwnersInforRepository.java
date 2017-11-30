@@ -15,4 +15,5 @@ import java.util.List;
 public interface OwnersInforRepository extends BaseRepository<OwnersInfor, Long> {
     List<OwnersInfor> findByOpenid(String openid);
 
+
 }

@@ -23,6 +23,10 @@ public class OrderHistory extends BaseEntity<Long> {
     private long orderId;
     @Column(name="post_openid")
     private String postOpenid;
+    @Column(name="post_phone_no")
+    private String postPhoneNO;
+    @Column(name="owners_phone_no")
+    private String ownersPhoneNO;
     @Column(name="owners_openid")
     private String ownersOpenid;
     @Column(name="community_id")
@@ -37,19 +41,74 @@ public class OrderHistory extends BaseEntity<Long> {
     private String carParkImg;
     @Column(name="car_number")
     private String carNumber;
-    private int openFromTime;
-    @Column(name="open_end_time")
-    private int openEndTime;
-    private String appid;
-    @Column(name="price")
-    private BigDecimal price;
+    @Column(name="from_time")
+    private int FromTime;
+    @Column(name="end_time")
+    private int EndTime;
+    @Column(name="total_price")
+    private BigDecimal totalprice;
+    @Column(name="fine_price")
+    private BigDecimal finePrice;
+    @Column(name="fine_flag")
+    private int fineFlag;
 
-    public BigDecimal getPrice() {
-        return price;
+
+
+
+    public String getPostPhoneNO() {
+        return postPhoneNO;
     }
 
-    public void setPrice(BigDecimal price) {
-        this.price = price;
+    public void setPostPhoneNO(String postPhoneNO) {
+        this.postPhoneNO = postPhoneNO;
+    }
+
+    public String getOwnersPhoneNO() {
+        return ownersPhoneNO;
+    }
+
+    public void setOwnersPhoneNO(String ownersPhoneNO) {
+        this.ownersPhoneNO = ownersPhoneNO;
+    }
+
+    public int getFromTime() {
+        return FromTime;
+    }
+
+    public void setFromTime(int fromTime) {
+        FromTime = fromTime;
+    }
+
+    public int getEndTime() {
+        return EndTime;
+    }
+
+    public void setEndTime(int endTime) {
+        EndTime = endTime;
+    }
+
+    public BigDecimal getTotalprice() {
+        return totalprice;
+    }
+
+    public void setTotalprice(BigDecimal totalprice) {
+        this.totalprice = totalprice;
+    }
+
+    public BigDecimal getFinePrice() {
+        return finePrice;
+    }
+
+    public void setFinePrice(BigDecimal finePrice) {
+        this.finePrice = finePrice;
+    }
+
+    public int getFineFlag() {
+        return fineFlag;
+    }
+
+    public void setFineFlag(int fineFlag) {
+        this.fineFlag = fineFlag;
     }
 
     public String getPostOpenid() {
@@ -124,30 +183,5 @@ public class OrderHistory extends BaseEntity<Long> {
     public void setCarNumber(String carNumber) {
         this.carNumber = carNumber;
     }
-
-    public int getOpenFromTime() {
-        return openFromTime;
-    }
-
-    public void setOpenFromTime(int openFromTime) {
-        this.openFromTime = openFromTime;
-    }
-
-    public int getOpenEndTime() {
-        return openEndTime;
-    }
-
-    public void setOpenEndTime(int openEndTime) {
-        this.openEndTime = openEndTime;
-    }
-
-    public String getAppid() {
-        return appid;
-    }
-
-    public void setAppid(String appid) {
-        this.appid = appid;
-    }
-
 
 }

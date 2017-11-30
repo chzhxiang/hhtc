@@ -1,20 +1,17 @@
 package com.jadyer.seed.mpp.web.service;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
-import com.jadyer.seed.comm.constant.CommonResult;
 import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.exception.HHTCException;
-import com.jadyer.seed.comm.util.DateUtil;
 import com.jadyer.seed.mpp.web.model.*;
-import com.jadyer.seed.mpp.web.repository.GoodsPublishOrderRepository;
-import com.jadyer.seed.mpp.web.repository.OrderInforRepository;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -26,6 +23,8 @@ import java.util.List;
  */
 @Service
 public class MarketTransactionService {
+    @Value("${hhtc.orderLock.lock}")
+    private int locktime;
     @Resource
     private FansService fansService;
     @Resource
@@ -34,13 +33,8 @@ public class MarketTransactionService {
     private UserFundsService userFundsService;
     @Resource
     private OrderInforService orderInforService;
-
-    @Resource
-    private OrderInforRepository orderInforRepository;
     @Resource
     private GoodsPublishOrderService goodsPublishOrderService;
-    @Resource
-    private GoodsPublishOrderRepository goodsPublishOrderRepository;
 
 
 
@@ -53,11 +47,11 @@ public class MarketTransactionService {
         List<OrderInfor> ownersOrderInfors;
         List<OrderInfor> PostOrderInfors;
         if (type == 3){
-            ownersOrderInfors = orderInforRepository.findByOwnersOpenid(openid);
-            PostOrderInfors = orderInforRepository.findByPostOpenid(openid);
+            ownersOrderInfors = orderInforService.GetOwnersOrder(openid);
+            PostOrderInfors = orderInforService.GetPostOrder(openid);
         } else {
-            ownersOrderInfors = orderInforRepository.findByOwnersOpenidAndOrderStatus(openid,type-1);
-            PostOrderInfors = orderInforRepository.findByPostOpenidAndOrderStatus(openid,type-1);
+            ownersOrderInfors = orderInforService.GetOwnersOrder(openid,type);
+            PostOrderInfors = orderInforService.GetPostOrder(openid,type);
         }
         loaddata(ownersOrderInfors,list,1);
         loaddata(PostOrderInfors,list,2);
@@ -73,19 +67,19 @@ public class MarketTransactionService {
             hashMap = new HashMap();
             if (state == 1) {
                 hashMap.put("type", "owners");
-                //TODO 电话获取
-                hashMap.put("phone","");
+                hashMap.put("phone",orderInfor.getPostPhoneNO());
             }
             else {
                 hashMap.put("type", "carpark");
-                hashMap.put("phone","");
+                hashMap.put("phone",orderInfor.getOwnersPhoneNO());
             }
             hashMap.put("orderid",orderInfor.getOrderId());
             hashMap.put("communityName",orderInfor.getCommunityName());
             hashMap.put("carParkNumber",orderInfor.getCarParkNumber());
             hashMap.put("begintime",orderInfor.getTimeStart());
             hashMap.put("endtime",orderInfor.getTimeEnd());
-            hashMap.put("price",orderInfor.getPrice());
+            hashMap.put("price",orderInfor.getTotalPrice());
+            hashMap.put("Defaultprice", orderInfor.getOutPrice());
             list.add(hashMap);
         }
 
@@ -98,19 +92,19 @@ public class MarketTransactionService {
         //TODO 各种条件的检测
 
         //查找订单
-        OrderInfor orderInfor = orderInforRepository.findByOrderId(orderid);
+        OrderInfor orderInfor = orderInforService.GetOrder(orderid);
         if (orderInfor == null)
             throw new HHTCException(CodeEnum.SYSTEM_PARAM_NULL);
         if ("owners".equals(type)){
             if (!openid.equals(orderInfor.getOwnersOpenid()))
                 throw new HHTCException(CodeEnum.SYSTEM_PARAM_ERROR);
-            orderInforRepository.delete(orderInfor);
+            orderInforService.Delelte(orderInfor.getId());
             goodsPublishOrderService.BackMarket(orderInfor);
 
         }else {
             if (!openid.equals(orderInfor.getPostOpenid()))
                 throw new HHTCException(CodeEnum.SYSTEM_PARAM_ERROR);
-            orderInforRepository.delete(orderInfor);
+            orderInforService.Delelte(orderInfor.getId());
         }
         //TODO 微信模板消息通知车主
         //TODO 暂时没有返回
@@ -126,9 +120,12 @@ public class MarketTransactionService {
         MppFansInfor fansInfor = fansService.getByOpenid(openid);
         //检测用户是否具有使用资格
         fansService.CheckOwners(fansInfor);
-        ////TODO 订单 超时删除
         //获取订单
-        GoodsPublishOrder goodsPublishOrder = goodsPublishOrderRepository.findByOrderID(orderid);
+        GoodsPublishOrder goodsPublishOrder = goodsPublishOrderService.Get(orderid);
+        if (goodsPublishOrder == null){
+            //订单被抢
+            throw new HHTCException(CodeEnum.HHTC_ORDER_RESERVATION_FAIL);
+        }
         //检查用户押金是否足够
         if(!userFundsService.depositIsenough(openid,goodsPublishOrder.getCommunityId())){
             //押金不够
@@ -148,7 +145,7 @@ public class MarketTransactionService {
         //扣除用户的余额
         userFundsService.subtractMoneyBalanceForFans(openid,goodsPublishOrder.getPrice());
         //市场消除订单
-        goodsPublishOrderRepository.delete(goodsPublishOrder.getId());
+        goodsPublishOrderService.delete(goodsPublishOrder.getId());
         //TODO 微信模板消息通知车主
         //TODO 暂时没有返回
         return "";
@@ -178,41 +175,36 @@ public class MarketTransactionService {
         return false;
     }
 
+
+    /**
+     * TOKGO 订单结算
+     * **/
+    public String OrderGetMomey(String orderid,String openid){
+        return "";
+    }
+
+
     /**
      *TOKGO 取消预约
      * */
-    public String ReservationLogout(String openid,String orderid){
-        //获取订单
-
-//        MppFansInfor fansInfor = fansService.getByOpenid(openid);
-//        if(fansInfor.getInfor_state().charAt(Constants.INFOR_STATE_CARNUMBE_BIT)!='1'){
-//            throw new HHTCException(CodeEnum.HHTC_INFOR_CARNUMBER_NO);
-//        }
-        //TODO  没有开始写业务逻辑
-        //TODO 微信模板消息通知车主
-//        //进行订单预约
-//        GoodsPublishOrder goodsPublishOrder = goodsPublishOrderRepository.getOne(orderid);
-//        OrderInfor orderInfor = orderInforService.AddOrder(fansInfor,goodsPublishOrder,CarNumber);
-//        //市场消除订单
-//        goodsPublishOrderRepository.delete(goodsPublishOrder.getId());
-        return "";
-    }
-
-    /**
-     *TOKGO 开始订单
-     * */
-    public String StartOrder(String openid,String orderid){
+    public void ReservationLogout(String openid,String orderid){
         //获取订单
         OrderInfor orderInfor = orderInforService.GetOrder(orderid);
-        if (orderInfor==null)
-            throw new HHTCException(CodeEnum.SYSTEM_PARAM_ERROR);
-        if (!orderInforService.StartOrder(orderInfor)){
-            throw new HHTCException(CodeEnum.SYSTEM_ERROR);
+        if (!(orderInfor.getOwnersOpenid().equals(openid)||orderInfor.getPostOpenid().equals(openid))){
+            //请求的用户不是该订单的用户
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
         }
-        //TODO 微信模板消息通知车主
-        return "";
+        //获取当前时间
+        long timenow = new Date().getTime();
+        //如果小于三个小时 不能取消预约 只能申诉退单
+        if((orderInfor.getTimeEndCalculate()-timenow)<locktime* Constants.S_DATE_TIMES_HOUR){
+            throw new HHTCException(CodeEnum.HHTC_ORDER_DISRESERVATION_FAIL);
+        }
+        //正常退单
+        orderInforService.Delelte(orderInfor.getId());
+        //订单回归市场
+        goodsPublishOrderService.BackMarket(orderInfor);
+        //TODO 微信模板消息通知车位主
     }
-
-
 
 }

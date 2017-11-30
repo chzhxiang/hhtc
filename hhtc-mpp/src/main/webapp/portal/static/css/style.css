@@ -16,11 +16,6 @@ input::-webkit-input-placeholder, textarea::-webkit-input-placeholder {color: #b
 input:-moz-placeholder, textarea:-moz-placeholder {color: #b1b1b1;font-size:.28rem;font-family:Arial,"Lucida Grande","Microsoft Yahei","Hiragino Sans GB","Hiragino Sans GB W3","SimSun","STHeiti";}
 input::-moz-placeholder, textarea::-moz-placeholder {color: #b1b1b1;font-size:.28rem;font-family:Arial,"Lucida Grande","Microsoft Yahei","Hiragino Sans GB","Hiragino Sans GB W3","SimSun","STHeiti";}
 input:-ms-input-placeholder, textarea:-ms-input-placeholder {color: #b1b1b1;font-size:.28rem;font-family:Arial,"Lucida Grande","Microsoft Yahei","Hiragino Sans GB","Hiragino Sans GB W3","SimSun","STHeiti";}
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none !important;
-  margin: 0;
-}
 h2{font-size: .26rem;}
 samp{font-family:Arial,"Lucida Grande","Microsoft Yahei","Hiragino Sans GB","Hiragino Sans GB W3","SimSun","STHeiti";}
 .bgf{background-color:#fff;}
@@ -93,6 +88,3 @@ samp{font-family:Arial,"Lucida Grande","Microsoft Yahei","Hiragino Sans GB","Hir
 #education_list4_dummy{opacity:0;position:absolute;top:0;z-index:-99;}
 #education_list5_dummy{opacity:0;position:absolute;top:0;z-index:-99;}
 #education_list6_dummy{opacity:0;position:absolute;top:0;-index:-99;}
-
-#timeChooseList_dummy{opacity:0;position:absolute;top:0;-index:-99;}
-#communityList_dummy{opacity:0;position:absolute;top:0;-index:-99;}

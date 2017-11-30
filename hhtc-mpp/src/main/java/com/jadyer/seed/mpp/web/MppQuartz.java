@@ -6,7 +6,6 @@ import com.jadyer.seed.mpp.web.model.OrderInfo;
 import com.jadyer.seed.mpp.web.model.RedpackInfo;
 import com.jadyer.seed.mpp.web.model.RefundApply;
 import com.jadyer.seed.mpp.web.model.RefundInfo;
-import com.jadyer.seed.mpp.web.service.GoodsNeedService;
 import com.jadyer.seed.mpp.web.service.GoodsPublishOrderService;
 import com.jadyer.seed.mpp.web.service.GoodsPublishService;
 import com.jadyer.seed.mpp.web.service.OrderInoutService;
@@ -32,8 +31,6 @@ public class MppQuartz {
     private RefundService refundService;
     @Resource
     private RedpackService redpackService;
-    @Resource
-    private GoodsNeedService goodsNeedService;
     @Resource
     private OrderRentService orderRentService;
     @Resource

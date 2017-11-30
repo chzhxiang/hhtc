@@ -28,7 +28,7 @@ public class WxMarketTransactionController {
 
 
     //TODO
-    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
+    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
 
     /**
      * TOKGO 获取粉丝自己的订单
@@ -75,18 +75,18 @@ public class WxMarketTransactionController {
         String appid = hhtcHelper.getWxAppidFromSession(session);
         //TODO
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
-        return new CommonResult(marketTransactionService.ReservationLogout(openid,orderid));
+        marketTransactionService.ReservationLogout(openid,orderid);
+        return new CommonResult();
     }
 
     /**
-     * TOKGO 开始订单
+     * TOKGO 订单结算
      */
     @PostMapping("/startorder")
     public CommonResult StartOrder(String orderid,HttpSession session){
-        String appid = hhtcHelper.getWxAppidFromSession(session);
         //TODO
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
-        return new CommonResult(marketTransactionService.StartOrder(openid,orderid));
+        return new CommonResult(marketTransactionService.OrderGetMomey(orderid,openid));
     }
 
 

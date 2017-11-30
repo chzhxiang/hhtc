@@ -1,5 +1,7 @@
 package com.jadyer.seed.mpp.web.model;
 
+import com.jadyer.seed.comm.constant.CodeEnum;
+import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.jpa.BaseEntity;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -9,6 +11,8 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -20,6 +24,16 @@ import java.util.Date;
 @Table(name="t_order_infor")
 public class OrderInfor extends BaseEntity<Long> {
     private static final long serialVersionUID = 8020680057027208315L;
+    @Column(name="order_status")
+    private int orderStatus;
+    @Column(name="post_openid")
+    private String postOpenid;
+    @Column(name="post_phone_no")
+    private String postPhoneNO;
+    @Column(name="owners_phone_no")
+    private String ownersPhoneNO;
+    @Column(name="owners_openid")
+    private String ownersOpenid;
     @Column(name="community_id")
     private long communityId;
     @Column(name="community_name")
@@ -34,45 +48,85 @@ public class OrderInfor extends BaseEntity<Long> {
     private String carParkImg;
     @Column(name="car_number")
     private String carNumber;
-    @Column(name="reservation_from_time")
-    private String reservationFromTime;
-    private String appid;
-    private String body;
-    private String attach;
-    @Column(name="order_status")
-    private int orderStatus;
-    @Column(name="spbill_create_ip")
-    private String spbillCreateIp;
+    @Column(name="total_price")
+    private BigDecimal totalPrice;
     @Column(name="time_start")
     private String timeStart;
-    @Column(name="time_expire")
-    private String timeExpire;
-    @Column(name="notify_url")
-    private String notifyUrl;
-    @Column(name="trade_type")
-    private String tradeType;
-    @Column(name="product_id")
-    private long productId;
-    @Column(name="post_openid")
-    private String postOpenid;
-    @Column(name="owners_openid")
-    private String ownersOpenid;
-    @Column(name="bank_type")
-    private String bankType;
-    @Column(name="price")
-    private BigDecimal price;
-    @Column(name="transaction_id")
-    private String transactionId;
+    @Column(name="time_start_calculate")
+    private long timeStartCalculate;
     @Column(name="time_end")
     private String timeEnd;
-    @Column(name="trade_state_desc")
-    private String tradeStateDesc;
+    @Column(name="time_end_calculate")
+    private long timeEndCalculate;
+    @Column(name="out_price")
+    private BigDecimal outPrice;
+    @Column(name="out_price_time")
+    private long outPriceTime;
 
-    /**
-     * 订单是否允许转租
-     */
-    @Transient
-    private boolean allowRent;
+    public void setTimeStartCalculate(long timeStartCalculate) {
+        this.timeStartCalculate = timeStartCalculate;
+    }
+
+    public void setTimeEndCalculate(long timeEndCalculate) {
+        this.timeEndCalculate = timeEndCalculate;
+    }
+
+    public void setOutPriceTime(long outPriceTime) {
+        this.outPriceTime = outPriceTime;
+    }
+
+    public String getPostPhoneNO() {
+        return postPhoneNO;
+    }
+
+    public void setPostPhoneNO(String postPhoneNO) {
+        this.postPhoneNO = postPhoneNO;
+    }
+
+    public String getOwnersPhoneNO() {
+        return ownersPhoneNO;
+    }
+
+    public void setOwnersPhoneNO(String ownersPhoneNO) {
+        this.ownersPhoneNO = ownersPhoneNO;
+    }
+
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public long getTimeStartCalculate() {
+        return timeStartCalculate;
+    }
+
+    public void setTimeEnd(String timeEnd) {
+        try {
+            this.timeEndCalculate= new SimpleDateFormat("yyyy-MM-dd hh:mm").parse(timeEnd).getTime();
+        } catch (ParseException e) {
+            throw new HHTCException(CodeEnum.SYSTEM_NULL); }
+        this.timeEnd = timeEnd;
+    }
+
+    public long getTimeEndCalculate() {
+        return timeEndCalculate;
+    }
+
+
+    public BigDecimal getOutPrice() {
+        return outPrice;
+    }
+
+    public void setOutPrice(BigDecimal outPrice) {
+        this.outPrice = outPrice;
+    }
+
+    public long getOutPriceTime() {
+        return outPriceTime;
+    }
 
     public long getCommunityId() {
         return communityId;
@@ -104,14 +158,6 @@ public class OrderInfor extends BaseEntity<Long> {
 
     public void setOrderId(String orderId) {
         this.orderId = orderId;
-    }
-
-    public String getReservationFromTime() {
-        return reservationFromTime;
-    }
-
-    public void setReservationFromTime(String reservationFromTime) {
-        this.reservationFromTime = reservationFromTime;
     }
 
     public String getPostOpenid() {
@@ -162,124 +208,21 @@ public class OrderInfor extends BaseEntity<Long> {
         this.orderStatus = orderStatus;
     }
 
-    public String getAppid() {
-        return appid;
-    }
-
-    public void setAppid(String appid) {
-        this.appid = appid;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public void setBody(String body) {
-        this.body = body;
-    }
-
-    public String getAttach() {
-        return attach;
-    }
-
-    public void setAttach(String attach) {
-        this.attach = attach;
-    }
-
-    public String getSpbillCreateIp() {
-        return spbillCreateIp;
-    }
-
-    public void setSpbillCreateIp(String spbillCreateIp) {
-        this.spbillCreateIp = spbillCreateIp;
-    }
-
     public String getTimeStart() {
         return timeStart;
     }
 
     public void setTimeStart(String timeStart) {
+        try {
+            this.timeStartCalculate= new SimpleDateFormat("yyyy-MM-dd hh:mm").parse(timeStart).getTime();
+            this.outPriceTime = this.timeStartCalculate;
+        } catch (ParseException e) {
+            throw new HHTCException(CodeEnum.SYSTEM_NULL); }
         this.timeStart = timeStart;
-    }
-
-    public String getTimeExpire() {
-        return timeExpire;
-    }
-
-    public void setTimeExpire(String timeExpire) {
-        this.timeExpire = timeExpire;
-    }
-
-    public String getNotifyUrl() {
-        return notifyUrl;
-    }
-
-    public void setNotifyUrl(String notifyUrl) {
-        this.notifyUrl = notifyUrl;
-    }
-
-    public String getTradeType() {
-        return tradeType;
-    }
-
-    public void setTradeType(String tradeType) {
-        this.tradeType = tradeType;
-    }
-
-    public long getProductId() {
-        return productId;
-    }
-
-    public void setProductId(long productId) {
-        this.productId = productId;
-    }
-
-    public String getBankType() {
-        return bankType;
-    }
-
-    public void setBankType(String bankType) {
-        this.bankType = bankType;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public String getTransactionId() {
-        return transactionId;
-    }
-
-    public void setTransactionId(String transactionId) {
-        this.transactionId = transactionId;
     }
 
     public String getTimeEnd() {
         return timeEnd;
     }
 
-    public void setTimeEnd(String timeEnd) {
-        this.timeEnd = timeEnd;
-    }
-
-    public String getTradeStateDesc() {
-        return tradeStateDesc;
-    }
-
-    public void setTradeStateDesc(String tradeStateDesc) {
-        this.tradeStateDesc = tradeStateDesc;
-    }
-
-
-    public boolean isAllowRent() {
-        return allowRent;
-    }
-
-    public void setAllowRent(boolean allowRent) {
-        this.allowRent = allowRent;
-    }
 }

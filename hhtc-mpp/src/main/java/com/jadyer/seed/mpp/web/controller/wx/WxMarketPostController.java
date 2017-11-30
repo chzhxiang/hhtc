@@ -4,6 +4,7 @@ import com.jadyer.seed.comm.constant.CommonResult;
 import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.service.GoodsPublishOrderService;
+import com.jadyer.seed.mpp.web.service.GoodsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,11 +27,13 @@ public class WxMarketPostController {
     @Resource
     private HHTCHelper hhtcHelper;
     @Resource
+    private GoodsService goodsService;
+    @Resource
     private GoodsPublishOrderService goodsPublishOrderService;
 
 
     //TODO
-    String openid = "ojZ6h1U3w-d-ueEdPv-UfttvdBcU";
+    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
 
     /**
      * TOKGO 库存数量 获取市场的车位
@@ -48,9 +51,8 @@ public class WxMarketPostController {
     public CommonResult cancel(HttpSession session) {
         //TODO
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
-        return new CommonResult(goodsPublishOrderService.GetPublishCarpark(openid));
+        return new CommonResult(goodsService.GetPublishCarpark(openid));
     }
-
 
 
     /**
@@ -63,6 +65,18 @@ public class WxMarketPostController {
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         goodsPublishOrderService.postOrder(openid,goodsId,price,starttime,endtime);
         return new CommonResult();
+    }
+
+
+    /**
+     *  TOKGO 检测用户订单时间冲突
+     * @param goodsId zero-based page index
+     */
+    @GetMapping("/check/ordertime")
+    public CommonResult CheckOrderTime(String starttime,String endtime,long goodsId,HttpSession session){
+        //TODO
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(goodsPublishOrderService.OrderTimeCheck(starttime,endtime,openid,goodsId));
     }
 
 

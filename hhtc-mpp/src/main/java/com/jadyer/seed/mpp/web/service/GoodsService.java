@@ -45,8 +45,6 @@ public class GoodsService {
     private GoodsInforRepository goodsInforRepository;
     @Resource
     private GoodsPublishRepository goodsPublishRepository;
-    @Resource
-    private GoodsPublishOrderRepository goodsPublishOrderRepository;
 
 
     /**
@@ -108,6 +106,7 @@ public class GoodsService {
      */
     @Transactional(rollbackFor=Exception.class)
     public HashMap regCarPark(String openid, String carParkNumber, String carEquityImg, String carUsefulEndDate){
+        FansInforAudit fansInforAudit;
         if(StringUtils.isBlank(carParkNumber)||carUsefulEndDate==null){
             throw new HHTCException(CodeEnum.SYSTEM_PARAM_NULL);
         }
@@ -115,20 +114,33 @@ public class GoodsService {
         //检查是否用户验证电话
         if(mppFansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) == '0')
             throw  new HHTCException(CodeEnum.HHTC_INFOR_PHOMENO);
+        if(mppFansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) == '0')
+            throw  new HHTCException(CodeEnum.HHTC_INFOR_COMMUNITY);
         List<FansInforAudit> fansInforAudits = auditService.GetAudit(mppFansInfor.getUid()
                 ,mppFansInfor.getOpenid(),AUDTI_TEPY_CARPARK);
         //判断用户是否已经提交请求
         if (fansInforAudits.size() > 0){
-            for (FansInforAudit fansInforAudit :fansInforAudits)
-                if (fansInforAudit.getState()==0) {
-                    if (carParkNumber.equals(fansInforAudit.getContent().split("@")[0]))
-                        throw new HHTCException(CodeEnum.HHTC_INFOR_CARPARK);
-                }
+            for (FansInforAudit Audit :fansInforAudits)
+                if (carParkNumber.equals(Audit.getContent().split("@")[0]))
+                    throw new HHTCException(CodeEnum.HHTC_INFOR_CARPARK);
         }
         //TODO  记录这个车位主 是租赁的还是自己拥有的
-        //写入审核
-        FansInforAudit fansInforAudit = auditService.AddAudit(mppFansInfor.getUid(),openid
-                ,2,0,carParkNumber+"@"+carUsefulEndDate,carEquityImg);
+        if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) == '1'){
+            //写入审核
+            fansInforAudit= auditService.AddAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARPARK
+                    ,mppFansInfor.getCommunityId(),mppFansInfor.getCommunityName()
+                    ,carParkNumber+"@"+carUsefulEndDate,carEquityImg);
+        }else{
+            List<FansInforAudit> audit = auditService.GetAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARNUMBER);
+            if (audit.size()<1)
+                throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
+            //写入审核
+            fansInforAudit= auditService.AddAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARPARK
+                    ,audit.get(0).getCommunityId(),audit.get(0).getCommunityName()
+                    ,carParkNumber+"@"+carUsefulEndDate,carEquityImg);
+        }
+        if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_CARPARK_BIT)!='1')
+            fansService.UpdatedataInforSate(INFOR_STATE_CARPARK_BIT,'2',mppFansInfor);
         //返回当前车位信息
         HashMap hashMap = new HashMap();
         hashMap.put("state","audit");
@@ -156,51 +168,6 @@ public class GoodsService {
     }
 
 
-
-//    public Page<GoodsInfo> listViaPage(MppUserInfo userInfo, String pageNo){
-//        Sort sort = new Sort(Sort.Direction.ASC, "id");
-//        Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
-//        Condition<GoodsInfo> spec = null;
-//        //物管只能查询自己小区的车位列表
-//        if(userInfo.getType() == 2){
-//            List<Long> idList = new ArrayList<>();
-//            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
-//                idList.add(obj.getId());
-//            }
-//            spec = Condition.<GoodsInfo>and().in("communityId", idList);
-//        }
-//        Page<GoodsInfo> page = goodsRepository.findAll(spec, pageable);
-//        List<GoodsInfo> list = page.getContent();
-//        for(GoodsInfo obj : list){
-//            MppFansInfor fans = fansService.getByOpenid(obj.getOpenid());
-//            obj.setNickname(fans.getNickname());
-//            obj.setHeadimgurl(fans.getHeadimgurl());
-//        }
-//        return null;
-//    }
-
-
-//    public List<GoodsInfo> listAllByOpenid(String openid){
-//        Sort sort = new Sort(Sort.Direction.DESC, "id");
-//        Condition<GoodsInfo> spec = Condition.<GoodsInfo>and().eq("openid", openid).ne("isUsed", 3);
-//        return goodsRepository.findAll(spec, sort);
-//    }
-//
-//
-//    public long count(MppUserInfo userInfo){
-//        if(userInfo.getType() == 2){
-//            long count = 0;
-//            List<Long> idList = new ArrayList<>();
-//            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
-//                count = count + goodsRepository.countByCommunityId(obj.getId());
-//            }
-//            return count;
-//        }else{
-//            return goodsRepository.count();
-//        }
-//    }
-
-
     /**
      * 查询车位详情
      */
@@ -208,89 +175,13 @@ public class GoodsService {
         return goodsInforRepository.findOne(id);
     }
 
-
-//    /**
-//     * 审核通过或拒绝车位
-//     */
-//    @Transactional(rollbackFor=Exception.class)
-//    public GoodsInfo audit(MppUserInfo userInfo, GoodsInfo goodsInfo){
-//        if(goodsInfo.getCarAuditStatus() == 1){
-//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "审核时传输的状态无效");
-//        }
-//        //物管只能审核自己小区的车位
-//        if(userInfo.getType() == 2){
-//            List<Long> idList = new ArrayList<>();
-//            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
-//                idList.add(obj.getId());
-//            }
-//            if(!idList.contains(goodsInfo.getCommunityId())){
-//                throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "只能审核自己小区的车位");
-//            }
-//        }
-        //TODO
-//        //校验是否注册车位主
-//        MppFansInfor fansInfo = fansService.getByOpenid(goodsInfo.getOpenid());
-//        if(2 != fansInfo.getCarParkStatus()){
-//            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_PARK);
-//        }
-//        goodsInfo.setCarAuditTime(new Date());
-//        goodsInfo.setCarAuditUid(userInfo.getId());
-//        goodsInfo = goodsRepository.saveAndFlush(goodsInfo);
-//
-//        if(goodsInfo.getCarAuditStatus() == 2 && Constants.ISSMS){
-//            /*
-//            {{first.DATA}}
-//            手机号：{{keyword1.DATA}}
-//            审核结果：{{keyword2.DATA}}
-//            {{remark.DATA}}
-//
-//            尊敬的用户，您的押金退回业务审核结果如下
-//            手机号：尾号3432
-//            审核结果：通过
-//            您交付平台的押金已退回您原支付账户，预计1~7个工作日到账，请注意查收。
-//            */
-//            WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
-//            dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的车位主，您的车位申请已经审核通过！"));
-//            dataItem.put("keyword1", new WeixinTemplateMsg.DItem("尾号" + fansInfor.getPhoneNo().substring(7,11)));
-//            dataItem.put("keyword2", new WeixinTemplateMsg.DItem("车位号：" + goodsInfo.getCarParkNumber() + "审核通过"));
-//            dataItem.put("remark", new WeixinTemplateMsg.DItem("我要抢车位，方便加一倍！点击“抢车位”，停车舒心更省心！"));
-//            String url = this.hhtcContextPath + "/portal/index.html#/publish";
-//            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+goodsInfo.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+goodsInfo.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
-//            WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
-//            templateMsg.setTemplate_id("upsa1MpVfulcu69n_f7B6kF2s8uV9ODU47estmNWuK4");
-//            templateMsg.setUrl(url);
-//            templateMsg.setTouser(fansInfo.getOpenid());
-//            templateMsg.setData(dataItem);
-//            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(goodsInfo.getAppid()), templateMsg);
-//        }
-//        if(goodsInfo.getCarAuditStatus() == 3 && Constants.ISSMS){
-//            /*
-//            {{first.DATA}}
-//            审核姓名：{{keyword1.DATA}}
-//            拒绝原因：{{keyword2.DATA}}
-//            {{remark.DATA}}
-//
-//            尊敬的司导您好，您的专车服务未通过审核！
-//            审核姓名：张三 师傅
-//            拒绝原因：身份证照片模糊不清
-//            请填写正确的有效信息，重新申请。如有问题请点击查看司导填写教程
-//            */
-//            WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
-//            dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的车位主，您的车位未审核通过！"));
-//            dataItem.put("keyword1", new WeixinTemplateMsg.DItem(goodsInfo.getCarParkNumber()));
-//            dataItem.put("keyword2", new WeixinTemplateMsg.DItem(goodsInfo.getCarAuditRemark()));
-//            dataItem.put("remark", new WeixinTemplateMsg.DItem("请填写正确的有效信息，重新申请，谢谢！"));
-//            String url = this.hhtcContextPath + "/portal/index.html#/publish";
-//            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+goodsInfo.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+goodsInfo.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
-//            WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
-//            templateMsg.setTemplate_id("337mC1vqm0l4bxf8WdEKfiNYO9BOjKCWlJus7hw2bPI");
-//            templateMsg.setUrl(url);
-//            templateMsg.setTouser(goodsInfo.getOpenid());
-//            templateMsg.setData(dataItem);
-//            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(goodsInfo.getAppid()), templateMsg);
-//        }
-//        return goodsInfo;
-//    }
+    /**
+     * TOKGO 获取用户车位
+     * */
+    @Transactional(rollbackFor=Exception.class)
+    public List<GoodsInfor> GetPublishCarpark(String openid){
+        return goodsInforRepository.findByOpenid(openid);
+    }
 
 
 }

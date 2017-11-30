@@ -4,7 +4,7 @@ get    用户授权查询 查询该用户是否授权 ---- /wx/fans/infor/accred
 post    用户同意授权-----/wx/fans/infor/accredit/allow
 post    用户电话绑定------/wx/fans/infor/phoneNOBind  String phoneNO ,String verifyCod,
 
-post    用户电话注册 -----/wx/fans/infor/phoneNOBind  String phoneNO ,String verifyCod,
+post    用户电话注销 -----/wx/fans/infor/phoneNOLogout  String phoneNO ,String verifyCod,
 post    地址绑定 ----/wx/fans/infor/communityBind long CommunityID ,String houseNumber,
 
 post    车牌号绑定 ----/wx/fans/infor/carNumberBind  String carNumber, String carNumberImg,
@@ -13,8 +13,9 @@ post    车牌号注销  --- /wx/fans/infor/carNumberLogout  long id,String stat
 post    车位号绑定 ----/wx/goods/infor/carParkBind String carParkNumber, String carEquityImg,String carUsefulEndDate,
 post    车位注销  --- /wx/goods/infor/carParkLogout  long id,String state ,
 
-post    发送验证码----/wx/common/sms/send
+post    发送验证码----/wx/common/sms/send   1---电话注册  2---电话注销
 get  根据城市名称获取小区名称列表 ------/wx/community/listByCityName
+
 
 post    管理员审核----/fans/Audit   long id（审核表中的id）, int status, String auditRemark
 
@@ -34,11 +35,14 @@ get 获得订单价格 ----  /wx/market/post/getorderprice   long communityId, S
 
 get 车位主获取发布的订单  ---/wx/market/post/getorder
 post 车位主取消发布车位 ---- /wx/market/post/cancel  String orderid
-get 获取粉丝自己的订单 ---/wx/market/transaction /get/order  int type  type 1---预约订单  2----进行中的订单 3---所有
-post  取消订单 ----- /wx/market/transaction /cancel   String orderid，,String type
-get 获取历史数据 每次返回10条数据 ---- /wx/order/gethistory   String pageNo,
-get 查询粉丝资金情况 ---- /wx/userfunds/get
+get  检测用户订单时间冲突-----/wx/market/post/check/ordertime  String starttime,String endtime,long goodsId,
 
+get 获取粉丝自己的订单 ---/wx/market/transaction/get/order      int type  type 1---预约订单  2----进行中的订单 3---所有
+post  取消订单 ----- /wx/market/transaction/cancel   String orderid，,String type
+get 获取历史数据 每次返回10条数据 ---- /wx/order/gethistory   int pageNo,
+
+get 查询粉丝资金情况 ---- /wx/userfunds/get
+post 提现请求 ---- /wx/userfunds/withdraw     double amount, int type   *@param  type 4---余额提现 5---押金提现
 
 
 post 预约下单 -------/wx/market/transaction/reservation    String orderid,String CarNuber ,

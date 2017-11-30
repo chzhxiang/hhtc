@@ -155,7 +155,7 @@ public class FansService {
         //短信验证
         if(!smsService.smsVerify(phoneNO, verifyCode, 1))
             throw new HHTCException(CodeEnum.HHTC_SMS_VERIFY_FAIL);
-        //验证成功 进行电话写入，并修改状态
+//        //验证成功 进行电话写入，并修改状态
         fansInfor.setPhoneNo(phoneNO);
         UpdatedataInforSate(INFOR_STATE_PHOMENO_BIT,'1',fansInfor);
         //返回当前状态码
@@ -191,23 +191,19 @@ public class FansService {
         if(StringUtils.isBlank(houseNumber)){
             throw new HHTCException(CodeEnum.SYSTEM_PARAM_NULL);
         }
-        MppFansInfor MppFansInfor= fansInforRepository.findByOpenid(openid);
+        MppFansInfor mppFansInfor= fansInforRepository.findByOpenid(openid);
         //检查是否用户验证电话
-        if(GetInforState(MppFansInfor.getUid(), openid,INFOR_STATE_PHOMENO_BIT)== '0')
+        if(GetInforState(mppFansInfor.getUid(), openid,INFOR_STATE_PHOMENO_BIT)== '0')
             throw  new HHTCException(CodeEnum.HHTC_INFOR_PHOMENO);
         //检测用户是否已经提交房屋验证
-        List<FansInforAudit> fansInforAudits = auditService.GetAudit(MppFansInfor.getUid(),openid,AUDTI_TEPY_COMMUNITY);
+        List<FansInforAudit> fansInforAudits = auditService.GetAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_COMMUNITY);
         if (fansInforAudits.size() > 0){
-            for (FansInforAudit fansInforAudit :fansInforAudits)
-                if (fansInforAudit.getState()==0)
-                    throw  new HHTCException(CodeEnum.HHTC_INFOR_COMMUNITY);
+            throw  new HHTCException(CodeEnum.HHTC_INFOR_COMMUNITY);
         }
         CommunityInfo communityInfo = communityService.get(CommunityID);
-        //重组信息
-        String infor = communityInfo.getName()+SPLITFLAG+houseNumber+SPLITFLAG+CommunityID;
         //写入审核
-        auditService.AddAudit(MppFansInfor.getUid(),openid,1,0,infor);
-        UpdatedataInforSate(INFOR_STATE_COMMUNITY_BIT,'2',MppFansInfor);
+        auditService.AddAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_COMMUNITY,CommunityID,communityInfo.getName(),houseNumber);
+        UpdatedataInforSate(INFOR_STATE_COMMUNITY_BIT,'2',mppFansInfor);
         //返回当前状态码
         return  fansInforRepository.findByOpenid(openid).getInfor_state();
     }
@@ -267,6 +263,8 @@ public class FansService {
             if(2 == type){
                 spec = Condition.<MppFansInfor>and().eq("uid", userInfo.getId()).eq("carParkAuditStatus", 1);
             }
+            spec = Condition.<MppFansInfor>or().eq("uid", userInfo.getId()).eq("carParkAuditStatus", 1);
+
         }
         //物管登录时，只筛选他管理的小区的
         if(userInfo.getType() == 2){
@@ -444,18 +442,33 @@ public class FansService {
      */
     @Transactional(rollbackFor=Exception.class)
     public HashMap CarNumber(String openid,String CarNumber,String carNumberImg){
+        FansInforAudit fansInforAudit;
         if(StringUtils.isBlank(CarNumber)){
             throw new HHTCException(CodeEnum.SYSTEM_PARAM_NULL);
         }
-        MppFansInfor MppFansInfor= fansInforRepository.findByOpenid(openid);
+        MppFansInfor mppFansInfor= fansInforRepository.findByOpenid(openid);
         //检查是否用户验证电话
-        if(GetInforState(MppFansInfor.getUid(), openid,INFOR_STATE_PHOMENO_BIT) == '0')
+        if(mppFansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) == '0')
             throw  new HHTCException(CodeEnum.HHTC_INFOR_PHOMENO);
+        //TODO
+//        if(mppFansInfor.getInfor_state().charAt(INFOR_STATE_COMMUNITY_BIT) == '0')
+//            throw  new HHTCException(CodeEnum.HHTC_INFOR_COMMUNITY);
         //检测用户是否已经提交改车牌号 或者提交了两次车牌审核
-        CheckCarnumber(MppFansInfor,CarNumber);
-        //写入审核
-        FansInforAudit fansInforAudit = auditService.AddAudit(MppFansInfor.getUid(),openid
-                ,3,0,CarNumber,carNumberImg);
+        CheckCarnumber(mppFansInfor,CarNumber);
+         if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) == '1'){
+            //写入审核
+            fansInforAudit= auditService.AddAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARNUMBER
+                    ,mppFansInfor.getCommunityId(),mppFansInfor.getCommunityName(),CarNumber,carNumberImg);
+        }else{
+             List<FansInforAudit> audit = auditService.GetAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARNUMBER);
+             if (audit.size()<1)
+                 throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
+            //写入审核
+             fansInforAudit= auditService.AddAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARNUMBER
+                     ,audit.get(0).getCommunityId(),audit.get(0).getCommunityName(),CarNumber,carNumberImg);
+        }
+        if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_CARNUMBE_BIT)!='1')
+            UpdatedataInforSate(INFOR_STATE_CARNUMBE_BIT,'2',mppFansInfor);
         //返回当前车牌信息
         HashMap hashMap = new HashMap();
         hashMap.put("state","audit");
@@ -472,22 +485,14 @@ public class FansService {
         List<FansInforAudit> fansInforAudits = auditService.GetAudit(mppFansInfor.getUid()
                 ,mppFansInfor.getOpenid(),AUDTI_TEPY_CARNUMBER);
         List<OwnersInfor> ownersInfors = ownersInforRepository.findByOpenid(mppFansInfor.getOpenid());
-        int count = 0;
-        if ((ownersInfors.size()+fansInforAudits.size())>2) {
+        if ((ownersInfors.size()+fansInforAudits.size())>Constants.S_CARNUMBERMAX) {
             //判断用户已经拥有了两块车牌
-            if (count >= Constants.S_CARNUMBERMAX)
-                throw new HHTCException(CodeEnum.HHTC_INFOR_CARNUMBERFULL);
+            throw new HHTCException(CodeEnum.HHTC_INFOR_CARNUMBERFULL);
         }
         //判断用户是否已经提交请求
-        if (fansInforAudits.size() > 0){
-            for (FansInforAudit fansInforAudit :fansInforAudits)
-                if (fansInforAudit.getState()==0) {
-                    if (count >= Constants.S_CARNUMBERMAX)
-                        throw new HHTCException(CodeEnum.HHTC_INFOR_CARNUMBERFULL);
-                    if (CarNumber.equals(fansInforAudit.getContent()))
-                        throw new HHTCException(CodeEnum.HHTC_INFOR_CARNUMBER_USED);
-                    count++;
-                }
+        for (FansInforAudit fansInforAudit :fansInforAudits) {
+            if (CarNumber.equals(fansInforAudit.getContent()))
+                throw new HHTCException(CodeEnum.HHTC_INFOR_CARNUMBER_USED);
         }
     }
 
@@ -517,8 +522,6 @@ public class FansService {
             if(!idList.contains(fansInfor.getCommunityId()))
                 throw new HHTCException(CodeEnum.SYSTEM_PERMISSIONS);
         }
-        fansInforAudit.setState(status);
-        fansInforAudit.setAudit_reason(auditRemark);
         Key2Data = auditRemark;
         RemarkData = "请填写正确的有效信息，重新申请，谢谢！";
         Key1Data ="管理员";
@@ -526,16 +529,10 @@ public class FansService {
         if (fansInforAudit.getType() == Constants.AUDTI_TEPY_COMMUNITY) {
             if (status == 1) {
                 FirstData = "尊敬的用户，你的地址审核通过了";
-                String[] addressInfor = fansInforAudit.getContent().split(SPLITFLAG);
-                CommunityInfo communityInfo = communityService.get(Long.valueOf(addressInfor[2]));
-                //如果以前有小区信息 而且小区和当前小区不同则删除历史车位
-                if (!StringUtils.isBlank(fansInfor.getCommunityName()) && fansInfor.getCommunityId()!=communityInfo.getId())
-                    goodsInforRepository.delete(goodsInforRepository.findByOpenid(fansInfor.getOpenid()));
-                fansInfor.setCommunityId(communityInfo.getId());
-                fansInfor.setCommunityName(communityInfo.getName());
-                fansInfor.setHouseNumber(addressInfor[1]);
-                //跟新状态并保存
-                UpdatedataInforSate(INFOR_STATE_COMMUNITY_BIT, '1', fansInfor);
+                fansInfor.setCommunityId(fansInforAudit.getCommunityId());
+                fansInfor.setCommunityName(fansInforAudit.getCommunityName());
+                //地址改变 改变用户的相关请求 跟新状态并保存
+                ChangeAdrres(fansInfor,fansInforAudit);
             }else {
                 FirstData = "尊敬的用户，你的地址审核未通过";
                 //如果小区审核没有通过 但是其历史绑定过，则使用原来的小区
@@ -581,6 +578,48 @@ public class FansService {
         //删除审核记录
         auditService.Delete(fansInforAudit);
     }
+
+    /**
+     * TOKGO  地址改变 删除以前的绑定数据和审查 并保存用户状态
+     * */
+    private void ChangeAdrres(MppFansInfor fansInfor,FansInforAudit fansInforAudit){
+        int ownerfalg =0,carparkflag=0;
+        //检测车牌
+        for (OwnersInfor ownersInfor: ownersInforRepository.findByOpenid(fansInfor.getOpenid())){
+            if (ownersInfor.getCommunityId() != fansInforAudit.getCommunityId())
+                ownersInforRepository.delete(ownersInfor);
+            else
+                ownerfalg =1;
+        }
+        //检测车位
+        for (GoodsInfor goodsInfor: goodsInforRepository.findByOpenid(fansInfor.getOpenid())){
+            if (goodsInfor.getCommunityId() != fansInforAudit.getCommunityId())
+                goodsInforRepository.delete(goodsInfor);
+            else
+                carparkflag=1;
+        }
+        //检测审核的车牌和车位
+        for (FansInforAudit audit:auditService.GetAudit(fansInfor.getUid(),fansInfor.getOpenid()
+                ,AUDTI_TEPY_CARPARK)){
+            if (audit.getCommunityId() != fansInforAudit.getCommunityId())
+                auditService.Delete(audit);
+            else
+                if (ownerfalg==0)
+                    ownerfalg=2;
+        }
+        for (FansInforAudit audit:auditService.GetAudit(fansInfor.getUid(),fansInfor.getOpenid()
+                ,AUDTI_TEPY_CARNUMBER)){
+            if (audit.getCommunityId() != fansInforAudit.getCommunityId())
+                auditService.Delete(audit);
+            else
+                if (carparkflag==0)
+                    carparkflag=2;
+        }
+        String string = fansInfor.getInfor_state().substring(0,1);
+        fansInfor.setInfor_state(string+"1"+carparkflag+ownerfalg);
+        fansInforRepository.saveAndFlush(fansInfor);
+    }
+
 
 
     /**

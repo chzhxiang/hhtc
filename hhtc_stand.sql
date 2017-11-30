@@ -66,7 +66,6 @@ groupid                  VARCHAR(16)  COMMENT '粉丝用户所在的分组ID',
 community_id             INT          COMMENT '粉丝所在的小区ID，对应t_community_info#id',
 community_name           VARCHAR(32)  COMMENT '粉丝所在的小区名称，冗余自t_community_info#name',
 house_number             VARCHAR(32)  COMMENT '门牌号',
--- house_equity_img VARCHAR(999) COMMENT '房产证/租房合同图片（多张则以`分隔）',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
 UNIQUE INDEX unique_index_phoneNo(phone_no),
@@ -78,14 +77,14 @@ DROP TABLE IF EXISTS t_fans_infor_audit;
 CREATE TABLE t_fans_infor_audit(
 id                       INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
 uid                      INT            NOT NULL   COMMENT '平台用户ID，对应t_mpp_user_info#id',
-state                    INT            NOT NULL   COMMENT '状态:0--申请，1--修改',
+community_id             INT          NOT NULL COMMENT '小区ID，对应t_community_info#id',
+community_name          VARCHAR(99)  NOT NULL COMMENT '小区名称，对应t_community_info#name',
 openid                   VARCHAR(64)   NOT NULL   COMMENT '粉丝的openid，对应t_mpp_fans_info#openid',
-type                     INT            NOT NULL   COMMENT '类型：1--住房地址，2--车位，3--车牌',
+type                     TINYINT(1)    NOT NULL   COMMENT '类型：1--住房地址，2--车位，3--车牌，4----余额提现，5---押金提现',
 content                  VARCHAR(999)  NOT NULL   COMMENT '申请内容',
 imgurl1                  VARCHAR(512)              COMMENT '申请附带图片资源1',
 imgurl2                  VARCHAR(512)              COMMENT '申请附带图片资源2',
-audit_reason            VARCHAR(999)              COMMENT '审核结果内容',
-audit_uid               INT                       COMMENT '审核人的uid，对应t_mpp_user_info#id',
+state                    TINYINT(1)   NOT NULL  default 0  COMMENT '属性状态 0--可用 1--不可用',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='审核表 TOKGO';
@@ -140,7 +139,7 @@ rent_ratio_carparker   INT           NOT NULL COMMENT '分润比例，比如80%�
 car_park_number_prefix VARCHAR(999)  NOT NULL COMMENT '车位号前缀，组成为：楼层+区域',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
-)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='小区信息表（小区若有多个车场，则创建多笔记录）TOKGO';
+)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='小区信息 TOKGO';
 
 
 DROP TABLE IF EXISTS t_community_device;
@@ -203,7 +202,7 @@ car_number         VARCHAR(32)  NOT NULL COMMENT '车牌号',
 car_number_img      VARCHAR(500) COMMENT '车牌平面图',
 car_audit_uid        INT          COMMENT '车牌审核人的uid,，对应t_mpp_user_info#id',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='商品信息表（存储车牌信息）TOKGO';
 
 
@@ -253,48 +252,20 @@ CREATE TABLE t_goods_publish_order(
 id                 INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
 order_id           VARCHAR(100)  NOT NULL COMMENT '订单的id',
 openid             VARCHAR(64)   NOT NULL COMMENT '粉丝的openid',
+phone_no                 CHAR(11)     COMMENT '车位主的手机号',
 community_id       INT           NOT NULL COMMENT '小区ID，对应t_community_info#id',
 community_name     VARCHAR(32)   NOT NULL COMMENT '小区名称，冗余自t_community_info#name',
 goods_id           INT           NOT NULL COMMENT '商品ID，即车位ID，对应t_goods_info#id',
 car_park_number    VARCHAR(32)   NOT NULL COMMENT '车位号，冗余自t_goods_info#car_park_number',
 car_park_img       VARCHAR(999)          COMMENT '车位平面图，冗余自t_goods_info#car_park_img',
-price              DECIMAL(16,4) NOT NULL COMMENT '租停价格，单位：元',
-publish_from_dates VARCHAR(999)        COMMENT '车位发布的起始日期集合，格式为20170715-20170716-20170720',
+price              DECIMAL(16,2) NOT NULL COMMENT '租停价格，单位：元',
+from_dates_calculate INT(15)       COMMENT '开始时间 用于计算  其值由 publish_from_time的set函数产生',
 publish_from_time  VARCHAR(32)    NOT NULL COMMENT '车位发布的起始时间，格式为2017-11-27 1:18',
 publish_end_time   VARCHAR(32)    NOT NULL COMMENT '车位发布的截止时间，格式为2017-11-27 1:18',
-from_type          TINYINT(1)     COMMENT '来源类型：1--车位主发布，2--车主预约后转租，3--原信息被车主需求匹配后切割而生成',
-from_id            INT           COMMENT '车位来源ID：非转租则填0，转租则填原发布订单ID（即自关联的本表主键）',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
-INDEX index_goodsId(goods_id)
+INDEX index_goodsId(order_id)
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='商品发布订单表 TOKGO';
-
-
-DROP TABLE IF EXISTS t_goods_publish_info;
-CREATE TABLE t_goods_publish_info(
-id                     INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
-goods_publish_order_id INT           NOT NULL COMMENT '商品发布的订单ID，对应t_goods_publish_order#id',
-openid                 VARCHAR(64)   NOT NULL COMMENT '粉丝的openid',
-community_id           INT           NOT NULL COMMENT '小区ID，对应t_community_info#id',
-community_name         VARCHAR(32)   NOT NULL COMMENT '小区名称，冗余自t_community_info#name',
-goods_id               INT           NOT NULL COMMENT '商品ID，即车位ID，对应t_goods_infor#id',
-car_park_number        VARCHAR(32)   NOT NULL COMMENT '车位号，冗余自t_goods_infor#car_park_number',
-car_park_img           VARCHAR(999)  NOT NULL COMMENT '车位平面图，冗余自t_goods_infor#car_park_img',
-price                  DECIMAL(16,4) NOT NULL COMMENT '租停价格，单位：元',
-publish_type           TINYINT(1)    NOT NULL COMMENT '车位发布类型：1--日间，2--夜间，3--全天',
-publish_from_date      INT           NOT NULL COMMENT '车位发布的起始日期，格式为20170715',
-publish_end_date       INT           NOT NULL COMMENT '车位发布的截止日期，格式为20170716',
-publish_from_time      INT           NOT NULL COMMENT '车位发布的起始时间，格式为900则表示09:00（24小时制）',
-publish_end_time       INT           NOT NULL COMMENT '车位发布的截止时间，格式为1630则表示16:30（24小时制）',
-from_type              TINYINT(1)    NOT NULL COMMENT '来源类型：1--车位主发布，2--车主预约后转租，3--原信息被车主需求匹配后切割而生成',
-from_ids               VARCHAR(999)  NOT NULL COMMENT '车位来源ID：非转租则填0，转租则填原发布ID（即自关联的本表主键），需求匹配后切割同样填原发布ID，多个则以`分隔',
-status                 TINYINT(1)    NOT NULL COMMENT '状态：0--未锁定，1--已锁定，2--已使用',
-lock_from_date         DATETIME      COMMENT '锁定的起始时间',
-lock_end_date          DATETIME      COMMENT '锁定的结束时间',
-create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
-INDEX index_goodsId(goods_id)
-)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='商品发布信息表（存储已发布的，即可供车主付费停放的车位信息）';
 
 
 DROP TABLE IF EXISTS t_goods_publish_history;
@@ -369,34 +340,27 @@ update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMES
 DROP TABLE IF EXISTS t_order_infor;
 CREATE TABLE t_order_infor(
 id                      INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
-order_status            TINYINT(1)    NOT NULL COMMENT '订单状态：0--预约，1--进行中，2--待支付',
+order_status            TINYINT(1)    NOT NULL COMMENT '订单状态：0--预约，1--进行中',
 post_openid             VARCHAR(64)   NOT NULL COMMENT '车位主的标识',
+post_phone_no                 CHAR(11)     COMMENT '车位主的手机号',
 owners_openid              VARCHAR(64)   NOT NULL COMMENT '车主的标识',
+owners_phone_no                 CHAR(11)     COMMENT '车主的手机号',
 community_id            INT           NOT NULL COMMENT '小区ID，对应t_community_info#id',
 community_name          VARCHAR(32)   NOT NULL COMMENT '小区名称，冗余自t_community_info#name',
-goods_id                INT           COMMENT '商品ID，即车位ID，对应t_goods_info#id',
+goods_id                INT          NOT NULL COMMENT '商品ID，即车位ID，对应t_goods_info#id',
 order_id                 VARCHAR(50)  NOT NULL COMMENT '商品发布的订单ID，对应t_goods_publish_order#orde_id',
-car_park_number         VARCHAR(32)   COMMENT '车位号，冗余自t_goods_info#car_park_number',
+car_park_number         VARCHAR(32)  NOT NULL COMMENT '车位号，冗余自t_goods_info#car_park_number',
 car_park_img            VARCHAR(999)  COMMENT '车位平面图，冗余自t_goods_info#car_park_img',
-car_number              VARCHAR(16)   COMMENT '车牌号，即发生交易时车主使用的车牌',
-reservation_from_time   VARCHAR(32)   COMMENT '车位预约停车起始时间，格式为2017-11-27 1:18',
-appid                   VARCHAR(32)   COMMENT 'wxpay-appid',
-body                    VARCHAR(512)  COMMENT 'wxpay-商品描述',
-attach                  VARCHAR(512)  COMMENT 'wxpay-附加数据',
-spbill_create_ip        VARCHAR(23)   COMMENT 'wxpay-终端IP',
-time_start              CHAR(14)      COMMENT 'wxpay-交易起始时间，即订单生成时间，格式为yyyyMMddHHmmss',
-time_expire             CHAR(14)      COMMENT 'wxpay-交易结束时间，即订单失效时间，格式为yyyyMMddHHmmss（最短失效必须大于5分钟）',
-notify_url              VARCHAR(512)  COMMENT 'wxpay-通知地址',
-trade_type              VARCHAR(8)    COMMENT 'wxpay-交易类型：JSAPI--公众号支付、NATIVE--原生扫码支付、APP--app支付',
-product_id              INT           COMMENT 'wxpay-商品ID',
-bank_type               VARCHAR(16)   COMMENT 'wxpay-notify-付款银行，其为采用字符串类型的银行标识',
-price                   DECIMAL(16,4) COMMENT 'wxpay-notify-金额',
-transaction_id          VARCHAR(64)   COMMENT 'wxpay-notify-微信支付订单号',
-time_end                CHAR(14)      COMMENT 'wxpay-notify-支付完成时间，格式为yyyyMMddHHmmss，如2009年12月25日9点10分10秒表示为20091225091010',
-trade_state_desc        VARCHAR(512)  COMMENT 'wxpay-query-交易状态描述（对当前查询订单状态的描述和下一步操作的指引）',
+car_number              VARCHAR(16)  NOT NULL COMMENT '车牌号，即发生交易时车主使用的车牌',
+total_price             DECIMAL(16,2) NOT NULL COMMENT '定单总金额',
+time_start              CHAR(14)     NOT NULL COMMENT '即订单生成时间 格式为2017-11-27 1:18',
+time_start_calculate INT(15)      NOT NULL COMMENT '开始时间 用于计算  其值由 time_start的set函数产生',
+time_end                CHAR(14)   NOT NULL   COMMENT '支付完成时间 格式为2017-11-27 1:18',
+time_end_calculate INT(15)      NOT NULL COMMENT '结束时间 用于计算  其值由 time_end的set函数产生',
+out_price              DECIMAL(16,2) default 0 COMMENT '提现总金额',
+out_price_time        INT(15)       COMMENT '提现时间',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
-INDEX index_openid(openid),
 INDEX index_outTradeNo(order_id)
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='订单信息表（存储车位已被预约的信息）TOKGO';
 
@@ -406,20 +370,23 @@ CREATE TABLE t_order_history(
 id                      INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
 order_id                INT           NOT NULL COMMENT '订单ID，对应t_order_infor#id',
 post_openid             VARCHAR(64)   NOT NULL COMMENT '车位主的标识',
+post_phone_no                 CHAR(11)     COMMENT '车位主的手机号',
 owners_openid              VARCHAR(64)   NOT NULL COMMENT '车主的标识',
+owners_phone_no                 CHAR(11)     COMMENT '车主的手机号',
 community_id            INT           NOT NULL COMMENT '小区ID，对应t_community_info#id',
 community_name          VARCHAR(32)   NOT NULL COMMENT '小区名称，冗余自t_community_info#name',
 goods_id                INT           COMMENT '商品ID，即车位ID，对应t_goods_info#id',
 car_park_number         VARCHAR(32)   COMMENT '车位号，冗余自t_goods_info#car_park_number',
 car_park_img            VARCHAR(999)  COMMENT '车位平面图，冗余自t_goods_info#car_park_img',
 car_number              VARCHAR(16)   COMMENT '车牌号，即发生交易时车主使用的车牌',
-open_from_time          VARCHAR(32)   COMMENT '订单起始时间，格式为2017-11-27 1:18',
-open_end_time           VARCHAR(32)   COMMENT '订单截止时间，格式为2017-11-27 1:18',
-price                   DECIMAL(16,4) COMMENT 'wxpay-notify-金额',
-appid                   VARCHAR(32)   COMMENT 'wxpay-appid',
+from_time          VARCHAR(32)   COMMENT '订单起始时间，格式为2017-11-27 1:18',
+end_time           VARCHAR(32)   COMMENT '订单截止时间，格式为2017-11-27 1:18',
+total_price             DECIMAL(16,2) NOT NULL COMMENT '定单总金额',
+fine_price              DECIMAL(16,2) default 0 COMMENT '罚金金额',
+fine_flag               TINYINT(1) default 0   COMMENT '罚金是否缴纳 0--已缴纳 ，1---未缴纳',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
-)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='订单历史表（存储已完成的或未支付成功的过期订单） TOKGO';
+)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='订单历史表（存储已完成的） TOKGO';
 
 
 DROP TABLE IF EXISTS t_redpack_info;
@@ -512,7 +479,6 @@ id            INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
 uid           INT           COMMENT '用户ID，对应t_mpp_user_info#id',
 openid        VARCHAR(64)   COMMENT '粉丝的openid',
 money_base    DECIMAL(16,4) NOT NULL COMMENT '押金，单位：元',
-money_freeze  DECIMAL(16,4) NOT NULL COMMENT '冻结金额，单位：元',
 money_balance DECIMAL(16,4) NOT NULL COMMENT '余额，单位：元',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'

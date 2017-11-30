@@ -10,6 +10,8 @@ public enum CodeEnum {
     SYSTEM_PARAM_NULL      (1110, "含有空参数"),
     SYSTEM_PARAM_ERROR     (1120, "参数结构错误"),
     SYSTEM_PARAM_TIME_ERROR     (1130, "参数时间结构错误"),
+    SYSTEM_PARAM_DATA_ERROR     (1140, "参数数据错误"),
+
     SYSTEM_UNLOGIN          (1200, "请从微信菜单重新进入"),
     SYSTEM_PERMISSIONS          (1200, "你的权限不够"),
 
@@ -24,8 +26,9 @@ public enum CodeEnum {
     HHTC_INFOR_PHOMENO     (3110, "用户电话号码未验证"),
     HHTC_INFOR_PHOMENO_USED     (3111, "用户电话号码已经使用"),
 
-    HHTC_INFOR_COMMUNITY   (3120, "用户住房信息审核,重复提交"),
+    HHTC_INFOR_COMMUNITY_COPY   (3120, "用户住房信息审核,重复提交"),
     HHTC_INFOR_COMMUNITY_NO   (3121, "没有通过住房审核"),
+    HHTC_INFOR_COMMUNITY        (3122, "没有住房信息"),
 
     HHTC_INFOR_CARNUMBERFULL  (3130,"车牌审核或车牌数已满"),
     HHTC_INFOR_CARNUMBER_USED  (3131,"已经提交了车牌请求"),
@@ -43,11 +46,8 @@ public enum CodeEnum {
     HHTC_FUNDS_BALANCE_NO (3320, "余额不足"),
 
     HHTC_ORDER_PORT_TIMEERROR (3400, "和已有订单时间重叠"),
-
-
-    HHTC_GOODS_ORDER_FAIL (306, "下单失败：您来晚了一步，该车位刚刚被其他人下单了"),
-    HHTC_UNREG            (3007, "既未注册车主也未注册车位主");
-
+    HHTC_ORDER_RESERVATION_FAIL (3410, "下单失败：您来晚了一步，该车位刚刚被其他人下单了"),
+    HHTC_ORDER_DISRESERVATION_FAIL (3420, "订单开始时间小于三个小时，不能取消，只能申诉");
 
 
     private final int code;

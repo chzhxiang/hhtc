@@ -7,7 +7,6 @@ import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
 import com.jadyer.seed.mpp.web.model.MppFansInfor;
 import com.jadyer.seed.mpp.web.repository.FansInforRepository;
-import com.jadyer.seed.mpp.web.service.GoodsNeedService;
 import com.jadyer.seed.mpp.web.service.SmsService;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
@@ -49,8 +48,6 @@ public class CommonController {
     private HHTCHelper hhtcHelper;
     @Resource
     private SmsService smsService;
-    @Resource
-    private GoodsNeedService needService;
     @Resource
     private FansInforRepository fansInforRepository;
 

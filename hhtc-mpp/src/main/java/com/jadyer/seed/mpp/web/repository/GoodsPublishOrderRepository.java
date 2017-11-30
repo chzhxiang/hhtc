@@ -18,6 +18,7 @@ public interface GoodsPublishOrderRepository extends BaseRepository<GoodsPublish
     List<GoodsPublishOrder> findByOpenid(String openid);
 
     GoodsPublishOrder findByOrderID(String orderID);
+
     GoodsPublishOrder findByOpenidAndOrderID(String openid,String orderID);
 
     List<GoodsPublishOrder> findByGoodsIdAndOpenid(long goodsId, String openid);

@@ -40,8 +40,10 @@ import java.util.Set;
  */
 @Service
 public class GoodsPublishOrderService {
-    @Value("${hhtc.orderLock.minute}")
-    private int orderLockMinute;
+    @Value("${hhtc.publishTime.day}")
+    private int timeDay;
+    @Value("${hhtc.publishTime.night}")
+    private int timeNight;
     @Resource
     private HHTCHelper hhtcHelper;
     @Resource
@@ -65,12 +67,25 @@ public class GoodsPublishOrderService {
     @Resource
     private GoodsPublishOrderRepository goodsPublishOrderRepository;
 
+
     /**
-     * TOKGO 获取用户车位
+     * TOKGO 获取用户的发布的订单
      * */
-    @Transactional(rollbackFor=Exception.class)
-    public List<GoodsInfor> GetPublishCarpark(String openid){
-        return goodsInforRepository.findByOpenid(openid);
+    public List<GoodsPublishOrder> Get(long goodsId, String openid){
+        List<GoodsPublishOrder> goodsPublishOrders = goodsPublishOrderRepository.findByGoodsIdAndOpenid(goodsId,openid);
+        //检测订单是否已经过期了
+        CheckOverTime(goodsPublishOrders);
+        return goodsPublishOrders;
+    }
+
+    /**
+     * TOKGO 获取用户的发布的订单
+     * */
+    public GoodsPublishOrder Get(String orderid){
+        GoodsPublishOrder goodsPublishOrder = goodsPublishOrderRepository.findByOrderID(orderid);
+        //检测订单是否已经过期了
+        CheckOverTime(goodsPublishOrder);
+        return goodsPublishOrder;
     }
 
     /**
@@ -82,7 +97,7 @@ public class GoodsPublishOrderService {
         if (goodsInfor ==null)
             throw new HHTCException(CodeEnum.SYSTEM_NULL);
         //检测用户是否具有车主身份
-        fansService.CheckOwners(fansService.getByOpenid(openid));
+        fansService.CheckCarpark(fansService.getByOpenid(openid));
         //检查用户押金是否足够
         if(!userFundsService.depositIsenough(openid,goodsInfor.getCommunityId())){
             //押金不够
@@ -90,7 +105,6 @@ public class GoodsPublishOrderService {
         }
         //时间检测
         if (OrderTimeCheck(starttime,endtime,openid,goodsId)) {
-            //押金不够
             throw new HHTCException(CodeEnum.HHTC_ORDER_PORT_TIMEERROR);
         }
         //生成订单
@@ -102,7 +116,7 @@ public class GoodsPublishOrderService {
      * TOKGO 订单时间冲突检查
      * @return  true 含有时间冲突
      * */
-    private boolean OrderTimeCheck(String stime,String etime,String openid,long goodsId){
+    public boolean OrderTimeCheck(String stime,String etime,String openid,long goodsId){
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             long starttime =  sdf.parse(stime).getTime()-Constants.S_ORDERINTERVAL;
@@ -123,8 +137,6 @@ public class GoodsPublishOrderService {
     }
 
 
-
-
     /**
      * TOKGO 生成订单
      * */
@@ -132,6 +144,7 @@ public class GoodsPublishOrderService {
         GoodsPublishOrder goodsPublishOrder = new GoodsPublishOrder();
         goodsPublishOrder.setOrderID(HHTCHelper.buildOrderNo());
         goodsPublishOrder.setOpenid(goodsInfor.getOpenid());
+        goodsPublishOrder.setPhoneNO(fansService.getByOpenid(goodsInfor.getOpenid()).getPhoneNo());
         goodsPublishOrder.setCommunityId(goodsInfor.getCommunityId());
         goodsPublishOrder.setCommunityName(goodsInfor.getCommunityName());
         goodsPublishOrder.setGoodsId(goodsInfor.getId());
@@ -145,26 +158,76 @@ public class GoodsPublishOrderService {
 
     /**
      * TOKGO 计算价格
+     * //TODO 考虑线程同步问题 防止多用户使用产生计算出错
      * */
 
     public BigDecimal GetPrice(long communityId,String starttime,String endtime){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-        double free;
+        double free ,temp=0;
         long startdate,enddate;
         try {
-            enddate= sdf.parse(starttime).getTime();
-            startdate= sdf.parse(endtime).getTime();
+            startdate= sdf.parse(starttime).getTime();
+            enddate= sdf.parse(endtime).getTime();
         } catch (ParseException e) {
             throw new HHTCException(CodeEnum.SYSTEM_PARAM_TIME_ERROR);
         }
+        //如果开始时间小于结束时间  这不符合逻辑
+        if(enddate<=startdate)
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
         CommunityInfo communityInfo = communityService.get(communityId);
+        if (communityInfo == null)
+            throw  new HHTCException(CodeEnum.SYSTEM_NULL);
         //检测天数 并计算价格
         free = ((int)((enddate- startdate)/Constants.S_DATE_TIMES_DAY))
                 *communityInfo.getMoneyRentFull().doubleValue();
+        double payday = communityInfo.getMoneyRentDay().doubleValue();
+        double paynight= communityInfo.getMoneyRentNight().doubleValue();
+        long starttime24 = startdate/Constants.S_DATE_TIMES_HOUR;
+        long endtime24 = enddate/Constants.S_DATE_TIMES_HOUR;
+        //计算 半点时间
+        if ((startdate%Constants.S_DATE_TIMES_DAY !=0)){
+            //跨夜晚和晚上的时间分隔 ----- 以价格高的为准
+            double ts = ((double) startdate)/Constants.S_DATE_TIMES_HOUR;
+            double te = ((double) enddate)/Constants.S_DATE_TIMES_HOUR;
+            //16---s--17
+            if ((timeNight-ts)<1&&(timeNight-ts)>0)
+                temp += Math.abs(paynight-payday);
+            //17---e--18
+            if ((te-timeNight)<1&&(te-timeNight)>0)
+                temp += Math.abs(paynight-payday);
+
+        }else{
+            //如果开始整点 结束半点自动加一
+            if (enddate%Constants.S_DATE_TIMES_HOUR !=0)
+                endtime24++;
+        }
         //计算飞非整天的
-//        (24-((startdate%Constants.S_DATE_TIMES_DAY)/Constants.S_DATE_TIMES_HOUR))
-        //TODO  计算订单价格
-        return  new BigDecimal(100.00);
+        // 9---s----e--17
+        if (starttime24 >=timeDay && endtime24<=timeNight)
+            temp += (endtime24 -starttime24)*payday;
+        //9-----s--17--e
+        else if (starttime24 >=timeDay &&starttime24 <timeNight && endtime24>timeNight)
+            temp += (timeDay-starttime24)*payday +(endtime24-timeNight)*paynight;
+        //9----s---17-----0---e--9
+        else if (starttime24 >=timeDay &&starttime24 <timeNight && endtime24<=timeDay)
+            temp += (timeDay-starttime24)*payday +endtime24*paynight;
+        //17---s---e--0     0---s---e--9
+        else if ((starttime24 >=timeNight &&starttime24>timeNight)||(starttime24<=timeDay && endtime24<=timeDay))
+            temp += (endtime24 -starttime24)*paynight;
+        //17---s---0----e---9
+        else if (starttime24 >=timeNight && endtime24<=timeDay)
+            temp += (starttime24-timeNight+endtime24)*paynight;
+        //17---s---0----9---e--17
+        else if (starttime24 >=timeNight && endtime24>timeDay && endtime24<=timeNight)
+            temp += (starttime24-timeNight+timeDay)*paynight +(endtime24-timeDay)*payday;
+        ///0---s---9--e--17
+        else
+            temp += starttime24*paynight +(endtime24-timeDay)*payday;
+        //非整天有最大额度
+        if (temp >= communityInfo.getMoneyRentFull().doubleValue())
+            temp= communityInfo.getMoneyRentFull().doubleValue();
+        free+=temp;
+        return  new BigDecimal(free);
     }
 
     /**
@@ -219,7 +282,7 @@ public class GoodsPublishOrderService {
         goodsPublishOrder.setGoodsId(orderInfor.getGoodsId());
         goodsPublishOrder.setCarParkNumber(orderInfor.getCarParkNumber());
         goodsPublishOrder.setCarParkImg(orderInfor.getCarParkImg());
-        goodsPublishOrder.setPrice(orderInfor.getPrice());
+        goodsPublishOrder.setPrice(orderInfor.getTotalPrice());
         goodsPublishOrder.setPublishFromTime(orderInfor.getTimeStart());
         goodsPublishOrder.setPublishEndTime(orderInfor.getTimeEnd());
         goodsPublishOrderRepository.save(goodsPublishOrder);
@@ -237,18 +300,12 @@ public class GoodsPublishOrderService {
      * TOKGO 订单到点后删除 当前订单
      * */
     public boolean CheckOverTime(GoodsPublishOrder goodsPublishOrder){
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm");
         //获取当前时间
         long timenow = new Date().getTime();
-        long timetemp;
-        try {
-            timetemp= sdf.parse(goodsPublishOrder.getPublishFromTime()).getTime();
-            if (timetemp>timenow) {
-                //TODO 发送微信模板消息
-                goodsPublishOrderRepository.delete(goodsPublishOrder);
-                return true;
-            }
-        } catch (ParseException e) {
+        if (goodsPublishOrder.getFromdateCalculate()>timenow) {
+            //TODO 发送微信模板消息
+            goodsPublishOrderRepository.delete(goodsPublishOrder);
+            return true;
         }
         return false;
     }
@@ -257,18 +314,12 @@ public class GoodsPublishOrderService {
      * TOKGO 订单到点后删除 订单数组
      * */
     public void CheckOverTime(List<GoodsPublishOrder> goodsPublishOrders){
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm");
         //获取当前时间
         long timenow = new Date().getTime();
-        long timetemp;
         for(GoodsPublishOrder goodsPublishOrder : goodsPublishOrders){
-            try {
-                timetemp= sdf.parse(goodsPublishOrder.getPublishFromTime()).getTime();
-                if (timetemp>timenow) {
-                    //TODO 发送微信模板消息
-                    goodsPublishOrderRepository.delete(goodsPublishOrder);
-                }
-            } catch (ParseException e) {
+            if (goodsPublishOrder.getFromdateCalculate()>timenow) {
+                //TODO 发送微信模板消息
+                goodsPublishOrderRepository.delete(goodsPublishOrder);
             }
         }
     }
@@ -293,6 +344,15 @@ public class GoodsPublishOrderService {
 
     }
 
+
+    /**
+     * TOKGO 删除订单
+     */
+    @Transactional(rollbackFor=Exception.class)
+    public void delete(long id) {
+        //删除市场中的订单
+        goodsPublishOrderRepository.delete(id);
+    }
 
     /**
      * TOKGO 车位主取消发布车位

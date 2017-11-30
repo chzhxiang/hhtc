@@ -80,51 +80,6 @@ public class OrderService {
     private GoodsPublishOrderService goodsPublishOrderService;
     @Resource
     private GoodsPublishHistoryService goodsPublishHistoryService;
-    @Resource
-    private GoodsPublishOrderRepository goodsPublishOrderRepository;
-
-    /**
-     *TOKGO获取用户历史当担信息
-     * */
-    public List<HashMap> Gethistory(String openid, String pageNo){
-        List<HashMap> hashMapList = new ArrayList<>();
-        //排序
-        Sort sort = new Sort(Sort.Direction.ASC, "id");
-        //分页
-        Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
-//        //条件  TODO 现在还没有写 不会
-        Condition<OrderHistory> spec = Condition.<OrderHistory>and().eq("post_openid", openid);
-        //执行
-        Page<OrderHistory> page = orderHistoryRepository.findAll(spec, pageable);
-        List<OrderHistory> list = page.getContent();
-        for (OrderHistory orderHistory:list){
-            loaddata(orderHistory,hashMapList,openid);
-        }
-        return hashMapList;
-    }
-
-    /**
-     * TOKGO 数据装填
-     * **/
-    private void loaddata(OrderHistory orderHistory,List<HashMap> list,String openid) {
-        HashMap hashMap = new HashMap();
-        if (openid.equals(orderHistory.getOwnersOpenid())) {
-            hashMap.put("type", "owners");
-            //TODO 电话获取
-            hashMap.put("phone", "");
-        } else {
-            hashMap.put("type", "carpark");
-            hashMap.put("phone", "");
-        }
-        hashMap.put("orderid", orderHistory.getOrderId());
-        hashMap.put("communityName", orderHistory.getCommunityName());
-        hashMap.put("carParkNumber", orderHistory.getCarParkNumber());
-        hashMap.put("begintime", orderHistory.getOpenFromTime());
-        hashMap.put("endtime", orderHistory.getOpenEndTime());
-        hashMap.put("price", orderHistory.getPrice());
-        list.add(hashMap);
-    }
-
 
     /**
      * 获取待支付和支付中的订单列表
@@ -195,10 +150,6 @@ public class OrderService {
         }
     }
 
-
-    public long countByGoodsIdAndOrderTypeInAndOrderStatusIn(long goodsId, List<Integer> orderTypeList, List<Integer> orderStatusList){
-        return orderRepository.countByGoodsIdAndOrderTypeInAndOrderStatusIn(goodsId, orderTypeList, orderStatusList);
-    }
 
 
     public OrderInfo get(long id) {
@@ -330,39 +281,13 @@ public class OrderService {
         BigDecimal price = new BigDecimal(0);
         List<GoodsPublishOrder> orderList = new ArrayList<>();
         for(String id : ids.split("`")){
-            GoodsPublishOrder pubOrder = goodsPublishOrderRepository.findOne(Long.parseLong(id));
 //            if(pubOrder.getStatus() != 0){
 //                throw new HHTCException(CodeEnum.HHTC_GOODS_ORDER_FAIL);
 //            }
-            orderList.add(pubOrder);
-            price = price.add(pubOrder.getPrice());
+//            orderList.add(pubOrder);
+//            price = price.add(pubOrder.getPrice());
         }
-        //TODO
-        //校验押金是否足够
-//        Map<String, String> dataMap = userFundsService.depositIsenough(fansInfo.getOpenid(), orderList.get(0).getCommunityId());
-//        if("0".equals(dataMap.get("isenough"))){
-//            throw new HHTCException(CodeEnum.HHTC_NEED_NO_MONEY.getCode(), "押金不足，缺少："+dataMap.get("money") + "元");
-//        }
-        //计算publishFromDates
-        List<String> publishFromDateList = new ArrayList<>();
-        for(GoodsPublishOrder obj : orderList){
-            for(String _fromDate : obj.getPublishFromDates().split("-")){
-                if(!publishFromDateList.contains(_fromDate)){
-                    publishFromDateList.add(_fromDate);
-                }
-            }
-        }
-        publishFromDateList.sort(new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
-                return Integer.parseInt(o1) - Integer.parseInt(o2);
-            }
-        });
-        String publishFromDates = "";
-        for(String obj : publishFromDateList){
-            publishFromDates = publishFromDates + "-" + obj;
-        }
-        publishFromDates = publishFromDates.substring(1);
+
         //將原訂單置為已完成
         order.setOrderStatus(99);
         this.upsert(order);
@@ -379,7 +304,6 @@ public class OrderService {
         orderInfo.setCarParkNumber(orderList.get(0).getCarParkNumber());
         orderInfo.setCarParkImg(orderList.get(0).getCarParkImg());
         orderInfo.setCarNumber(order.getCarNumber());
-        orderInfo.setOpenFromDates(publishFromDates);
 //        orderInfo.setOpenFromTime(orderList.get(0).getPublishFromTime());
 //        orderInfo.setOpenEndTime(orderList.get(orderList.size()-1).getPublishEndTime());
 //        orderInfo.setOutTradeNo(hhtcHelper.buildOrderNo(8));

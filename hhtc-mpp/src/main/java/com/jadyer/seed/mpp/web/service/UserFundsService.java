@@ -1,22 +1,14 @@
 package com.jadyer.seed.mpp.web.service;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.util.IPUtil;
 import com.jadyer.seed.comm.util.MoneyUtil;
 import com.jadyer.seed.mpp.sdk.weixin.model.pay.WeixinPayUnifiedorderRespData;
 import com.jadyer.seed.mpp.web.HHTCHelper;
-import com.jadyer.seed.mpp.web.model.CommunityInfo;
-import com.jadyer.seed.mpp.web.model.MppFansInfor;
-import com.jadyer.seed.mpp.web.model.MppUserInfo;
-import com.jadyer.seed.mpp.web.model.OrderInfo;
-import com.jadyer.seed.mpp.web.model.UserFunds;
-import com.jadyer.seed.mpp.web.repository.GoodsNeedRepository;
-import com.jadyer.seed.mpp.web.repository.GoodsPublishOrderRepository;
-import com.jadyer.seed.mpp.web.repository.MppUserInfoRepository;
-import com.jadyer.seed.mpp.web.repository.OrderRepository;
-import com.jadyer.seed.mpp.web.repository.UserFundsFlowRepository;
-import com.jadyer.seed.mpp.web.repository.UserFundsRepository;
+import com.jadyer.seed.mpp.web.model.*;
+import com.jadyer.seed.mpp.web.repository.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -38,8 +30,6 @@ import java.util.Map;
 public class UserFundsService {
     @Value("${hhtc.contextpath}")
     private String hhtcContextPath;
-    @Value("${hhtc.orderLock.minute}")
-    private int orderLockMinute;
     @Resource
     private HHTCHelper hhtcHelper;
     @Resource
@@ -50,6 +40,8 @@ public class UserFundsService {
     private CommunityService communityService;
     @Resource
     private UserFundsRepository userFundsRepository;
+    @Resource
+    private FansAuditRepository fansAuditRepository;
     @Resource
     private MppUserInfoRepository mppUserInfoRepository;
     /**
@@ -84,6 +76,31 @@ public class UserFundsService {
         }
         return funds;
     }
+
+    /**
+     * TOKGO 用户提现申请
+     *@param  type 4---余额提现 5---押金提现
+     * */
+    public void WthdrawApplication(String openid,double amount, int type){
+        if (!(type== Constants.AUDTI_TEPY_BALANCE||type== Constants.AUDTI_TEPY_DEPOSIT))
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
+        UserFunds funds = userFundsRepository.findByOpenid(openid);
+        if (type== Constants.AUDTI_TEPY_BALANCE && funds.getMoneyBalance().doubleValue()<amount)
+            throw new HHTCException(CodeEnum.HHTC_FUNDS_BALANCE_NO);
+        if (type== Constants.AUDTI_TEPY_DEPOSIT && funds.getMoneyBase().doubleValue()<amount)
+            throw new HHTCException(CodeEnum.HHTC_FUNDS_DEPOSIT_NO);
+        MppFansInfor mppFansInfor = fansService.getByOpenid(openid);
+        FansInforAudit audit = new FansInforAudit();
+        audit.setUid(mppFansInfor.getUid());
+        audit.setType(type);
+        audit.setOpenid(openid);
+        audit.setPhone(mppFansInfor.getPhoneNo());
+        audit.setCommunityId(mppFansInfor.getCommunityId());
+        audit.setCommunityName(mppFansInfor.getCommunityName());
+        audit.setContent(""+amount);
+        fansAuditRepository.save(audit);
+    }
+
 
 
     /**
@@ -175,7 +192,6 @@ public class UserFundsService {
         return userFundsRepository.saveAndFlush(funds);
     }
 
-
     /**
      * 充值（返回弹出微信支付所需的数据）
      * @param type      充值类型：10--个人中心充值，11--车位主发布车位充值，12--车主预约下单充值，13--车主发布需求充值
@@ -204,32 +220,6 @@ public class UserFundsService {
                     _moneyRent = new BigDecimal(moneyRent);
                 }
                 break;
-            case 11 :
-                if(StringUtils.isBlank(moneyBase)){
-                    throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "租金必传["+type+"]");
-                }
-                _moneyBase = new BigDecimal(moneyBase);
-                if(money.compareTo(_moneyBase) >= 0){
-                    _moneyRent = money.subtract(_moneyBase);
-                }else{
-                    _moneyBase = money;
-                }
-                break;
-            case 12 :
-            case 13 :
-                if(StringUtils.isBlank(moneyBase) && StringUtils.isBlank(moneyRent)){
-                    throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "租金或押金至少传一个["+type+"]");
-                }
-                if(StringUtils.isNotBlank(moneyBase)){
-                    _moneyBase = new BigDecimal(moneyBase);
-                }
-                if(money.compareTo(_moneyBase) >= 0){
-                    _moneyRent = money.subtract(_moneyBase);
-                }else{
-                    _moneyBase = money;
-                    _moneyRent = new BigDecimal(0);
-                }
-                break;
             default: throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无效的充值类型["+type+"]");
         }
         //记录一笔订单
@@ -248,7 +238,6 @@ public class UserFundsService {
         orderInfo.setAttach(orderInfo.getOutTradeNo());
         orderInfo.setSpbillCreateIp(IPUtil.getClientIP(request));
         orderInfo.setTimeStart(DateFormatUtils.format(new Date(), "yyyyMMddHHmmss"));
-        orderInfo.setTimeExpire(DateFormatUtils.format(DateUtils.addMinutes(new Date(), this.orderLockMinute), "yyyyMMddHHmmss"));
         orderInfo.setNotifyUrl(hhtcContextPath + "/weixin/helper/pay/notify");
         orderInfo.setTradeType("JSAPI");
         orderInfo.setOpenid(openid);
