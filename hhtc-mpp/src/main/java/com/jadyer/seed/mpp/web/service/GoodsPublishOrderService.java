@@ -261,11 +261,7 @@ public class GoodsPublishOrderService {
      * */
     public List<GoodsPublishOrder> Getfansorder(String openid){
         List<GoodsPublishOrder> goodsPublishOrders = goodsPublishOrderRepository.findByOpenid(openid);
-        for (GoodsPublishOrder goodsPublishOrder :goodsPublishOrders){
-            //删除过期订单
-            if (CheckOverTime(goodsPublishOrder))
-                goodsPublishOrders.remove(goodsPublishOrder);
-        }
+        CheckOverTime(goodsPublishOrders);
         return goodsPublishOrders;
     }
 
@@ -301,9 +297,16 @@ public class GoodsPublishOrderService {
      * */
     public boolean CheckOverTime(GoodsPublishOrder goodsPublishOrder){
         //获取当前时间
-        long timenow = new Date().getTime();
-        if (goodsPublishOrder.getFromdateCalculate()>timenow) {
+        return CheckOverTime(goodsPublishOrder,new Date().getTime());
+    }
+
+    /**
+     * TOKGO 操作
+     * */
+    private boolean CheckOverTime(GoodsPublishOrder goodsPublishOrder, long timenow) {
+        if (goodsPublishOrder.getFromdateCalculate()<timenow) {
             //TODO 发送微信模板消息
+            //TODO 看需要返回值不
             goodsPublishOrderRepository.delete(goodsPublishOrder);
             return true;
         }
@@ -317,10 +320,7 @@ public class GoodsPublishOrderService {
         //获取当前时间
         long timenow = new Date().getTime();
         for(GoodsPublishOrder goodsPublishOrder : goodsPublishOrders){
-            if (goodsPublishOrder.getFromdateCalculate()>timenow) {
-                //TODO 发送微信模板消息
-                goodsPublishOrderRepository.delete(goodsPublishOrder);
-            }
+            CheckOverTime(goodsPublishOrder,timenow);
         }
     }
 

@@ -15,7 +15,7 @@ post    车位注销  --- /wx/goods/infor/carParkLogout  long id,String state ,
 
 post    发送验证码----/wx/common/sms/send   1---电话注册  2---电话注销
 get  根据城市名称获取小区名称列表 ------/wx/community/listByCityName
-
+get  获取小区名称 ------/wx/community/get long id
 
 post    管理员审核----/fans/Audit   long id（审核表中的id）, int status, String auditRemark
 

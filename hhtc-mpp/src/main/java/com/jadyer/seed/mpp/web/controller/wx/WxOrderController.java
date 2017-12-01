@@ -6,6 +6,7 @@ import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.service.OrderInforService;
 import com.jadyer.seed.mpp.web.service.OrderService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,11 +27,6 @@ public class WxOrderController {
     //TODO
     String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
 
-//    @GetMapping("/get")
-//    public CommonResult get(long id){
-//        return new CommonResult(orderService.get(id));
-//    }
-
 
     /**
      * TOKGO 获取历史数据 每次返回10条数据
@@ -39,6 +35,16 @@ public class WxOrderController {
     public CommonResult get(int pageNo, HttpSession session){
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(orderInforService.Gethistory(openid,pageNo));
+    }
+
+    /**
+     * TOKGO 超时补款
+     * */
+    @PostMapping("/overtime/repayments")
+    public CommonResult repayments(String orderid, HttpSession session){
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        orderInforService.OvertimeRepayment(openid,orderid);
+        return new CommonResult();
     }
 
 

@@ -37,7 +37,7 @@ public class FansController{
     @RequestMapping("/task/park/list")
     public String listTaskViaPage(String pageNo, HttpServletRequest request){
         MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
-        request.setAttribute("page", fansService.TaskViaPagelist(userInfo, pageNo,2));
+        request.setAttribute("page", fansService.TaskViaPagelist(userInfo, pageNo,Constants.AUDTI_TEPY_CARPARK));
         return "fans/task.park.list";
     }
 
@@ -48,7 +48,7 @@ public class FansController{
     @RequestMapping("/task/owner/list")
     public String listTaskOwnerViaPage(String pageNo, HttpServletRequest request){
         MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
-        request.setAttribute("page", fansService.TaskViaPagelist(userInfo, pageNo, 3));
+        request.setAttribute("page", fansService.TaskViaPagelist(userInfo, pageNo, Constants.AUDTI_TEPY_CARNUMBER));
         return "fans/task.owner.list";
     }
 
@@ -60,7 +60,7 @@ public class FansController{
     @RequestMapping("/task/community/list")
     public String listTaskParkViaPage(String pageNo, HttpServletRequest request){
         MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
-        request.setAttribute("page", fansService.TaskViaPagelist(userInfo, pageNo, 1));
+        request.setAttribute("page", fansService.TaskViaPagelist(userInfo, pageNo, Constants.AUDTI_TEPY_COMMUNITY));
         return "fans/task.community.list";
     }
 

@@ -82,7 +82,6 @@ public class MarketTransactionService {
             hashMap.put("Defaultprice", orderInfor.getOutPrice());
             list.add(hashMap);
         }
-
     }
 
     /**

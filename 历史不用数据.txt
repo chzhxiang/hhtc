@@ -17,7 +17,7 @@
 //                throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "只能审核自己小区的车位");
 //            }
 //        }
-        //TODO
+
 //        //校验是否注册车位主
 //        MppFansInfor fansInfo = fansService.getByOpenid(goodsInfo.getOpenid());
 //        if(2 != fansInfo.getCarParkStatus()){
@@ -332,7 +332,6 @@
         if(StringUtils.isBlank(communityInfo.getName())){
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无此小区communityId=[" + goodsInfo.getCommunityId() + "]");
         }
-        //TODO
 //        //校验是否注册车位主
 //        if(2 != fansService.getByOpenid(goodsInfo.getOpenid()).getCarParkStatus()){
 //            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_PARK);
@@ -412,7 +411,6 @@
 //        if(StringUtils.isBlank(carNumber) || StringUtils.isBlank(houseNumber)){
 //            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "车牌号或门牌号不能为空");
 //        }
-//        //TODO -infor 查询小区id---住址是否在车位租赁的小区
 //        CommunityInfo communityInfo = communityService.get(carOwnerCommunityId);
 //        if(StringUtils.isBlank(communityInfo.getName())){
 //            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无此小区communityId=[" + carOwnerCommunityId + "]");
@@ -467,7 +465,6 @@ WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(
         sb.setCharAt(1,'1');
         fansInfo.setInfor_state(sb.toString());
         fansInfo = fansInfoRepository.saveAndFlush(fansInfo);
-        //TODO  是否删除历史验证码
         //返回当前状态码
         return fansInfo.getInfor_state();
     }*/
@@ -490,7 +487,6 @@ WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(
         sb.setCharAt(1,'1');
         fansInfo.setInfor_state(sb.toString());
         fansInfo = fansInfoRepository.saveAndFlush(fansInfo);
-        //TODO  是否删除历史验证码
         //返回当前状态码
         return fansInfo.getInfor_state();
     }

@@ -202,7 +202,7 @@ public class FansService {
         }
         CommunityInfo communityInfo = communityService.get(CommunityID);
         //写入审核
-        auditService.AddAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_COMMUNITY,CommunityID,communityInfo.getName(),houseNumber);
+        auditService.AddAudit(mppFansInfor,AUDTI_TEPY_COMMUNITY,CommunityID,communityInfo.getName(),houseNumber);
         UpdatedataInforSate(INFOR_STATE_COMMUNITY_BIT,'2',mppFansInfor);
         //返回当前状态码
         return  fansInforRepository.findByOpenid(openid).getInfor_state();
@@ -221,7 +221,7 @@ public class FansService {
         //分页
         Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
         //条件（物管只能查询自己小区的车位列表）
-        Condition<FansInforAudit> spec = Condition.<FansInforAudit>and().eq("type", tuype);
+        Condition<FansInforAudit> spec = Condition.<FansInforAudit>and().eq("type", tuype).eq("state",0);
         if(userInfo.getType() == 2){
             List<Long> idList = new ArrayList<>();
             for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
@@ -450,22 +450,21 @@ public class FansService {
         //检查是否用户验证电话
         if(mppFansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) == '0')
             throw  new HHTCException(CodeEnum.HHTC_INFOR_PHOMENO);
-        //TODO
-//        if(mppFansInfor.getInfor_state().charAt(INFOR_STATE_COMMUNITY_BIT) == '0')
-//            throw  new HHTCException(CodeEnum.HHTC_INFOR_COMMUNITY);
+        if(mppFansInfor.getInfor_state().charAt(INFOR_STATE_COMMUNITY_BIT) == '0')
+            throw  new HHTCException(CodeEnum.HHTC_INFOR_COMMUNITY);
         //检测用户是否已经提交改车牌号 或者提交了两次车牌审核
         CheckCarnumber(mppFansInfor,CarNumber);
          if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) == '1'){
             //写入审核
-            fansInforAudit= auditService.AddAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARNUMBER
-                    ,mppFansInfor.getCommunityId(),mppFansInfor.getCommunityName(),CarNumber,carNumberImg);
+            fansInforAudit= auditService.AddAudit(mppFansInfor,AUDTI_TEPY_CARNUMBER,mppFansInfor.getCommunityId()
+                    ,mppFansInfor.getCommunityName(),CarNumber,carNumberImg);
         }else{
              List<FansInforAudit> audit = auditService.GetAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARNUMBER);
              if (audit.size()<1)
                  throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
             //写入审核
-             fansInforAudit= auditService.AddAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARNUMBER
-                     ,audit.get(0).getCommunityId(),audit.get(0).getCommunityName(),CarNumber,carNumberImg);
+             fansInforAudit= auditService.AddAudit(mppFansInfor,AUDTI_TEPY_CARNUMBER,audit.get(0).getCommunityId()
+                     ,audit.get(0).getCommunityName(),CarNumber,carNumberImg);
         }
         if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_CARNUMBE_BIT)!='1')
             UpdatedataInforSate(INFOR_STATE_CARNUMBE_BIT,'2',mppFansInfor);
@@ -603,19 +602,23 @@ public class FansService {
                 ,AUDTI_TEPY_CARPARK)){
             if (audit.getCommunityId() != fansInforAudit.getCommunityId())
                 auditService.Delete(audit);
-            else
-                if (ownerfalg==0)
-                    ownerfalg=2;
+            else {
+                auditService.UpdataState(audit.getId());
+                if (ownerfalg == 0)
+                    ownerfalg = 2;
+            }
         }
         for (FansInforAudit audit:auditService.GetAudit(fansInfor.getUid(),fansInfor.getOpenid()
                 ,AUDTI_TEPY_CARNUMBER)){
             if (audit.getCommunityId() != fansInforAudit.getCommunityId())
                 auditService.Delete(audit);
-            else
-                if (carparkflag==0)
-                    carparkflag=2;
+            else {
+                auditService.UpdataState(audit.getId());
+                if (carparkflag == 0)
+                    carparkflag = 2;
+            }
         }
-        String string = fansInfor.getInfor_state().substring(0,1);
+        String string = fansInfor.getInfor_state().substring(0,2);
         fansInfor.setInfor_state(string+"1"+carparkflag+ownerfalg);
         fansInforRepository.saveAndFlush(fansInfor);
     }

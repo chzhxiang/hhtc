@@ -51,14 +51,14 @@ public class UserFundsService {
     public boolean depositIsenough(String openid, long communityId) {
         BigDecimal moneyBase = this.get(openid).getMoneyBase();
         CommunityInfo communityInfo = communityService.get(communityId);
-        return (communityInfo.getMoneyBase().compareTo(moneyBase) >= 0);
+        return (communityInfo.getMoneyBase().compareTo(moneyBase) <= 0);
     }
 
     /**
      * TOKGO 检查余额是否足够
      * */
     public boolean BalanceIsenough(String openid, BigDecimal perice){
-        BigDecimal moneyBase = this.get(openid).getMoneyBase();
+        BigDecimal moneyBase = this.get(openid).getMoneyBalance();
         return (perice.compareTo(moneyBase) <= 0);
     }
 

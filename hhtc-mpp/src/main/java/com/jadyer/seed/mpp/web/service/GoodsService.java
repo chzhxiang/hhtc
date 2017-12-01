@@ -127,17 +127,15 @@ public class GoodsService {
         //TODO  记录这个车位主 是租赁的还是自己拥有的
         if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) == '1'){
             //写入审核
-            fansInforAudit= auditService.AddAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARPARK
-                    ,mppFansInfor.getCommunityId(),mppFansInfor.getCommunityName()
-                    ,carParkNumber+"@"+carUsefulEndDate,carEquityImg);
+            fansInforAudit= auditService.AddAudit(mppFansInfor,AUDTI_TEPY_CARPARK,mppFansInfor.getCommunityId()
+                    ,mppFansInfor.getCommunityName(),carParkNumber+"@"+carUsefulEndDate,carEquityImg);
         }else{
             List<FansInforAudit> audit = auditService.GetAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARNUMBER);
             if (audit.size()<1)
                 throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
             //写入审核
-            fansInforAudit= auditService.AddAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARPARK
-                    ,audit.get(0).getCommunityId(),audit.get(0).getCommunityName()
-                    ,carParkNumber+"@"+carUsefulEndDate,carEquityImg);
+            fansInforAudit= auditService.AddAudit(mppFansInfor,AUDTI_TEPY_CARPARK,audit.get(0).getCommunityId()
+                    ,audit.get(0).getCommunityName(),carParkNumber+"@"+carUsefulEndDate,carEquityImg);
         }
         if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_CARPARK_BIT)!='1')
             fansService.UpdatedataInforSate(INFOR_STATE_CARPARK_BIT,'2',mppFansInfor);

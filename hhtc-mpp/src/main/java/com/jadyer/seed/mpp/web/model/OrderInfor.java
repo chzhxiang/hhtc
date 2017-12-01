@@ -63,6 +63,7 @@ public class OrderInfor extends BaseEntity<Long> {
     @Column(name="out_price_time")
     private long outPriceTime;
 
+
     public void setTimeStartCalculate(long timeStartCalculate) {
         this.timeStartCalculate = timeStartCalculate;
     }

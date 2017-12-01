@@ -87,7 +87,6 @@ public class OrderInforService {
     }
 
 
-
     /**
      * TOKGO 添加新增订单(预约)
      * */
@@ -109,8 +108,15 @@ public class OrderInforService {
         orderInfor.setTotalPrice(goodsPublishOrder.getPrice());
         orderInfor.setTimeStart(goodsPublishOrder.getPublishFromTime());
         orderInfor.setTimeEnd(goodsPublishOrder.getPublishEndTime());
-        orderInforRepository.saveAndFlush(orderInfor);
+        orderInforRepository.save(orderInfor);
         return orderInfor;
+    }
+
+    /**
+     * TOKGO 超时补款
+     * */
+    public void OvertimeRepayment(String openid,String orderid){
+        // TODO 超时补款
     }
 
 
@@ -172,47 +178,41 @@ public class OrderInforService {
 
 
     /**
-     * TOKGO 检测订单是否开始 或者结束 （订单开始由系统完成）
+     * TOKGO 检测订单是否开始 或者结束 （订单开始结束由系统完成）
      * */
-    public boolean CheckStartOrEndOrder(OrderInfor orderInfor){
+    public void CheckStartOrEndOrder(OrderInfor orderInfor){
         //获取当前时间
-        long timenow = new Date().getTime();
-        if (orderInfor.getTimeStartCalculate()>=timenow && orderInfor.getOrderStatus()==0) {
-            //订单开始
-            orderInforRepository.updateOrderState(1,orderInfor.getOrderId());
-            //TODO 发送微信模板消息
-            return true;
-        }
-        if (orderInfor.getTimeEndCalculate()>=timenow) {
-            //订单结束
-            //TODO 做订单结束的操作
-            //TODO 发送微信模板消息
-            return true;
-        }
-        //计算可提取金额
-        if ((timenow-orderInfor.getOutPriceTime())>=Constants.S_DATE_TIMES_MONTH){
-            //TODO 这样计算有问题
-        }
-        return false;
+        CheckStartOrEndOrder(orderInfor,new Date().getTime());
     }
 
     /**
-     * TOKGO 检测订单是否开始 （订单开始由系统完成）
+     * TOKGO 检测的操作
+     * */
+    private void CheckStartOrEndOrder(OrderInfor orderInfor,long timenow){
+        if (orderInfor.getTimeStartCalculate() < timenow && orderInfor.getOrderStatus()==0) {
+            //订单开始
+            orderInforRepository.updateOrderState(1,orderInfor.getOrderId());
+            //TODO 发送微信模板消息
+        }
+        if (orderInfor.getTimeEndCalculate()<timenow) {
+            //订单结束
+            //TODO 做订单结束的操作
+            //TODO 发送微信模板消息 双方
+        }
+        //计算可提取金额
+        if ((timenow-orderInfor.getOutPriceTime())>Constants.S_DATE_TIMES_MONTH){
+//            orderInfor.
+        }
+    }
+
+    /**
+     * TOKGO 检测订单是否开始结束 （订单开始结束由系统完成）
      * */
     public void CheckStartOrEndOrder(List<OrderInfor> orderInfors){
         //获取当前时间
         long timenow = new Date().getTime();
         for(OrderInfor orderInfor : orderInfors){
-            if (orderInfor.getTimeStartCalculate()>=timenow && orderInfor.getOrderStatus()==0) {
-                //订单开始
-                orderInforRepository.updateOrderState(1,orderInfor.getOrderId());
-                //TODO 发送微信模板消息
-        }
-            if (orderInfor.getTimeEndCalculate()>=timenow) {
-                //订单结束
-                //TODO 做订单结束的操作
-                //TODO 发送微信模板消息
-            }
+            CheckStartOrEndOrder(orderInfor,timenow);
         }
     }
 
