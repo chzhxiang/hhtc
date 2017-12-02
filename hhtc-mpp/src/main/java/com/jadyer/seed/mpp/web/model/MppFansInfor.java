@@ -18,6 +18,7 @@ public class MppFansInfor extends BaseEntity<Long> {
     private long uid;
     private String infor_state;
     private String openid;
+    private String appid;
     private String name;
     @Column(name="id_card")
     private String idCard;
@@ -42,6 +43,14 @@ public class MppFansInfor extends BaseEntity<Long> {
     private String CommunityName;
     @Column(name="house_number")
     private String houseNumber;
+
+    public String getAppid() {
+        return appid;
+    }
+
+    public void setAppid(String appid) {
+        this.appid = appid;
+    }
 
     public long getUid() {
         return uid;

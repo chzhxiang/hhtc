@@ -109,12 +109,16 @@ public class WeixinController extends WeixinMsgControllerCustomServiceAdapter {
 
     @Override
     protected WeixinOutMsg processInFollowEventMsg(WeixinInFollowEventMsg inFollowEventMsg) {
+        //查询公众号
         MppUserInfo mppUserInfo = mppUserService.findByWxid(inFollowEventMsg.getToUserName());
         if(null == mppUserInfo){
             return new WeixinOutTextMsg(inFollowEventMsg).setContent("该公众号未绑定");
         }
+        //关注
         if(WeixinInFollowEventMsg.EVENT_INFOLLOW_SUBSCRIBE.equals(inFollowEventMsg.getEvent())){
+            //把用户添加进入数据库中
             fansSaveAsync.save(mppUserInfo, inFollowEventMsg.getFromUserName());
+            //查找关注后的恢复文本
             MppReplyInfo mppReplyInfo = mppReplyService.getByUidAndCategory(mppUserInfo.getId(), 1);
             if(StringUtils.isBlank(mppReplyInfo.getContent())){
                 return new WeixinOutTextMsg(inFollowEventMsg).setContent("感谢您的关注");
@@ -122,6 +126,7 @@ public class WeixinController extends WeixinMsgControllerCustomServiceAdapter {
                 return new WeixinOutTextMsg(inFollowEventMsg).setContent(mppReplyInfo.getContent());
             }
         }
+        //取消关注
         if(WeixinInFollowEventMsg.EVENT_INFOLLOW_UNSUBSCRIBE.equals(inFollowEventMsg.getEvent())){
             ServletRequestAttributes attributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
             if(null != attributes){

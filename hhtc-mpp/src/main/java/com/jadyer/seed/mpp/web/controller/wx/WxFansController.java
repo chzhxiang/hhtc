@@ -5,6 +5,7 @@ import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.comm.constant.CommonResult;
 import com.jadyer.seed.mpp.web.service.FansService;
+import com.jadyer.seed.mpp.web.service.OwnersInforServic;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,9 +24,11 @@ public class WxFansController {
     private HHTCHelper hhtcHelper;
     @Resource
     private FansService fansService;
+    @Resource
+    private OwnersInforServic ownersInforServic;
 
     //TODO
-    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
+    String openid = "ojZ6h1QmJysqUUpDb9I9v5seu_Dw";
     /**
      * TOKGO 查询粉丝信息
      */
@@ -46,6 +49,15 @@ public class WxFansController {
         return new CommonResult(fansService.getFansCarNumberInfor(openid));
     }
 
+    /***
+     * TOKGO 查询粉丝当前地址id
+     * */
+    @GetMapping("/get/communityid")
+    public CommonResult getCommunityid(HttpSession session){
+        //TODO
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(fansService.GetCommunityidNow(openid));
+    }
 
     /*
     * TOKGO 用户授权查询 查询该用户是否授权
@@ -99,6 +111,17 @@ public class WxFansController {
         //TODO
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult( fansService.CommunityCheck(CommunityID,houseNumber,openid));
+    }
+
+
+    /**
+     * TOKGO 查询车牌是否存在
+     * */
+    @GetMapping("/infor/carNumbercheck")
+    public CommonResult CheckCarNumber(String carNumber,HttpSession session){
+        //TODO
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(ownersInforServic.IsExist(carNumber));
     }
 
 

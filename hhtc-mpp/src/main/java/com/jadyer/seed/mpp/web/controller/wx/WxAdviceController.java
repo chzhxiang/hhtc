@@ -24,7 +24,7 @@ public class WxAdviceController {
     private AdviceService adviceService;
 
     //TODO
-    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
+    String openid = "ojZ6h1QmJysqUUpDb9I9v5seu_Dw";
 
     /**
      * TOKGO 新增意见反馈

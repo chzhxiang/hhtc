@@ -61,8 +61,6 @@ public class GoodsPublishOrderService {
     @Resource
     private UserFundsFlowService userFundsFlowService;
     @Resource
-    private GoodsInforRepository goodsInforRepository;
-    @Resource
     private GoodsPublishRepository goodsPublishRepository;
     @Resource
     private GoodsPublishOrderRepository goodsPublishOrderRepository;
@@ -93,7 +91,7 @@ public class GoodsPublishOrderService {
      * */
     @Transactional(rollbackFor=Exception.class)
     public void postOrder(String openid,long goodsId, BigDecimal price,String starttime,String endtime){
-        GoodsInfor goodsInfor = goodsInforRepository.findByOpenidAndId(openid, goodsId);
+        GoodsInfor goodsInfor = goodsService.get(openid, goodsId);
         if (goodsInfor ==null)
             throw new HHTCException(CodeEnum.SYSTEM_NULL);
         //检测用户是否具有车主身份

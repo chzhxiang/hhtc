@@ -21,7 +21,7 @@ public class WxUserFundsFlowController {
     @Resource
     private UserFundsFlowService userFundsFlowService;
     //TODO
-    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
+    String openid = "ojZ6h1QmJysqUUpDb9I9v5seu_Dw";
     @RequestMapping("/list")
     public CommonResult list(String pageNo, HttpSession session){
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);

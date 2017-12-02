@@ -24,7 +24,7 @@ public class WxGoodsController {
     private GoodsService goodsService;
 
     //TODO
-    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
+    String openid = "ojZ6h1QmJysqUUpDb9I9v5seu_Dw";
 
     /**
      * TOKGO 查询粉丝车位信息信息
@@ -36,6 +36,15 @@ public class WxGoodsController {
         return new CommonResult(goodsService.getFansCarParkInfor(openid));
     }
 
+    /**
+     * TOKGO 查询车位是否存在
+     * */
+    @GetMapping("/check/CarPark")
+    public CommonResult CheckCarPark(long communityid,String carParkNumber,HttpSession session){
+        //TODO
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(goodsService.IsExist(communityid,carParkNumber));
+    }
 
     /**
      * 车位绑定

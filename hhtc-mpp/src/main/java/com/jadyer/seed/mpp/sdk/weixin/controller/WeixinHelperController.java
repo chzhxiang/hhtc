@@ -10,7 +10,6 @@ import com.jadyer.seed.mpp.sdk.weixin.constant.WeixinConstants;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
 import com.jadyer.seed.mpp.sdk.weixin.model.WeixinOAuthAccessToken;
-import com.jadyer.seed.mpp.web.model.MppFansInfo;
 import com.jadyer.seed.mpp.web.model.MppFansInfor;
 import com.jadyer.seed.mpp.web.model.OrderInfo;
 import com.jadyer.seed.mpp.web.service.FansService;

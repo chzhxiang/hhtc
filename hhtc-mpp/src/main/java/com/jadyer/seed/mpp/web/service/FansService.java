@@ -48,17 +48,17 @@ public class FansService {
     @Resource
     private OrderService orderService;
     @Resource
+    private GoodsService goodsService;
+    @Resource
     private AdviceRepository adviceRepository;
     @Resource
     private CommunityService communityService;
     @Resource
+    private OwnersInforServic ownersInforServic;
+    @Resource
     private FansInforRepository fansInforRepository;
     @Resource
-    private GoodsInforRepository goodsInforRepository;
-    @Resource
     private MppUserInfoRepository mppUserInfoRepository;
-    @Resource
-    private OwnersInforRepository ownersInforRepository;
     @Resource
     private WeixinTemplateMsgAsync weixinTemplateMsgAsync;
 
@@ -237,8 +237,13 @@ public class FansService {
             obj.setNickname(fans.getNickname());
             obj.setHeadimgurl(fans.getHeadimgurl());
             obj.setPhone(fans.getPhoneNo());
-            if (tuype != 1)
-                obj.setCommunity(fans.getCommunityName()+fans.getHouseNumber());
+            if (tuype != 1) {
+                obj.setCommunity(fans.getCommunityName() + fans.getHouseNumber());
+                if (tuype == AUDTI_TEPY_CARNUMBER)
+                    obj.setExist(ownersInforServic.IsExist(obj.getContent()));
+                if (tuype == AUDTI_TEPY_CARPARK)
+                    obj.setExist(ownersInforServic.IsExist(obj.getContent().split(SPLITFLAG)[0]));
+            }
         }
         return page;
     }
@@ -314,34 +319,51 @@ public class FansService {
 
 
     /**
-     * 查询粉丝信息
+     * TOKGO 查询粉丝信息
      */
     @Transactional(rollbackFor=Exception.class)
     public MppFansInfor getByOpenid(String openid){
-        MppFansInfor MppFansInfor = fansInforRepository.findByOpenid(openid);
-        // TODO 查询不到：先关注的，但应用是后上线的
-        if(null == MppFansInfor){
-            MppFansInfor = new MppFansInfor();
+        MppFansInfor mppFansInfor = fansInforRepository.findByOpenid(openid);
+        //在应用上线之前关注的 该公众号 直接在现在添加该用户
+        if(null == mppFansInfor){
+            mppFansInfor = new MppFansInfor();
             MppUserInfo mppUserInfo = mppUserInfoRepository.findByMptypeAndBindStatus(1, 1);
             WeixinFansInfo weixinFansInfo = WeixinHelper.getWeixinFansInfo(WeixinTokenHolder.getWeixinAccessToken(mppUserInfo.getAppid()), openid);
-            MppFansInfor.setUid(mppUserInfo.getId());
-            //TODO
-           //MppFansInfor.setWxid(mppUserInfo.getMpid());
-            MppFansInfor.setOpenid(openid);
-            MppFansInfor.setSubscribe(String.valueOf(weixinFansInfo.getSubscribe()));
-            MppFansInfor.setNickname(JadyerUtil.escapeEmoji(weixinFansInfo.getNickname()));
-            MppFansInfor.setSex(weixinFansInfo.getSex());
-            MppFansInfor.setCity(weixinFansInfo.getCity());
-            MppFansInfor.setCountry(weixinFansInfo.getCountry());
-            MppFansInfor.setProvince(weixinFansInfo.getProvince());
-            MppFansInfor.setLanguage(weixinFansInfo.getLanguage());
-            MppFansInfor.setHeadimgurl(weixinFansInfo.getHeadimgurl());
-            MppFansInfor.setUnionid(weixinFansInfo.getUnionid());
-            MppFansInfor.setRemark(weixinFansInfo.getRemark());
-            MppFansInfor.setGroupid(weixinFansInfo.getGroupid());
-            MppFansInfor = fansInforRepository.saveAndFlush(MppFansInfor);
+            mppFansInfor.setUid(mppUserInfo.getId());
+            mppFansInfor.setOpenid(openid);
+            mppFansInfor.setSubscribe(String.valueOf(weixinFansInfo.getSubscribe()));
+            mppFansInfor.setNickname(JadyerUtil.escapeEmoji(weixinFansInfo.getNickname()));
+            mppFansInfor.setSex(weixinFansInfo.getSex());
+            mppFansInfor.setCity(weixinFansInfo.getCity());
+            mppFansInfor.setCountry(weixinFansInfo.getCountry());
+            mppFansInfor.setProvince(weixinFansInfo.getProvince());
+            mppFansInfor.setLanguage(weixinFansInfo.getLanguage());
+            mppFansInfor.setHeadimgurl(weixinFansInfo.getHeadimgurl());
+            mppFansInfor.setUnionid(weixinFansInfo.getUnionid());
+            mppFansInfor.setRemark(weixinFansInfo.getRemark());
+            mppFansInfor.setGroupid(weixinFansInfo.getGroupid());
+            mppFansInfor = fansInforRepository.saveAndFlush(mppFansInfor);
         }
-        return MppFansInfor;
+        return mppFansInfor;
+    }
+
+    /**
+     * TOKGO 查询用户当前地址id
+     * */
+    public long GetCommunityidNow(String openid){
+        MppFansInfor mppFansInfor = fansInforRepository.findByOpenid(openid);
+        if (mppFansInfor==null)
+            throw new HHTCException(CodeEnum.SYSTEM_NULL);
+        if (mppFansInfor.getInfor_state().charAt(Constants.INFOR_STATE_COMMUNITY_BIT)=='0')
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_ERROR);
+        else if(mppFansInfor.getInfor_state().charAt(Constants.INFOR_STATE_COMMUNITY_BIT)=='1')
+            return mppFansInfor.getCommunityId();
+        else {
+            FansInforAudit fansInforAudit = auditService.GetAudit(openid, Constants.AUDTI_TEPY_COMMUNITY).get(0);
+            if (fansInforAudit==null)
+                throw new HHTCException(CodeEnum.SYSTEM_NULL);
+            return fansInforAudit.getCommunityId();
+        }
     }
 
 
@@ -355,7 +377,7 @@ public class FansService {
         if (mppFansInfor==null )
             throw new HHTCException(CodeEnum.SYSTEM_NULL);
         //添加已有的数据
-        for (OwnersInfor ownersInfor:ownersInforRepository.findByOpenid(openid)){
+        for (OwnersInfor ownersInfor:ownersInforServic.Get(openid)){
             hashMap = new HashMap();
             hashMap.put("state","work");
             hashMap.put("id",ownersInfor.getId());
@@ -427,8 +449,8 @@ public class FansService {
             auditService.Delete(id);
         }
         else{
-            ownersInforRepository.delete(id);
-            if (ownersInforRepository.findByOpenid(openid).size()==0)
+            ownersInforServic.Delete(id);
+            if (ownersInforServic.Get(openid).size()==0)
                 UpdatedataInforSate(INFOR_STATE_CARPARK_BIT, '0', fansInforRepository.findByOpenid(openid));
 
         }
@@ -483,7 +505,7 @@ public class FansService {
 
         List<FansInforAudit> fansInforAudits = auditService.GetAudit(mppFansInfor.getUid()
                 ,mppFansInfor.getOpenid(),AUDTI_TEPY_CARNUMBER);
-        List<OwnersInfor> ownersInfors = ownersInforRepository.findByOpenid(mppFansInfor.getOpenid());
+        List<OwnersInfor> ownersInfors = ownersInforServic.Get(mppFansInfor.getOpenid());
         if ((ownersInfors.size()+fansInforAudits.size())>Constants.S_CARNUMBERMAX) {
             //判断用户已经拥有了两块车牌
             throw new HHTCException(CodeEnum.HHTC_INFOR_CARNUMBERFULL);
@@ -546,11 +568,11 @@ public class FansService {
         else if (fansInforAudit.getType() == Constants.AUDTI_TEPY_CARPARK){
             if (status == 1) {
                 FirstData = "尊敬的用户，你的车位："+fansInforAudit.getContent()+",审核通过了";
-                AddGoods(fansInfor,fansInforAudit,appid);
+                goodsService.AddGoods(fansInforAudit,appid,userInfo.getId());
                 UpdatedataInforSate(INFOR_STATE_CARPARK_BIT, '1', fansInfor);
             }else {
                 FirstData = "尊敬的用户，你的车牌："+fansInforAudit.getContent()+",审核未通过";
-                if (goodsInforRepository.findByOpenid(fansInfor.getOpenid()).size()==0)
+                if (goodsService.get(fansInfor.getOpenid()).size()==0)
                     UpdatedataInforSate(INFOR_STATE_CARPARK_BIT, '0', fansInfor);
             }
         }
@@ -558,22 +580,21 @@ public class FansService {
         else{
             if (status == 1) {
                 FirstData = "尊敬的用户，你的车位："+fansInforAudit.getContent()+",审核通过了";
-                //TODO  uid 没有获取
-                AddCarNumber(fansInfor,fansInforAudit.getContent(),fansInforAudit.getImgurl1(),0);
+                ownersInforServic.AddCarNumber(fansInforAudit,userInfo.getId());
                 UpdatedataInforSate(INFOR_STATE_CARNUMBE_BIT, '1', fansInfor);
             }else {
                 FirstData = "尊敬的用户，你的车牌："+fansInforAudit.getContent()+",审核未通过";
-                if (ownersInforRepository.findByOpenid(fansInfor.getOpenid()).size()==0)
+                if (ownersInforServic.Get(fansInfor.getOpenid()).size()==0)
                     UpdatedataInforSate(INFOR_STATE_CARNUMBE_BIT, '0', fansInfor);
             }
         }
         //审核结果发送微信模板消息
         if (status == 1)
             weixinTemplateMsgAsync.Send(FirstData,Key1Data,Key2Data,RemarkData,appid
-                    ,fansInfor.getOpenid(), WxMsgEnum.AUDIT_NOTPASS);
+                    ,fansInfor.getOpenid(), WxMsgEnum.WX_TEST);
         else
             weixinTemplateMsgAsync.Send(FirstData,Key1Data,Key2Data,RemarkData,appid
-                    ,fansInfor.getOpenid(), WxMsgEnum.AUDIT_NOTPASS);
+                    ,fansInfor.getOpenid(), WxMsgEnum.WX_TEST);
         //删除审核记录
         auditService.Delete(fansInforAudit);
     }
@@ -583,87 +604,56 @@ public class FansService {
      * */
     private void ChangeAdrres(MppFansInfor fansInfor,FansInforAudit fansInforAudit){
         int ownerfalg =0,carparkflag=0;
-        //检测车牌
-        for (OwnersInfor ownersInfor: ownersInforRepository.findByOpenid(fansInfor.getOpenid())){
-            if (ownersInfor.getCommunityId() != fansInforAudit.getCommunityId())
-                ownersInforRepository.delete(ownersInfor);
-            else
-                ownerfalg =1;
-        }
-        //检测车位
-        for (GoodsInfor goodsInfor: goodsInforRepository.findByOpenid(fansInfor.getOpenid())){
-            if (goodsInfor.getCommunityId() != fansInforAudit.getCommunityId())
-                goodsInforRepository.delete(goodsInfor);
-            else
-                carparkflag=1;
-        }
-        //检测审核的车牌和车位
-        for (FansInforAudit audit:auditService.GetAudit(fansInfor.getUid(),fansInfor.getOpenid()
-                ,AUDTI_TEPY_CARPARK)){
-            if (audit.getCommunityId() != fansInforAudit.getCommunityId())
+        //检测审核的车位
+        List<FansInforAudit> fansInforAudits;
+        fansInforAudits = auditService.GetAudit(fansInfor.getUid(),fansInfor.getOpenid(),AUDTI_TEPY_CARPARK);
+        for (FansInforAudit audit:fansInforAudits){
+            if (audit.getCommunityId()!=0 &&audit.getCommunityId() != fansInforAudit.getCommunityId())
                 auditService.Delete(audit);
             else {
-                auditService.UpdataState(audit.getId());
+                audit.setState(0);
+                audit.setCommunityId(fansInfor.getCommunityId());
+                audit.setCommunityName(fansInforAudit.getCommunityName());
                 if (ownerfalg == 0)
                     ownerfalg = 2;
             }
         }
-        for (FansInforAudit audit:auditService.GetAudit(fansInfor.getUid(),fansInfor.getOpenid()
-                ,AUDTI_TEPY_CARNUMBER)){
-            if (audit.getCommunityId() != fansInforAudit.getCommunityId())
+        if (ownerfalg == 2)
+            auditService.save(fansInforAudits);
+        //检测审核的车牌
+        fansInforAudits = auditService.GetAudit(fansInfor.getUid(),fansInfor.getOpenid(),AUDTI_TEPY_CARNUMBER);
+        for (FansInforAudit audit:fansInforAudits){
+            if (audit.getCommunityId()!=0 &&audit.getCommunityId() != fansInforAudit.getCommunityId())
                 auditService.Delete(audit);
             else {
-                auditService.UpdataState(audit.getId());
+                audit.setState(0);
+                audit.setCommunityId(fansInfor.getCommunityId());
+                audit.setCommunityName(fansInforAudit.getCommunityName());
                 if (carparkflag == 0)
                     carparkflag = 2;
             }
+        }
+        if (carparkflag == 2)
+            auditService.save(fansInforAudits);
+        //检测车牌
+        for (OwnersInfor ownersInfor: ownersInforServic.Get(fansInfor.getOpenid())){
+            if (ownersInfor.getCommunityId() != fansInforAudit.getCommunityId())
+                ownersInforServic.Delete(ownersInfor.getId());
+            else
+                ownerfalg =1;
+        }
+        //检测车位
+        for (GoodsInfor goodsInfor: goodsService.get(fansInfor.getOpenid())){
+            if (goodsInfor.getCommunityId() != fansInforAudit.getCommunityId())
+                goodsService.Delete(goodsInfor);
+            else
+                carparkflag=1;
         }
         String string = fansInfor.getInfor_state().substring(0,2);
         fansInfor.setInfor_state(string+"1"+carparkflag+ownerfalg);
         fansInforRepository.saveAndFlush(fansInfor);
     }
 
-
-
-    /**
-     * TOKGO  添加车牌
-     * */
-    private void AddCarNumber( MppFansInfor fansInfor,String Carnumber,String img,long uid){
-        //TODO 车牌重复检测
-        OwnersInfor ownersInfor = new OwnersInfor();
-        ownersInfor.setOpenid(fansInfor.getOpenid());
-        ownersInfor.setCommunityId(fansInfor.getCommunityId());
-        ownersInfor.setCommunityName(fansInfor.getCommunityName());
-        ownersInfor.setCaNumber(Carnumber);
-        ownersInfor.setCarNumberImg(img);
-        ownersInfor.setCarAuditUid(uid);
-        ownersInforRepository.save(ownersInfor);
-    }
-
-    /**
-     * TOKGO 添加车位
-     * */
-    private void AddGoods(MppFansInfor fansInfor,FansInforAudit fansInforAudit, String appid){
-
-        // TODO 新增或更新（审核拒绝后再次注册）车位信息
-//        GoodsInfo goodsInfo = goodsRepository.findByOpenidAndCarParkNumber(openid, carParkNumber);
-//        if(null == goodsInfo){
-//            goodsInfo = new GoodsInfo();
-//        }
-        GoodsInfor goodsInfor = new GoodsInfor();
-        goodsInfor.setCommunityId(fansInfor.getCommunityId());
-        goodsInfor.setCommunityName(fansInfor.getCommunityName());
-        goodsInfor.setAppid(appid);
-        goodsInfor.setOpenid(fansInfor.getOpenid());
-        goodsInfor.setCarParkNumber(fansInforAudit.getContent().split("@")[0]);
-        goodsInfor.setCarEquityImg(fansInforAudit.getImgurl1());
-        //TODO 这里缺少uid
-//        goodsInfor.setCarAuditUid(userInfo.getUuid());
-        goodsInfor.setCarUsefulEndDate(fansInforAudit.getContent().split("@")[1]);
-        goodsInforRepository.saveAndFlush(goodsInfor);
-//        return fansInfo.getCarOwnerStatus() == 0;
-
-    }
 
     /**
      * TOKGO 检测用户用户车牌使用资格 返回相应的状态吗

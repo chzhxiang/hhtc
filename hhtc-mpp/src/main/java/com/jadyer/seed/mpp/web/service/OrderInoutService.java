@@ -141,7 +141,7 @@ public class OrderInoutService {
         fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
         fundsFlow.setBizDateTime(new Date());
         userFundsFlowService.upsert(fundsFlow);
-        funds = userFundsService.addMoneyBalanceForPlatform(moneyPlatform);
+//        funds = userFundsService.addMoneyBalanceForPlatform(moneyPlatform);
         fundsFlow = new UserFundsFlow();
         fundsFlow.setFundsId(funds.getId());
         fundsFlow.setUid(funds.getUid());

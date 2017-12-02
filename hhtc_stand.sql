@@ -46,8 +46,9 @@ DROP TABLE IF EXISTS t_mpp_fans_infor;
 CREATE TABLE t_mpp_fans_infor(
 id                       INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
 uid                      INT          NOT NULL COMMENT '平台用户ID，对应t_mpp_user_info#id',
-infor_state              VARCHAR(5)   COMMENT '用户信息状态(每位的数字含义 0 未做 1 完成  2审核中):0--是否授权，1--是否验证电话，2--是否验证住址，3--是否验证车位 4--是否验证车牌',
+infor_state              VARCHAR(5)  DEFAULT '00000' COMMENT '用户信息状态(每位的数字含义 0 未做 1 完成  2审核中):0--是否授权，1--是否验证电话，2--是否验证住址，3--是否验证车位 4--是否验证车牌',
 openid                   VARCHAR(64)  NOT NULL COMMENT '粉丝的openid',
+appid                VARCHAR(64)     COMMENT '粉丝关注的公众号的appid',
 name                     VARCHAR(16)  COMMENT '粉丝的真实姓名',
 id_card                  VARCHAR(18)  COMMENT '粉丝的身份证号',
 phone_no                 CHAR(11)     COMMENT '粉丝的手机号',
@@ -63,13 +64,12 @@ subscribe_time           VARCHAR(19)  COMMENT '粉丝最后一次关注的时间
 unionid                  VARCHAR(64)  COMMENT '只有在用户将公众号绑定到微信开放平台帐号后，才会出现该字段',
 remark                   VARCHAR(64)  COMMENT '公众号运营者对粉丝的备注',
 groupid                  VARCHAR(16)  COMMENT '粉丝用户所在的分组ID',
-community_id             INT          COMMENT '粉丝所在的小区ID，对应t_community_info#id',
+community_id             INT  DEFAULT 0   COMMENT '粉丝所在的小区ID，对应t_community_info#id',
 community_name           VARCHAR(32)  COMMENT '粉丝所在的小区名称，冗余自t_community_info#name',
 house_number             VARCHAR(32)  COMMENT '门牌号',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
 UNIQUE INDEX unique_index_phoneNo(phone_no),
-UNIQUE INDEX unique_index_uid_openid(uid, openid)
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='粉丝表 TOKGO';
 
 
@@ -115,7 +115,7 @@ bind_time    TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP COMMENT '微信或QQ公众
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
 UNIQUE INDEX unique_index_username(username)
-)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='mpplus平台用户表';
+)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='mpplus平台用户表 TOKGO ';
 
 
 DROP TABLE IF EXISTS t_community_info;
@@ -189,6 +189,7 @@ car_audit_uid        INT          COMMENT '车位审核人的uid,，对应t_mpp_
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 UNIQUE INDEX unique_index_openid_carParkNumber(openid, car_park_number)
+UNIQUE INDEX unique_index_community_Id_carParkNumber(community_id, car_park_number)
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='商品信息表（存储车位信息）TOKGO';
 
 
@@ -357,8 +358,9 @@ time_start              VARCHAR(32)     NOT NULL COMMENT '即订单生成时间 
 time_start_calculate    LONGTEXT     NOT NULL COMMENT '开始时间 用于计算  其值由 time_start的set函数产生',
 time_end                VARCHAR(32)   NOT NULL   COMMENT '支付完成时间 格式为2017-11-27 1:18',
 time_end_calculate    LONGTEXT     NOT NULL COMMENT '结束时间 用于计算  其值由 time_end的set函数产生',
+total_out_price              DECIMAL(16,2) default 0 COMMENT '提现总金额',
 out_price              DECIMAL(16,2) default 0 COMMENT '提现总金额',
-out_price_time        LONGTEXT       COMMENT '提现时间',
+out_price_time        LONGTEXT       COMMENT '提现计算时间时间',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
 INDEX index_outTradeNo(order_id)
@@ -368,7 +370,7 @@ INDEX index_outTradeNo(order_id)
 DROP TABLE IF EXISTS t_order_history;
 CREATE TABLE t_order_history(
 id                      INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
-order_id                INT           NOT NULL COMMENT '订单ID，对应t_order_infor#id',
+order_id                VARCHAR(50)       NOT NULL COMMENT '订单ID，对应t_order_infor#id',
 post_openid             VARCHAR(64)   NOT NULL COMMENT '车位主的标识',
 post_phone_no                 CHAR(11)     COMMENT '车位主的手机号',
 owners_openid              VARCHAR(64)   NOT NULL COMMENT '车主的标识',
@@ -476,7 +478,7 @@ update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMES
 DROP TABLE IF EXISTS t_user_funds;
 CREATE TABLE t_user_funds(
 id            INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
-uid           INT           COMMENT '用户ID，对应t_mpp_user_info#id',
+uid           INT        DEFAULT 0  COMMENT '用户ID，对应t_mpp_user_info#id',
 openid        VARCHAR(64)   COMMENT '粉丝的openid',
 money_base    DECIMAL(16,4) NOT NULL COMMENT '押金，单位：元',
 money_balance DECIMAL(16,4) NOT NULL COMMENT '余额，单位：元',

@@ -58,7 +58,7 @@ public class AuditService {
             //如果地址没有审核通过 车牌和车位不给与显示
             fansInforAudit.setState(1);
         }
-        return fansAuditRepository.saveAndFlush(fansInforAudit);
+        return fansAuditRepository.save(fansInforAudit);
     }
 
     /**
@@ -85,11 +85,20 @@ public class AuditService {
     }
 
     /**
+     * TOKGO 获取用户审核数据
+     * */
+    public List<FansInforAudit> GetAudit(String openid,int type){
+        return fansAuditRepository.findByOpenidAndType(openid,type);
+    }
+
+
+    /**
      * TOKGO 获取一个审核请求
      * */
     public FansInforAudit GetOne(long id){
         return fansAuditRepository.getOne(id);
     }
+
 
     /**
      * TOKGO 分页查询
@@ -99,14 +108,10 @@ public class AuditService {
     }
 
     /**
-     * TOKGO 更新查看状态
+     * TOKGO 保存
      * */
-    public void UpdataState(long id){
-        //TODO
-        FansInforAudit audit =fansAuditRepository.getOne(id);
-        audit.setState(0);
-        fansAuditRepository.saveAndFlush(audit);
-//        fansAuditRepository.updateState(id);
+    public void save(List<FansInforAudit> list){
+        fansAuditRepository.save(list);
     }
 
 }

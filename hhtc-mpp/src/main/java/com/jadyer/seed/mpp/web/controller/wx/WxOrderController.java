@@ -25,7 +25,7 @@ public class WxOrderController {
     private OrderInforService orderInforService;
 
     //TODO
-    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
+    String openid = "ojZ6h1QmJysqUUpDb9I9v5seu_Dw";
 
 
     /**
@@ -45,6 +45,15 @@ public class WxOrderController {
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
         orderInforService.OvertimeRepayment(openid,orderid);
         return new CommonResult();
+    }
+
+    /**
+     * TODO 测试接口
+     * */
+    @RequestMapping("/test")
+    public void repayments( HttpSession session){
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        orderInforService.test(openid);
     }
 
 

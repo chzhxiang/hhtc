@@ -2,12 +2,17 @@ package com.jadyer.seed.mpp.web.service;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.comm.constant.Constants;
+import com.jadyer.seed.comm.constant.WxMsgEnum;
 import com.jadyer.seed.comm.exception.HHTCException;
+import com.jadyer.seed.mpp.sdk.weixin.model.template.WeixinTemplateMsg;
 import com.jadyer.seed.mpp.web.model.*;
+import com.jadyer.seed.mpp.web.service.async.OrderAsync;
+import com.jadyer.seed.mpp.web.service.async.WeixinTemplateMsgAsync;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,13 +31,15 @@ public class MarketTransactionService {
     @Value("${hhtc.orderLock.lock}")
     private int locktime;
     @Resource
-    private FansService fansService;
+    private OrderAsync orderAsync;
     @Resource
-    private GoodsService goodsService;
+    private FansService fansService;
     @Resource
     private UserFundsService userFundsService;
     @Resource
     private OrderInforService orderInforService;
+    @Resource
+    private WeixinTemplateMsgAsync weixinTemplateMsgAsync;
     @Resource
     private GoodsPublishOrderService goodsPublishOrderService;
 
@@ -87,27 +94,32 @@ public class MarketTransactionService {
     /**
      *TOKGO 用户取消下单
      * */
-    public String CancelOrder(String openid,String orderid,String type){
-        //TODO 各种条件的检测
+    public void CancelOrder(String openid,String orderid,String type){
 
-        //查找订单
+        //获取订单
         OrderInfor orderInfor = orderInforService.GetOrder(orderid);
-        if (orderInfor == null)
-            throw new HHTCException(CodeEnum.SYSTEM_PARAM_NULL);
+        //获取当前时间
+        long timenow = new Date().getTime();
+        //如果小于三个小时 不能取消预约 只能申诉退单
+        if((orderInfor.getTimeEndCalculate()-timenow)<locktime* Constants.S_DATE_TIMES_HOUR){
+            throw new HHTCException(CodeEnum.HHTC_ORDER_DISRESERVATION_FAIL);
+        }
+        //退钱给车主
+        userFundsService.addMoneyBalanceForFans(orderInfor.getOwnersOpenid(),orderInfor.getTotalPrice());
         if ("owners".equals(type)){
             if (!openid.equals(orderInfor.getOwnersOpenid()))
-                throw new HHTCException(CodeEnum.SYSTEM_PARAM_ERROR);
+                throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
             orderInforService.Delelte(orderInfor.getId());
             goodsPublishOrderService.BackMarket(orderInfor);
 
         }else {
             if (!openid.equals(orderInfor.getPostOpenid()))
-                throw new HHTCException(CodeEnum.SYSTEM_PARAM_ERROR);
+                throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
             orderInforService.Delelte(orderInfor.getId());
         }
-        //TODO 微信模板消息通知车主
-        //TODO 暂时没有返回
-        return "";
+//        // TODO 微信发消息
+//        weixinTemplateMsgAsync.Send("fistdata","ke1","ke2","remakg"
+//                ,fansInfor.getAppid(),fansInfor.getOpenid(), WxMsgEnum.WX_TEST);
     }
 
 
@@ -115,7 +127,7 @@ public class MarketTransactionService {
     /**
      *TOKGO 用户预约下单
      * */
-    public String Reservation(String openid,String orderid,String CarNumber,int type){
+    public void Reservation(String openid,String orderid,String CarNumber,int type){
         MppFansInfor fansInfor = fansService.getByOpenid(openid);
         //检测用户是否具有使用资格
         fansService.CheckOwners(fansInfor);
@@ -136,7 +148,7 @@ public class MarketTransactionService {
             throw new HHTCException(CodeEnum.HHTC_FUNDS_BALANCE_NO);
         }
         //订单时间冲突检查
-        if (type == 1&& OrderTimeCheck(goodsPublishOrder,openid)){
+        if (type == 1&& OrderTimeCheck(goodsPublishOrder.getPublishFromTime(),goodsPublishOrder.getPublishEndTime(),openid)){
             throw new HHTCException(CodeEnum.HHTC_ORDER_PORT_TIMEERROR);
         }
         //进行订单预约
@@ -145,20 +157,20 @@ public class MarketTransactionService {
         userFundsService.subtractMoneyBalanceForFans(openid,goodsPublishOrder.getPrice());
         //市场消除订单
         goodsPublishOrderService.delete(goodsPublishOrder.getId());
-        //TODO 微信模板消息通知车主
-        //TODO 暂时没有返回
-        return "";
+        // TODO 微信发消息
+        weixinTemplateMsgAsync.Send("fistdata","ke1","ke2","remakg"
+                ,fansInfor.getAppid(),fansInfor.getOpenid(), WxMsgEnum.WX_TEST);
     }
 
     /**
      * TOKGO 订单时间冲突检查
      * @return  true 含有时间冲突
      * */
-    private boolean OrderTimeCheck(GoodsPublishOrder goodsPublishOrder,String openid){
+    public boolean OrderTimeCheck(String FromTime,String EndTime,String openid){
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-            long starttime =  sdf.parse(goodsPublishOrder.getPublishFromTime()).getTime();
-            long endtime =  sdf.parse(goodsPublishOrder.getPublishEndTime()).getTime();
+            long starttime =  sdf.parse(FromTime).getTime();
+            long endtime =  sdf.parse(EndTime).getTime();
             List<OrderInfor> orderInfors = orderInforService.GetOwnersOrder(openid);
             for (OrderInfor orderInfor:orderInfors) {
                 long orderstarttime = sdf.parse(orderInfor.getTimeStart()).getTime();
@@ -178,32 +190,19 @@ public class MarketTransactionService {
     /**
      * TOKGO 订单结算
      * **/
-    public String OrderGetMomey(String orderid,String openid){
-        return "";
-    }
-
-
-    /**
-     *TOKGO 取消预约
-     * */
-    public void ReservationLogout(String openid,String orderid){
-        //获取订单
+    public void OrderGetMomey(String orderid,String openid){
         OrderInfor orderInfor = orderInforService.GetOrder(orderid);
-        if (!(orderInfor.getOwnersOpenid().equals(openid)||orderInfor.getPostOpenid().equals(openid))){
-            //请求的用户不是该订单的用户
-            throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
+        if (orderInfor == null ||!orderInfor.getPostOpenid().equals(openid) )
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_ERROR);
+        if (orderInfor.getOutPrice().doubleValue()<1){
+            throw new HHTCException(CodeEnum.HHTC_ORDER_MONEY_NO);
         }
-        //获取当前时间
-        long timenow = new Date().getTime();
-        //如果小于三个小时 不能取消预约 只能申诉退单
-        if((orderInfor.getTimeEndCalculate()-timenow)<locktime* Constants.S_DATE_TIMES_HOUR){
-            throw new HHTCException(CodeEnum.HHTC_ORDER_DISRESERVATION_FAIL);
-        }
-        //正常退单
-        orderInforService.Delelte(orderInfor.getId());
-        //订单回归市场
-        goodsPublishOrderService.BackMarket(orderInfor);
-        //TODO 微信模板消息通知车位主
+        double toal = orderInfor.getTotalOutPrice().doubleValue() + orderInfor.getOutPrice().doubleValue();
+        orderAsync.Penny(orderInfor.getOutPrice().doubleValue(),orderInfor);
+        orderInfor.setTotalOutPrice(new BigDecimal(toal));
+        orderInfor.setOutPrice(new BigDecimal(0));
+        orderInforService.Save(orderInfor);
     }
+
 
 }

@@ -20,7 +20,7 @@ import java.util.Date;
 public class OrderHistory extends BaseEntity<Long> {
     private static final long serialVersionUID = 8020680057027208315L;
     @Column(name="order_id")
-    private long orderId;
+    private String orderId;
     @Column(name="post_openid")
     private String postOpenid;
     @Column(name="post_phone_no")
@@ -42,9 +42,9 @@ public class OrderHistory extends BaseEntity<Long> {
     @Column(name="car_number")
     private String carNumber;
     @Column(name="from_time")
-    private int FromTime;
+    private String FromTime;
     @Column(name="end_time")
-    private int EndTime;
+    private String EndTime;
     @Column(name="total_price")
     private BigDecimal totalprice;
     @Column(name="fine_price")
@@ -71,19 +71,19 @@ public class OrderHistory extends BaseEntity<Long> {
         this.ownersPhoneNO = ownersPhoneNO;
     }
 
-    public int getFromTime() {
+    public String getFromTime() {
         return FromTime;
     }
 
-    public void setFromTime(int fromTime) {
+    public void setFromTime(String fromTime) {
         FromTime = fromTime;
     }
 
-    public int getEndTime() {
+    public String getEndTime() {
         return EndTime;
     }
 
-    public void setEndTime(int endTime) {
+    public void setEndTime(String endTime) {
         EndTime = endTime;
     }
 
@@ -127,11 +127,11 @@ public class OrderHistory extends BaseEntity<Long> {
         this.ownersOpenid = ownersOpenid;
     }
 
-    public long getOrderId() {
+    public String getOrderId() {
         return orderId;
     }
 
-    public void setOrderId(long orderId) {
+    public void setOrderId(String orderId) {
         this.orderId = orderId;
     }
 

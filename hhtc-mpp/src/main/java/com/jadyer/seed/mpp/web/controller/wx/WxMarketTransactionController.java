@@ -28,7 +28,7 @@ public class WxMarketTransactionController {
 
 
     //TODO
-    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
+    String openid = "ojZ6h1QmJysqUUpDb9I9v5seu_Dw";
 
     /**
      * TOKGO 获取粉丝自己的订单
@@ -56,6 +56,15 @@ public class WxMarketTransactionController {
     }
 
     /**
+     * TOKGO 检测时间冲突
+     * */
+    @GetMapping("/checkOrdertime")
+    public CommonResult CheckOrderTime(String FromTime,String EndTime,HttpSession session){
+        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(marketTransactionService.OrderTimeCheck(FromTime,EndTime,openid));
+    }
+
+    /**
      * TOKGO 预约下单
      * @param type  1----第一次请求  2----第二次请求
      */
@@ -64,30 +73,21 @@ public class WxMarketTransactionController {
         String appid = hhtcHelper.getWxAppidFromSession(session);
         //TODO
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
-        return new CommonResult(marketTransactionService.Reservation(openid,orderid,CarNuber,type));
-    }
-
-    /**
-     * TOKGO 取消预约
-     */
-    @PostMapping("/reservationLogout")
-    public CommonResult ReservationLogout(String orderid,HttpSession session){
-        String appid = hhtcHelper.getWxAppidFromSession(session);
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
-        marketTransactionService.ReservationLogout(openid,orderid);
+        //TODO 测试时车牌号 还没有写
+        marketTransactionService.Reservation(openid,orderid,"testcar",type);
         return new CommonResult();
     }
 
     /**
      * TOKGO 订单结算
+     * TODO 名字有问题
      */
-    @PostMapping("/startorder")
-    public CommonResult StartOrder(String orderid,HttpSession session){
+    @PostMapping("/ordergetmoney")
+    public CommonResult orderGetMoney(String orderid,HttpSession session){
         //TODO
         if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
-        return new CommonResult(marketTransactionService.OrderGetMomey(orderid,openid));
+        marketTransactionService.OrderGetMomey(orderid,openid);
+        return new CommonResult();
     }
-
 
 }

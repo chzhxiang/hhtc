@@ -57,7 +57,7 @@ public class OrderController {
         if(userInfo.getType() != 1){
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "只有平台运营才可以調配訂單");
         }
-        orderService.allocate(orderId, phoneNo, ids);
+//        orderService.allocate(orderId, phoneNo, ids);
         return new CommonResult();
     }
 

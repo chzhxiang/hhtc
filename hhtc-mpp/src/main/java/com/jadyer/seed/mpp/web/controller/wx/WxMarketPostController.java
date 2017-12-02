@@ -33,7 +33,7 @@ public class WxMarketPostController {
 
 
     //TODO
-    String openid = "ojZ6h1f1NBoUBWuSf3bTDna5xNVc";
+    String openid = "ojZ6h1QmJysqUUpDb9I9v5seu_Dw";
 
     /**
      * TOKGO 库存数量 获取市场的车位

@@ -54,6 +54,7 @@ public class UserFundsService {
         return (communityInfo.getMoneyBase().compareTo(moneyBase) <= 0);
     }
 
+
     /**
      * TOKGO 检查余额是否足够
      * */
@@ -68,13 +69,14 @@ public class UserFundsService {
      */
     public UserFunds get(String openid) {
         UserFunds funds = userFundsRepository.findByOpenid(openid);
-        if(null == funds){
-            funds = new UserFunds();
-            funds.setOpenid(openid);
-            funds.setMoneyBase(new BigDecimal(0));
-            funds.setMoneyBalance(new BigDecimal(0));
-        }
         return funds;
+    }
+
+    /**
+     * TOKGO 保存用户
+     */
+    public void save(UserFunds funds) {
+        userFundsRepository.save(funds);
     }
 
     /**
@@ -124,6 +126,9 @@ public class UserFundsService {
         return userFundsRepository.saveAndFlush(funds);
     }
 
+    /**
+     * TOKGO 给平台打钱
+     * */
     @Transactional(rollbackFor=Exception.class)
     public UserFunds addMoneyBalanceForPlatform(BigDecimal money){
         MppUserInfo mppUserInfo = mppUserInfoRepository.findByMptypeAndBindStatus(1, 1);

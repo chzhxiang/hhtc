@@ -92,6 +92,8 @@ public class FansController{
     }
 
 
+
+
     @RequestMapping("/advice/list")
     public String listAdviceViaPage(String pageNo, HttpServletRequest request){
         MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);

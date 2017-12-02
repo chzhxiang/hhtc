@@ -37,7 +37,16 @@ public class FansInforAudit extends BaseEntity<Long>{
     private String phone;
     @Transient
     private String community;
+    @Transient
+    private boolean isExist;
 
+    public boolean isExist() {
+        return isExist;
+    }
+
+    public void setExist(boolean exist) {
+        isExist = exist;
+    }
 
     public int getState() {
         return state;

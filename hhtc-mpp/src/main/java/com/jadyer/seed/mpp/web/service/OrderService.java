@@ -212,7 +212,7 @@ public class OrderService {
             OrderHistory history = new OrderHistory();
             BeanUtil.copyProperties(order, history);
             history.setId(null);
-            history.setOrderId(order.getId());
+//            history.setOrderId(order.getId());
             orderHistoryRepository.saveAndFlush(history);
             orderRepository.delete(order.getId());
             LogUtil.getQuartzLogger().info("定时任务：归档订单-->处理完毕[{}-{}]条", len, currIndex);
@@ -241,106 +241,106 @@ public class OrderService {
         return list;
     }
 
-
-
-
-    /**
-     * 后台運營主動調配訂單
-     */
-    @Transactional(rollbackFor=Exception.class)
-    public void allocate(long orderId, String phoneNo, String ids) {
-        MppUserInfo mppUserInfo = mppUserInfoRepository.findByMptypeAndBindStatus(1, 1);
-        if(null==mppUserInfo || mppUserInfo.getId()==0){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "获取平台UID失败");
-        }
-        MppFansInfor fansInfo = fansInforRepository.findByPhoneNo(phoneNo);
-        if(null==fansInfo || null==fansInfo.getId() || fansInfo.getId()==0 || "0".equals(fansInfo.getSubscribe())){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无法识别粉丝或未关注公众号");
-        }
-        //TODO
-//        if(2 != fansInfo.getCarOwnerStatus()){
-//            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_OWNER);
+//TODO
+//
+//
+//    /**
+//     * 后台運營主動調配訂單
+//     */
+//    @Transactional(rollbackFor=Exception.class)
+//    public void allocate(long orderId, String phoneNo, String ids) {
+//        MppUserInfo mppUserInfo = mppUserInfoRepository.findByMptypeAndBindStatus(1, 1);
+//        if(null==mppUserInfo || mppUserInfo.getId()==0){
+//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "获取平台UID失败");
 //        }
-        //校驗原訂單
-        OrderInfo order = this.get(orderId);
-        if(order.getOrderType()!=1 && order.getOrderType()!=2){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "原訂單類型無效["+order.getOrderType()+"]");
-        }
-        if(order.getOrderStatus()==9 || order.getOrderStatus()==99){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "原訂單已轉租或已完成");
-        }
-        if(order.getOrderStatus()!=2){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "原訂單未支付成功");
-        }
-        //校验是否已入场
-        OrderInout inout = orderInoutRepository.findByOrderNoAndInTimeNotNullAndOutTimeNull(order.getOutTradeNo());
-        if(null==inout || null==inout.getInTime()){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "车主未入场");
-        }
-        //校验是否已被锁定
-        BigDecimal price = new BigDecimal(0);
-        List<GoodsPublishOrder> orderList = new ArrayList<>();
-        for(String id : ids.split("`")){
-//            if(pubOrder.getStatus() != 0){
-//                throw new HHTCException(CodeEnum.HHTC_GOODS_ORDER_FAIL);
+//        MppFansInfor fansInfo = fansInforRepository.findByPhoneNo(phoneNo);
+//        if(null==fansInfo || null==fansInfo.getId() || fansInfo.getId()==0 || "0".equals(fansInfo.getSubscribe())){
+//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无法识别粉丝或未关注公众号");
+//        }
+//        //TODO
+////        if(2 != fansInfo.getCarOwnerStatus()){
+////            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_OWNER);
+////        }
+//        //校驗原訂單
+//        OrderInfo order = this.get(orderId);
+//        if(order.getOrderType()!=1 && order.getOrderType()!=2){
+//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "原訂單類型無效["+order.getOrderType()+"]");
+//        }
+//        if(order.getOrderStatus()==9 || order.getOrderStatus()==99){
+//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "原訂單已轉租或已完成");
+//        }
+//        if(order.getOrderStatus()!=2){
+//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "原訂單未支付成功");
+//        }
+//        //校验是否已入场
+//        OrderInout inout = orderInoutRepository.findByOrderNoAndInTimeNotNullAndOutTimeNull(order.getOutTradeNo());
+//        if(null==inout || null==inout.getInTime()){
+//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "车主未入场");
+//        }
+//        //校验是否已被锁定
+//        BigDecimal price = new BigDecimal(0);
+//        List<GoodsPublishOrder> orderList = new ArrayList<>();
+//        for(String id : ids.split("`")){
+////            if(pubOrder.getStatus() != 0){
+////                throw new HHTCException(CodeEnum.HHTC_GOODS_ORDER_FAIL);
+////            }
+////            orderList.add(pubOrder);
+////            price = price.add(pubOrder.getPrice());
+//        }
+//
+//        //將原訂單置為已完成
+//        order.setOrderStatus(99);
+//        this.upsert(order);
+//        Date currInTime = new Date();
+//        orderInoutRepository.deleteByOrderNo(order.getOutTradeNo());
+//        //釋放原訂單的車位发布信息和車位信息
+//        goodsPublishOrderService.updateStatusToPublishing(orderList);
+//        //再重新下单（訂單金額仍為原訂單的金額）
+//        OrderInfo orderInfo = new OrderInfo();
+//        orderInfo.setCommunityId(orderList.get(0).getCommunityId());
+//        orderInfo.setCommunityName(orderList.get(0).getCommunityName());
+//        orderInfo.setGoodsId(orderList.get(0).getGoodsId());
+//        orderInfo.setGoodsPublishOrderIds(ids);
+//        orderInfo.setCarParkNumber(orderList.get(0).getCarParkNumber());
+//        orderInfo.setCarParkImg(orderList.get(0).getCarParkImg());
+//        orderInfo.setCarNumber(order.getCarNumber());
+////        orderInfo.setOpenFromTime(orderList.get(0).getPublishFromTime());
+////        orderInfo.setOpenEndTime(orderList.get(orderList.size()-1).getPublishEndTime());
+////        orderInfo.setOutTradeNo(hhtcHelper.buildOrderNo(8));
+//        orderInfo.setTotalFee(Long.parseLong(MoneyUtil.yuanToFen(price.toString())));
+//        orderInfo.setDepositMoney(new BigDecimal(0));
+//        orderInfo.setCanRefundMoney(new BigDecimal(0));
+//        orderInfo.setOpenid(order.getOpenid());
+//        orderInfo.setAppid(mppUserInfo.getAppid());
+//        orderInfo.setOrderType(1);
+//        orderInfo.setOrderStatus(2);
+//        orderInfo = this.upsert(orderInfo);
+//        orderInoutService.initInout(orderInfo, orderList.get(0).getOpenid(), inout.getInTime());
+//        //分润（分潤使用的金額為新訂單的发布信息總金額）
+//        BigDecimal oldPrice = new BigDecimal(MoneyUtil.fenToYuan(order.getTotalFee()+""));
+//        if(price.compareTo(oldPrice) == 1){
+//            //不需要扣减车主余额，因為車主在之前訂單已經支付過了，不過要看新訂單金額是否大于車主原訂單金額，大于則口平台資金
+//            BigDecimal lessPrice = price.subtract(oldPrice);
+//            UserFunds funds = userFundsRepository.findByUid(mppUserInfo.getId());
+//            if(null == funds){
+//                funds = new UserFunds();
+//                funds.setUid(mppUserInfo.getId());
+//                funds.setMoneyBase(new BigDecimal(0));
+//                funds.setMoneyBalance(new BigDecimal(0));
 //            }
-//            orderList.add(pubOrder);
-//            price = price.add(pubOrder.getPrice());
-        }
-
-        //將原訂單置為已完成
-        order.setOrderStatus(99);
-        this.upsert(order);
-        Date currInTime = new Date();
-        orderInoutRepository.deleteByOrderNo(order.getOutTradeNo());
-        //釋放原訂單的車位发布信息和車位信息
-        goodsPublishOrderService.updateStatusToPublishing(orderList);
-        //再重新下单（訂單金額仍為原訂單的金額）
-        OrderInfo orderInfo = new OrderInfo();
-        orderInfo.setCommunityId(orderList.get(0).getCommunityId());
-        orderInfo.setCommunityName(orderList.get(0).getCommunityName());
-        orderInfo.setGoodsId(orderList.get(0).getGoodsId());
-        orderInfo.setGoodsPublishOrderIds(ids);
-        orderInfo.setCarParkNumber(orderList.get(0).getCarParkNumber());
-        orderInfo.setCarParkImg(orderList.get(0).getCarParkImg());
-        orderInfo.setCarNumber(order.getCarNumber());
-//        orderInfo.setOpenFromTime(orderList.get(0).getPublishFromTime());
-//        orderInfo.setOpenEndTime(orderList.get(orderList.size()-1).getPublishEndTime());
-//        orderInfo.setOutTradeNo(hhtcHelper.buildOrderNo(8));
-        orderInfo.setTotalFee(Long.parseLong(MoneyUtil.yuanToFen(price.toString())));
-        orderInfo.setDepositMoney(new BigDecimal(0));
-        orderInfo.setCanRefundMoney(new BigDecimal(0));
-        orderInfo.setOpenid(order.getOpenid());
-        orderInfo.setAppid(mppUserInfo.getAppid());
-        orderInfo.setOrderType(1);
-        orderInfo.setOrderStatus(2);
-        orderInfo = this.upsert(orderInfo);
-        orderInoutService.initInout(orderInfo, orderList.get(0).getOpenid(), inout.getInTime());
-        //分润（分潤使用的金額為新訂單的发布信息總金額）
-        BigDecimal oldPrice = new BigDecimal(MoneyUtil.fenToYuan(order.getTotalFee()+""));
-        if(price.compareTo(oldPrice) == 1){
-            //不需要扣减车主余额，因為車主在之前訂單已經支付過了，不過要看新訂單金額是否大于車主原訂單金額，大于則口平台資金
-            BigDecimal lessPrice = price.subtract(oldPrice);
-            UserFunds funds = userFundsRepository.findByUid(mppUserInfo.getId());
-            if(null == funds){
-                funds = new UserFunds();
-                funds.setUid(mppUserInfo.getId());
-                funds.setMoneyBase(new BigDecimal(0));
-                funds.setMoneyBalance(new BigDecimal(0));
-            }
-            funds.setMoneyBalance(funds.getMoneyBalance().subtract(lessPrice));
-            funds = userFundsRepository.saveAndFlush(funds);
-            UserFundsFlow fundsFlow = new UserFundsFlow();
-            fundsFlow.setFundsId(funds.getId());
-            fundsFlow.setUid(mppUserInfo.getId());
-            fundsFlow.setMoney(lessPrice);
-            fundsFlow.setInOut("out");
-            fundsFlow.setInOutDesc("調配訂單時扣減平台余額");
-            fundsFlow.setInOutType(4);
-            fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-            fundsFlow.setBizDateTime(new Date());
-            userFundsFlowService.upsert(fundsFlow);
-        }
-        orderRentService.rent(99, orderList.get(0).getOpenid(), orderInfo);
-    }
+//            funds.setMoneyBalance(funds.getMoneyBalance().subtract(lessPrice));
+//            funds = userFundsRepository.saveAndFlush(funds);
+//            UserFundsFlow fundsFlow = new UserFundsFlow();
+//            fundsFlow.setFundsId(funds.getId());
+//            fundsFlow.setUid(mppUserInfo.getId());
+//            fundsFlow.setMoney(lessPrice);
+//            fundsFlow.setInOut("out");
+//            fundsFlow.setInOutDesc("調配訂單時扣減平台余額");
+//            fundsFlow.setInOutType(4);
+//            fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
+//            fundsFlow.setBizDateTime(new Date());
+//            userFundsFlowService.upsert(fundsFlow);
+//        }
+//        orderRentService.rent(99, orderList.get(0).getOpenid(), orderInfo);
+//    }
 }

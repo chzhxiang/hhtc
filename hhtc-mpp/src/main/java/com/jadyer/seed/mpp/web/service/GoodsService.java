@@ -1,22 +1,17 @@
 package com.jadyer.seed.mpp.web.service;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
+import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.exception.HHTCException;
-import com.jadyer.seed.comm.jpa.Condition;
 import com.jadyer.seed.mpp.web.model.*;
 import com.jadyer.seed.mpp.web.repository.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -174,12 +169,75 @@ public class GoodsService {
     }
 
     /**
+     * 查询车位详情
+     */
+    public List<GoodsInfor> get(String  openid){
+        return goodsInforRepository.findByOpenid(openid);
+    }
+
+
+
+    /**
+     * 查询车位详情
+     */
+    public GoodsInfor get(long communityId,String carParkNumber){
+        return goodsInforRepository.findByCommunityIdAndCarParkNumber(communityId,carParkNumber);
+    }
+    /**
+     * 查询车位详情
+     */
+    public GoodsInfor get(String openid,long goodsid){
+        return goodsInforRepository.findByOpenidAndId(openid,goodsid);
+    }
+
+    /***
+     * TOKGO 检测车位是否冲突
+     * */
+    public boolean IsExist(long communityId,String carParkNumber){
+        return goodsInforRepository.findByCommunityIdAndCarParkNumber(communityId,carParkNumber)!=null;
+    }
+
+
+    /**
+     * TOKGO 添加车位
+     * */
+    public void AddGoods(FansInforAudit fansInforAudit, String appid,long uid){
+        //如果车位存在 直接改变openid
+        GoodsInfor goodsInfor = goodsInforRepository.findByCommunityIdAndCarParkNumber(
+                fansInforAudit.getCommunityId(),fansInforAudit.getCommunityName());
+        if (goodsInfor ==null)
+            goodsInfor = new GoodsInfor();
+        goodsInfor.setCommunityId(fansInforAudit.getCommunityId());
+        goodsInfor.setCommunityName(fansInforAudit.getCommunityName());
+        goodsInfor.setAppid(appid);
+        goodsInfor.setOpenid(fansInforAudit.getOpenid());
+        String[] ifor = fansInforAudit.getContent().split(Constants.SPLITFLAG);
+        if (ifor.length<2)
+            new HHTCException(CodeEnum.SYSTEM_NULL);
+        goodsInfor.setCarParkNumber(ifor[0]);
+        goodsInfor.setCarUsefulEndDate(ifor[1]);
+        goodsInfor.setCarEquityImg(fansInforAudit.getImgurl1());
+        goodsInfor.setCarAuditUid(uid);
+        goodsInforRepository.save(goodsInfor);
+    }
+
+    /**
+     * TOKGO 删除车位
+     * */
+    public void Delete(GoodsInfor goodsInfor){
+        goodsInforRepository.delete(goodsInfor);
+    }
+
+
+    /**
      * TOKGO 获取用户车位
      * */
     @Transactional(rollbackFor=Exception.class)
     public List<GoodsInfor> GetPublishCarpark(String openid){
         return goodsInforRepository.findByOpenid(openid);
     }
+
+
 
 
 }

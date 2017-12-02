@@ -31,6 +31,8 @@ public interface Constants {
     //系统中的部分常量 且都已 S_ 开头
     //用户车牌数据最大值
     int S_CARNUMBERMAX = 2;
+    //计算月结的天数
+    int S_CALCULATEdAY = 30;
     //短信生命周期长度（30分钟）
     long S_SMSFILEMAX = 1800000;
     //订单间隔时间（30分钟）
@@ -40,7 +42,7 @@ public interface Constants {
     //计算常量
     long S_DATE_TIMES_HOUR = 3600000;
     //计算常量
-    long S_DATE_TIMES_MONTH = S_DATE_TIMES_DAY*30;
+    long S_DATE_TIMES_MONTH = S_DATE_TIMES_DAY*S_CALCULATEdAY;
 
     boolean ISWEIXIN = false;
 

@@ -13,5 +13,7 @@ import java.util.List;
  */
 public interface GoodsInforRepository extends BaseRepository<GoodsInfor, Long> {
     GoodsInfor findByOpenidAndId(String openid,long id);
+
+    GoodsInfor findByCommunityIdAndCarParkNumber(long communityId,String carParkNumber);
     List<GoodsInfor> findByOpenid(String openid);
 }

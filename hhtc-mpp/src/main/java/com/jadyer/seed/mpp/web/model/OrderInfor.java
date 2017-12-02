@@ -58,11 +58,21 @@ public class OrderInfor extends BaseEntity<Long> {
     private String timeEnd;
     @Column(name="time_end_calculate")
     private long timeEndCalculate;
+    @Column(name="total_out_price")
+    private BigDecimal totalOutPrice;
     @Column(name="out_price")
     private BigDecimal outPrice;
     @Column(name="out_price_time")
     private long outPriceTime;
 
+
+    public BigDecimal getTotalOutPrice() {
+        return totalOutPrice;
+    }
+
+    public void setTotalOutPrice(BigDecimal totalOutPrice) {
+        this.totalOutPrice = totalOutPrice;
+    }
 
     public void setTimeStartCalculate(long timeStartCalculate) {
         this.timeStartCalculate = timeStartCalculate;
