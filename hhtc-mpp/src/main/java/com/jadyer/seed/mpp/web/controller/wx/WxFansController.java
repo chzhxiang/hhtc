@@ -107,10 +107,10 @@ public class WxFansController {
      * TOKGO 地址绑定
      * */
     @PostMapping("/infor/communityBind")
-    public CommonResult BindFansCommunity(long CommunityID ,String houseNumber, HttpSession session){
+    public CommonResult BindFansCommunity(long communityID ,String houseNumber, HttpSession session){
 
         String openid = hhtcHelper.getWxOpenidFromSession(session);
-        return new CommonResult( fansService.CommunityCheck(CommunityID,houseNumber,openid));
+        return new CommonResult( fansService.CommunityCheck(communityID,houseNumber,openid));
     }
 
 
