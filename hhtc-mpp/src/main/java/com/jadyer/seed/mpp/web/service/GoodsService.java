@@ -238,6 +238,18 @@ public class GoodsService {
     }
 
 
-
+    /**
+     * TOKGO 获取小区的车位总数
+     * */
+    public int GetGoodsCount( MppUserInfo userInfo){
+        if (userInfo.getType() == 2)
+            return goodsInforRepository.findAll().size();
+        List<CommunityInfo> communityInfos = communityService.getByUid(userInfo.getId());
+        int cout = 0;
+        for (CommunityInfo communityInfo:communityInfos){
+            cout += goodsInforRepository.findByCommunityId(communityInfo.getId()).size();
+        }
+        return cout;
+    }
 
 }

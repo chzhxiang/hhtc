@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.Date;
 
 /**
@@ -36,8 +37,7 @@ public class UserFundsFlowService {
     private GoodsService goodsService;
     @Resource
     private UserFundsService userFundsService;
-    @Resource
-    private UserFundsRepository userFundsRepository;
+
     @Resource
     private UserFundsFlowRepository userFundsFlowRepository;
 
@@ -47,12 +47,19 @@ public class UserFundsFlowService {
     }
 
 
-    public Page<UserFundsFlow> listViaPage(String pageNo, String openid) {
+    public Page<UserFundsFlow> listViaPageBase(int pageNo, String openid) {
         Sort sort = new Sort(Sort.Direction.DESC, "id");
-        Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
-        Condition<UserFundsFlow> spec = Condition.<UserFundsFlow>and().eq("openid", openid);
+        Pageable pageable = new PageRequest(pageNo, 10, sort);
+        Condition<UserFundsFlow> spec = Condition.<UserFundsFlow>and().eq("openid", openid).le("inOutType",2);
         return userFundsFlowRepository.findAll(spec, pageable);
     }
+    public Page<UserFundsFlow> listViaPageBalace(int pageNo, String openid) {
+        Sort sort = new Sort(Sort.Direction.DESC, "id");
+        Pageable pageable = new PageRequest(pageNo, 10, sort);
+        Condition<UserFundsFlow> spec = Condition.<UserFundsFlow>and().eq("openid", openid).ge("inOutType",3);
+        return userFundsFlowRepository.findAll(spec, pageable);
+    }
+
 
 
     public Page<UserFundsFlow> listByPlatformViaPage(String pageNo, long uid) {
@@ -77,12 +84,6 @@ public class UserFundsFlowService {
         UserFundsFlow fundsFlow = new UserFundsFlow();
 //        fundsFlow.setFundsId(funds.getId());
 //        fundsFlow.setOpenid(funds.getOpenid());
-        fundsFlow.setMoney(money);
-        fundsFlow.setInOut("out");
-        fundsFlow.setInOutDesc("车主无法停车时扣除车位主押金");
-        fundsFlow.setInOutType(3);
-        fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-        fundsFlow.setBizDateTime(new Date());
         userFundsFlowRepository.saveAndFlush(fundsFlow);
         //补贴给平台和车主
         BigDecimal moneyPlatform = money.multiply(rentRatioPlatform);
@@ -103,67 +104,44 @@ public class UserFundsFlowService {
 //        fundsFlow.setFundsId(funds.getId());
 //        fundsFlow.setUid(funds.getUid());
         fundsFlow.setMoney(moneyPlatform);
-        fundsFlow.setInOut("in");
         fundsFlow.setInOutDesc("车主无法停车时补贴给平台的金额");
         fundsFlow.setInOutType(9);
-        fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-        fundsFlow.setBizDateTime(new Date());
         this.upsert(fundsFlow);
     }
 
 
     /**
-     * 微信支付--充值交易--成功时，增加资金流水
-     */
-    private void addFlowForRecharge(long fundsId, String openid, BigDecimal money, int orderType, int inOutType){
-        if(inOutType!=1 && inOutType!=2){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无效的流水类型["+inOutType+"]");
-        }
-        String typedesc = orderType==10 ? "个人中心充值" : orderType==11 ? "车位主发布车位充值" : orderType==12 ? "车主预约下单充值" : orderType==13 ? "车主发布需求充值" : "hhtc-unknown";
+     * TOKGO 增加资金流水
+     *@param openid 粉丝id  平台为"" 或者null
+     * */
+    public void AddFlowForRecharge(String openid, String orderId, BigDecimal money,int type,String desc){
         UserFundsFlow fundsFlow = new UserFundsFlow();
-        fundsFlow.setFundsId(fundsId);
-        fundsFlow.setOpenid(openid);
+        fundsFlow.setOpenid(orderId);
+        if (StringUtils.isBlank(openid))
+            fundsFlow.setUid(2);
+        else {
+            fundsFlow.setUid(0);
+            fundsFlow.setOpenid(openid);
+        }
         fundsFlow.setMoney(money);
-        fundsFlow.setInOut("in");
-        fundsFlow.setInOutDesc(typedesc + (inOutType==1 ? "押金" : "余额"));
-        fundsFlow.setInOutType(inOutType);
-        fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-        fundsFlow.setBizDateTime(new Date());
+        fundsFlow.setInOutType(type);
+        fundsFlow.setInOutDesc(desc);
         userFundsFlowRepository.saveAndFlush(fundsFlow);
     }
 
 
     /**
      * 微信支付--充值交易--成功后，更新资金信息
-     * <p>
-     *     充值类型：10--个人中心充值，11--车位主发布车位充值，12--车主预约下单充值，13--车主发布需求充值
-     * </p>
+     *
      */
     @Transactional(rollbackFor=Exception.class)
-    public void recharge(OrderInfo orderInfo){
-        UserFunds funds = userFundsRepository.findByOpenid(orderInfo.getOpenid());
-        if(null == funds){
-            funds = new UserFunds();
-            funds.setOpenid(orderInfo.getOpenid());
-            funds.setMoneyBase(new BigDecimal(0));
-            funds.setMoneyBalance(new BigDecimal(0));
+    public void WeixinPay(String openid, BigDecimal money, int orderType, int inOutType){
+        if(inOutType!=1 && inOutType!=2){
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无效的流水类型["+inOutType+"]");
         }
-        if(orderInfo.getOrderType()==10 || orderInfo.getOrderType()==12 || orderInfo.getOrderType()==13){
-            BigDecimal moneyRent = orderInfo.getCanRefundMoney().subtract(orderInfo.getDepositMoney());
-            funds.setMoneyBalance(funds.getMoneyBalance().add(moneyRent));
-            funds.setMoneyBase(funds.getMoneyBase().add(orderInfo.getDepositMoney()));
-            funds = userFundsRepository.saveAndFlush(funds);
-            if(orderInfo.getDepositMoney().compareTo(new BigDecimal(0)) == 1){
-                this.addFlowForRecharge(funds.getId(), orderInfo.getOpenid(), orderInfo.getDepositMoney(), orderInfo.getOrderType(), 1);
-            }
-            if(moneyRent.compareTo(new BigDecimal(0)) == 1){
-                this.addFlowForRecharge(funds.getId(), orderInfo.getOpenid(), moneyRent, orderInfo.getOrderType(), 2);
-            }
-        }
-        if(orderInfo.getOrderType() == 11){
-            funds.setMoneyBase(funds.getMoneyBase().add(orderInfo.getCanRefundMoney()));
-            funds = userFundsRepository.saveAndFlush(funds);
-            this.addFlowForRecharge(funds.getId(), orderInfo.getOpenid(), orderInfo.getCanRefundMoney(), orderInfo.getOrderType(), 1);
-        }
+        String typedesc = inOutType==1 ? "个人中心押金充值" : "个人中心余额充值" ;
+        //TODO 微信支付的id
+        AddFlowForRecharge(openid,"",money,inOutType,typedesc);
     }
+
 }

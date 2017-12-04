@@ -386,31 +386,24 @@ public class RefundApplyService {
         if(obj.getApplyType() == 1){
             UserFunds funds = userFundsService.subtractMoneyBaseForFans(obj.getOpenid(), money);
             UserFundsFlow fundsFlow = new UserFundsFlow();
-            fundsFlow.setFundsId(funds.getId());
             fundsFlow.setOpenid(obj.getOpenid());
             fundsFlow.setMoney(money);
-            fundsFlow.setInOut("out");
             fundsFlow.setInOutDesc("退款时扣减租金");
             fundsFlow.setInOutType(3);
-            fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-            fundsFlow.setBizDateTime(new Date());
             userFundsFlowService.upsert(fundsFlow);
         }
         //2--提现（余额）
         if(obj.getApplyType() == 2){
-            UserFunds funds = userFundsService.subtractMoneyBalanceForFans(obj.getOpenid(), money);
+            UserFunds funds = userFundsService.subtractMoneyBalanceForFans(obj.getOpenid(), money,"","");
             UserFundsFlow fundsFlow = new UserFundsFlow();
-            fundsFlow.setFundsId(funds.getId());
             fundsFlow.setOpenid(obj.getOpenid());
             fundsFlow.setMoney(money);
-            fundsFlow.setInOut("out");
             fundsFlow.setInOutDesc("提现时扣减余额");
             fundsFlow.setInOutType(4);
-            fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-            fundsFlow.setBizDateTime(new Date());
             userFundsFlowService.upsert(fundsFlow);
         }
         /*
+        * TODO 退款支付 好好研究
          * 开始退款或提现（向腾讯发起支付交易）
          */
         BigDecimal hasRefundMoney = new BigDecimal(0);
@@ -621,30 +614,22 @@ public class RefundApplyService {
         if(refundApplyType == 1){
             UserFunds funds = userFundsService.addMoneyBaseForFans(openid, money);
             UserFundsFlow fundsFlow = new UserFundsFlow();
-            fundsFlow.setFundsId(funds.getId());
             fundsFlow.setOpenid(openid);
             fundsFlow.setMoney(money);
-            fundsFlow.setInOut("in");
             fundsFlow.setInOutDesc("退款失败时返还押金");
             fundsFlow.setInOutType(7);
-            fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-            fundsFlow.setBizDateTime(new Date());
             userFundsFlowService.upsert(fundsFlow);
             OrderInfo order = orderRepository.findOne(refund.getOrderId());
             order.setCanRefundMoney(order.getCanRefundMoney().add(money));
             orderRepository.saveAndFlush(order);
         }
         if(refundApplyType == 2){
-            UserFunds funds = userFundsService.addMoneyBalanceForFans(openid, money);
+            UserFunds funds = userFundsService.addMoneyBalanceForFans(openid, money,"","");
             UserFundsFlow fundsFlow = new UserFundsFlow();
-            fundsFlow.setFundsId(funds.getId());
             fundsFlow.setOpenid(openid);
             fundsFlow.setMoney(money);
-            fundsFlow.setInOut("in");
             fundsFlow.setInOutDesc("提现失败时返还余额");
             fundsFlow.setInOutType(6);
-            fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-            fundsFlow.setBizDateTime(new Date());
             userFundsFlowService.upsert(fundsFlow);
         }
     }

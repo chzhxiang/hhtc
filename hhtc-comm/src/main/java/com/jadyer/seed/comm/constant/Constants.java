@@ -27,6 +27,13 @@ public interface Constants {
     int INFOR_STATE_CARPARK_BIT =3;
     int INFOR_STATE_CARNUMBE_BIT =4;
 
+
+    //收支轨迹：1--押金收入，2--押金支出，3--余额收入，4--余额支出
+    int FUNDS_TEPY_BASE_IN = 1;
+    int FUNDS_TEPY_BASE_OUT = 2;
+    int FUNDS_TEPY_BALANCE_IN = 3;
+    int FUNDS_TEPY_BALANCE_OUT = 4;
+
     String SPLITFLAG ="@";
     //系统中的部分常量 且都已 S_ 开头
     //用户车牌数据最大值
@@ -43,8 +50,5 @@ public interface Constants {
     long S_DATE_TIMES_HOUR = 3600000;
     //计算常量
     long S_DATE_TIMES_MONTH = S_DATE_TIMES_DAY*S_CALCULATEdAY;
-
-    boolean ISWEIXIN = false;
-
 
 }

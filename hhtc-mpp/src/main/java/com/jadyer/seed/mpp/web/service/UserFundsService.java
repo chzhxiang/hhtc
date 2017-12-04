@@ -43,6 +43,8 @@ public class UserFundsService {
     @Resource
     private FansAuditRepository fansAuditRepository;
     @Resource
+    private UserFundsFlowService userFundsFlowService;
+    @Resource
     private MppUserInfoRepository mppUserInfoRepository;
     /**
      * TOKGO 车主预约下单以及发布需求时，查询粉丝押金是否足够
@@ -106,14 +108,14 @@ public class UserFundsService {
 
 
     /**
-     * 增加金额（流水需单独增加）
+     * TOKGO 增加金额（流水需单独增加）
      * <p>
      *     如果传入的金额小于等于0，则什么都不干
      * </p>
      * @return 返回该粉丝的资金总览信息
      */
     @Transactional(rollbackFor=Exception.class)
-    public UserFunds addMoneyBalanceForFans(String openid, BigDecimal money){
+    public UserFunds addMoneyBalanceForFans(String openid, BigDecimal money,String orderid,String remak){
         UserFunds funds = userFundsRepository.findByOpenid(openid);
         if(null == funds){
             funds = new UserFunds();
@@ -123,6 +125,7 @@ public class UserFundsService {
         }else{
             funds.setMoneyBalance(money.add(funds.getMoneyBalance()));
         }
+        userFundsFlowService.AddFlowForRecharge(openid,orderid,money,Constants.FUNDS_TEPY_BALANCE_IN,remak);
         return userFundsRepository.saveAndFlush(funds);
     }
 
@@ -130,7 +133,7 @@ public class UserFundsService {
      * TOKGO 给平台打钱
      * */
     @Transactional(rollbackFor=Exception.class)
-    public UserFunds addMoneyBalanceForPlatform(BigDecimal money){
+    public UserFunds addMoneyBalanceForPlatform(BigDecimal money,String orderid,String remak){
         MppUserInfo mppUserInfo = mppUserInfoRepository.findByMptypeAndBindStatus(1, 1);
         if(null==mppUserInfo || mppUserInfo.getId()==0){
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "获取平台UID失败");
@@ -144,6 +147,8 @@ public class UserFundsService {
         }else{
             funds.setMoneyBalance(money.add(funds.getMoneyBalance()));
         }
+        //平台流水记录
+        userFundsFlowService.AddFlowForRecharge("",orderid,money,Constants.FUNDS_TEPY_BALANCE_IN,remak);
         return userFundsRepository.saveAndFlush(funds);
     }
 
@@ -170,12 +175,13 @@ public class UserFundsService {
      * @return 返回该粉丝的资金总览信息
      */
     @Transactional(rollbackFor=Exception.class)
-    public UserFunds subtractMoneyBalanceForFans(String openid, BigDecimal money){
+    public UserFunds subtractMoneyBalanceForFans(String openid, BigDecimal money,String orderid,String remak){
         UserFunds funds = userFundsRepository.findByOpenid(openid);
         if(money.compareTo(funds.getMoneyBalance()) == 1){
             throw new HHTCException(CodeEnum.HHTC_FUNDS_BALANCE_NO);
         }
         funds.setMoneyBalance(funds.getMoneyBalance().subtract(money));
+        userFundsFlowService.AddFlowForRecharge(openid,orderid,money,Constants.FUNDS_TEPY_BALANCE_OUT,remak);
         return userFundsRepository.saveAndFlush(funds);
     }
 

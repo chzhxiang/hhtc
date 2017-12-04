@@ -27,8 +27,8 @@ public class WxMarketTransactionController {
     private MarketTransactionService marketTransactionService;
 
 
-    //TODO
-    String openid = "ojZ6h1QmJysqUUpDb9I9v5seu_Dw";
+
+
 
     /**
      * TOKGO 获取粉丝自己的订单
@@ -37,8 +37,8 @@ public class WxMarketTransactionController {
     @GetMapping("/get/order")
     public CommonResult GetOrder(int type,HttpSession session){
         String appid = hhtcHelper.getWxAppidFromSession(session);
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(marketTransactionService.GetOrder(openid,type));
     }
 
@@ -49,8 +49,8 @@ public class WxMarketTransactionController {
     @PostMapping("/cancel")
     public CommonResult CancelOrder(String orderid,String type ,HttpSession session){
         String appid = hhtcHelper.getWxAppidFromSession(session);
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         marketTransactionService.CancelOrder(openid,orderid,type);
         return new CommonResult();
     }
@@ -60,7 +60,7 @@ public class WxMarketTransactionController {
      * */
     @GetMapping("/checkOrdertime")
     public CommonResult CheckOrderTime(String FromTime,String EndTime,HttpSession session){
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(marketTransactionService.OrderTimeCheck(FromTime,EndTime,openid));
     }
 
@@ -71,8 +71,8 @@ public class WxMarketTransactionController {
     @PostMapping("/reservation")
     public CommonResult Reservation(String orderid,String CarNuber,int type,HttpSession session){
         String appid = hhtcHelper.getWxAppidFromSession(session);
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         //TODO 测试时车牌号 还没有写
         marketTransactionService.Reservation(openid,orderid,"testcar",type);
         return new CommonResult();
@@ -84,8 +84,8 @@ public class WxMarketTransactionController {
      */
     @PostMapping("/ordergetmoney")
     public CommonResult orderGetMoney(String orderid,HttpSession session){
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         marketTransactionService.OrderGetMomey(orderid,openid);
         return new CommonResult();
     }

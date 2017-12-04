@@ -134,7 +134,8 @@ public class OrderService {
                 }
             }
             switch(respData.getTrade_state()){
-                case "SUCCESS"   : orderInfo.setOrderStatus(2); userFundsFlowService.recharge(orderInfo); break;
+                //TODO
+//                case "SUCCESS"   : orderInfo.setOrderStatus(2); userFundsFlowService.recharge(orderInfo); break;
                 case "REFUND"    : orderInfo.setOrderStatus(5); break;
                 case "NOTPAY"    : orderInfo.setOrderStatus(0); break;
                 case "CLOSED"    : orderInfo.setOrderStatus(4); break;
@@ -241,7 +242,7 @@ public class OrderService {
         return list;
     }
 
-//TODO
+
 //
 //
 //    /**

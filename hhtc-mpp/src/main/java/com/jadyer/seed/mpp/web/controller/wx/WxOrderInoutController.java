@@ -99,8 +99,8 @@ public class WxOrderInoutController {
         String respMsg;
         String reqBodyMsg = JadyerUtil.extractHttpServletRequestBodyMessage(request);
         LogUtil.getLogger().info("收到一体机消息如下\n{}", JadyerUtil.extractHttpServletRequestHeaderMessage(request)+"\n"+reqBodyMsg);
-        //Map<String, Map<String, Map<String, Map<String, String>>>> dataMap = JSON.parseObject(reqBodyMsg, new TypeReference<Map<String, Map<String, Map<String, Map<String, String>>>>>(){});
-        //String carNumber = dataMap.get("AlarmInfoPlate").get("result").get("PlateResult").get("license");
+//        Map<String, Map<String, Map<String, Map<String, String>>>> dataMap = JSON.parseObject(reqBodyMsg, new TypeReference<Map<String, Map<String, Map<String, Map<String, String>>>>>(){});
+//        String carNumber = dataMap.get("AlarmInfoPlate").get("result").get("PlateResult").get("license");
         Map<String, String> dataMap = JSON.parseObject(reqBodyMsg, new TypeReference<Map<String, String>>(){});
         dataMap = JSON.parseObject(dataMap.get("AlarmInfoPlate"), new TypeReference<Map<String, String>>(){});
         dataMap = JSON.parseObject(dataMap.get("result"), new TypeReference<Map<String, String>>(){});

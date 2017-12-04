@@ -75,28 +75,19 @@ public class OrderRentService {
         BigDecimal moneyCarparker = price.multiply(new BigDecimal(communityInfo.getRentRatioCarparker()));
         moneyPlatform = moneyPlatform.divide(new BigDecimal(100), 2, BigDecimal.ROUND_HALF_UP);
         moneyCarparker = moneyCarparker.divide(new BigDecimal(100), 2, BigDecimal.ROUND_HALF_UP);
-        UserFunds funds = userFundsService.addMoneyBalanceForFans(openid, moneyCarparker);
+        UserFunds funds = userFundsService.addMoneyBalanceForFans(openid, moneyCarparker,"","");
         UserFundsFlow fundsFlow = new UserFundsFlow();
-        fundsFlow.setFundsId(funds.getId());
         fundsFlow.setOpenid(openid);
         fundsFlow.setMoney(moneyCarparker);
-        fundsFlow.setInOut("in");
         fundsFlow.setInOutDesc((type==1 ? "车位被预约" : type==2 ? "车位被需求匹配后预约" : "车位被订单调配后下单") + "而获得租金");
         fundsFlow.setInOutType(5);
-        fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-        fundsFlow.setBizDateTime(new Date());
         userFundsFlowService.upsert(fundsFlow);
 
-//        funds = userFundsService.addMoneyBalanceForPlatform(moneyPlatform);
         fundsFlow = new UserFundsFlow();
-        fundsFlow.setFundsId(funds.getId());
         fundsFlow.setUid(funds.getUid());
         fundsFlow.setMoney(moneyPlatform);
-        fundsFlow.setInOut("in");
         fundsFlow.setInOutDesc((type==1 ? "车位被预约" : type==2 ? "车位被需求匹配后预约" : "车位被订单调配后下单") + "而分润平台");
         fundsFlow.setInOutType(5);
-        fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-        fundsFlow.setBizDateTime(new Date());
         userFundsFlowService.upsert(fundsFlow);
         return moneyCarparker;
     }

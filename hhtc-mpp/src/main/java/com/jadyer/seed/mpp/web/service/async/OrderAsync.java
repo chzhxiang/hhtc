@@ -33,8 +33,6 @@ public class OrderAsync {
     @Resource
     private OrderInforRepository orderInforRepository;
 
-
-
     /**
      * TOKGO  分账
      * */
@@ -43,10 +41,12 @@ public class OrderAsync {
         CommunityInfo communityInfo = communityService.get(mppFansInfor.getCommunityId());
         //给卖家 打钱
         double carparkrent = (total*communityInfo.getRentRatioCarparker())/100.0;
-        userFundsService.addMoneyBalanceForFans(mppFansInfor.getOpenid(),new BigDecimal(carparkrent));
+        userFundsService.addMoneyBalanceForFans(mppFansInfor.getOpenid(),new BigDecimal(carparkrent)
+                ,orderInfor.getOrderId(),"订单收款，车主分润");
         //分钱给平台
         double platformerent = (total*communityInfo.getRentRatioPlatform())/100.0;
-        userFundsService.addMoneyBalanceForPlatform(new BigDecimal(platformerent));
+        userFundsService.addMoneyBalanceForPlatform(new BigDecimal(platformerent),orderInfor.getOrderId()
+                ,"订单收款，平台分润");
     }
 
     /**

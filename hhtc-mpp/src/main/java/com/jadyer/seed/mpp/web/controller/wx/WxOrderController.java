@@ -24,8 +24,8 @@ public class WxOrderController {
     @Resource
     private OrderInforService orderInforService;
 
-    //TODO
-    String openid = "ojZ6h1QmJysqUUpDb9I9v5seu_Dw";
+
+
 
 
     /**
@@ -33,7 +33,7 @@ public class WxOrderController {
      * */
     @GetMapping("/gethistory")
     public CommonResult get(int pageNo, HttpSession session){
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(orderInforService.Gethistory(openid,pageNo));
     }
 
@@ -42,7 +42,7 @@ public class WxOrderController {
      * */
     @PostMapping("/overtime/repayments")
     public CommonResult repayments(String orderid, HttpSession session){
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         orderInforService.OvertimeRepayment(openid,orderid);
         return new CommonResult();
     }
@@ -52,7 +52,7 @@ public class WxOrderController {
      * */
     @RequestMapping("/test")
     public void repayments( HttpSession session){
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        String openid ="";
         orderInforService.test(openid);
     }
 
@@ -62,7 +62,7 @@ public class WxOrderController {
 //     */
 //    @RequestMapping("/list")
 //    public CommonResult list(String orderStatus, HttpSession session){
-//        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+//        String openid = hhtcHelper.getWxOpenidFromSession(session);
 //        return new CommonResult(orderService.list(orderStatus, openid));
 //    }
 

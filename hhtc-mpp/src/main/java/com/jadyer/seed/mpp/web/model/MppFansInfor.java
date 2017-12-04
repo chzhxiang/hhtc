@@ -38,9 +38,9 @@ public class MppFansInfor extends BaseEntity<Long> {
     private String remark;
     private String groupid;
     @Column(name="community_id")
-    private long CommunityId;
+    private long communityId;
     @Column(name="community_name")
-    private String CommunityName;
+    private String communityName;
     @Column(name="house_number")
     private String houseNumber;
 
@@ -165,20 +165,20 @@ public class MppFansInfor extends BaseEntity<Long> {
     }
 
     public void setCommunityId(long CommunityId) {
-        this.CommunityId = CommunityId;
+        this.communityId = CommunityId;
     }
 
     public long getCommunityId() {
-        return CommunityId;
+        return communityId;
     }
 
 
     public String getCommunityName() {
-        return CommunityName;
+        return communityName;
     }
 
     public void setCommunityName(String CommunityName) {
-        this.CommunityName = CommunityName;
+        this.communityName = CommunityName;
     }
 
     public String getHouseNumber() {

@@ -23,16 +23,16 @@ public class WxAdviceController {
     @Resource
     private AdviceService adviceService;
 
-    //TODO
-    String openid = "ojZ6h1QmJysqUUpDb9I9v5seu_Dw";
+
+
 
     /**
      * TOKGO 新增意见反馈
      */
     @PostMapping("/add")
     public CommonResult add(String content, String img,HttpSession session){
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         adviceService.add(openid, content,img);
         return new CommonResult();
     }
@@ -43,8 +43,8 @@ public class WxAdviceController {
 
     @GetMapping("/get")
     public CommonResult get(HttpSession session){
-        //TODO
-        if(Constants.ISWEIXIN)
+
+        String
             openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(adviceService.Get(openid));
     }

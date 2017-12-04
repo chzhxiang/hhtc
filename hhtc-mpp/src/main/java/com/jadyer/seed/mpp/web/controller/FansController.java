@@ -81,7 +81,7 @@ public class FansController{
     }
 
     /**
-     * 分页查询粉丝信息
+     * TOKGO 分页查询粉丝信息
      * @param pageNo zero-based page index
      */
     @RequestMapping("/list")

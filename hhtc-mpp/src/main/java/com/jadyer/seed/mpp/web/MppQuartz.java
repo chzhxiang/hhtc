@@ -6,14 +6,7 @@ import com.jadyer.seed.mpp.web.model.OrderInfo;
 import com.jadyer.seed.mpp.web.model.RedpackInfo;
 import com.jadyer.seed.mpp.web.model.RefundApply;
 import com.jadyer.seed.mpp.web.model.RefundInfo;
-import com.jadyer.seed.mpp.web.service.GoodsPublishOrderService;
-import com.jadyer.seed.mpp.web.service.GoodsPublishService;
-import com.jadyer.seed.mpp.web.service.OrderInoutService;
-import com.jadyer.seed.mpp.web.service.OrderRentService;
-import com.jadyer.seed.mpp.web.service.OrderService;
-import com.jadyer.seed.mpp.web.service.RedpackService;
-import com.jadyer.seed.mpp.web.service.RefundApplyService;
-import com.jadyer.seed.mpp.web.service.RefundService;
+import com.jadyer.seed.mpp.web.service.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +24,8 @@ public class MppQuartz {
     private RefundService refundService;
     @Resource
     private RedpackService redpackService;
+    @Resource
+    private OrderInforService orderInforService;
     @Resource
     private OrderRentService orderRentService;
     @Resource
@@ -135,16 +130,16 @@ public class MppQuartz {
     }
 
 
-    /**
-     * 订单归档（4分钟一次）
-     * <p>
-     *     一般是处理那种在充值页面，弹出来微信支付密码框之后，粉丝没有输入密码去支付，的订单
-     * </p>
-     */
-    @Scheduled(cron="0 0/4 * * * ?")
-    void orderHistory(){
-        orderService.history();
-    }
+//    /**
+//     * 订单归档（4分钟一次）
+//     * <p>
+//     *     一般是处理那种在充值页面，弹出来微信支付密码框之后，粉丝没有输入密码去支付，的订单
+//     * </p>
+//     */
+//    @Scheduled(cron="0 0/4 * * * ?")
+//    void orderHistory(){
+//        orderService.history();
+//    }
 
 
     /**
@@ -156,11 +151,29 @@ public class MppQuartz {
     }
 
 
+//    /**
+//     * 订单超时（5分钟一次）
+//     */
+//    @Scheduled(cron="0 0/5 * * * ?")
+//    void orderSettle(){
+//        orderInoutService.settle();
+//    }
+
     /**
-     * 订单超时（5分钟一次）
+     * 订单超时（5分钟一次） 测试 1分钟
      */
-    @Scheduled(cron="0 0/5 * * * ?")
+    @Scheduled(cron="0 0/1 * * * ?")
     void orderSettle(){
-        orderInoutService.settle();
+        goodsPublishOrderService.CheckOverTime();
     }
+
+    /**
+     * 订单开始 结束（5分钟一次）测试 1分钟
+     */
+    @Scheduled(cron="0 0/1 * * * ?")
+    void orderBE(){
+        orderInforService.CheckStartOrEndOrder();
+    }
+
+
 }

@@ -23,16 +23,16 @@ public class WxGoodsController {
     @Resource
     private GoodsService goodsService;
 
-    //TODO
-    String openid = "ojZ6h1QmJysqUUpDb9I9v5seu_Dw";
+
+
 
     /**
      * TOKGO 查询粉丝车位信息信息
      */
     @GetMapping("/get/CarPark")
     public CommonResult getCarPark(HttpSession session){
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsService.getFansCarParkInfor(openid));
     }
 
@@ -41,8 +41,8 @@ public class WxGoodsController {
      * */
     @GetMapping("/check/CarPark")
     public CommonResult CheckCarPark(long communityid,String carParkNumber,HttpSession session){
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsService.IsExist(communityid,carParkNumber));
     }
 
@@ -51,8 +51,8 @@ public class WxGoodsController {
      */
     @PostMapping("/infor/carParkBind")
     public CommonResult BindCarPark(String carParkNumber, String carEquityImg,String carUsefulEndDate, HttpSession session){
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsService.regCarPark(openid
                 , carParkNumber, carEquityImg,carUsefulEndDate));
     }
@@ -63,8 +63,8 @@ public class WxGoodsController {
      */
     @PostMapping("/infor/carParkLogout")
     public CommonResult LogoutFanscarPark(long id,String state , HttpSession session){
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsService.carParkLogout(openid, id,state));
     }
 

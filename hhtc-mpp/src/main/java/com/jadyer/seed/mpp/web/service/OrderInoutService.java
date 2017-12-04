@@ -103,57 +103,8 @@ public class OrderInoutService {
     }
 
 
-    /**
-     * 车主超时未驶出时罚钱
-     * @param funds       车主的资金信息
-     * @param goodsOpenid 车位主openid
-     * @return 返回本次罚款金额
-     */
-    private BigDecimal deduct(UserFunds funds, String goodsOpenid){
-        //扣车主的钱
-        BigDecimal deductMoney = new BigDecimal(1).multiply(moneyfine);
-        if(deductMoney.compareTo(funds.getMoneyBase()) > 0){
-            deductMoney = funds.getMoneyBase();
-        }
-        funds.setMoneyBase(funds.getMoneyBase().subtract(deductMoney));
-        userFundsRepository.saveAndFlush(funds);
-        UserFundsFlow fundsFlow = new UserFundsFlow();
-        fundsFlow.setFundsId(funds.getId());
-        fundsFlow.setOpenid(funds.getOpenid());
-        fundsFlow.setMoney(deductMoney);
-        fundsFlow.setInOut("out");
-        fundsFlow.setInOutDesc("车主超时未驶离时扣减押金");
-        fundsFlow.setInOutType(3);
-        fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-        fundsFlow.setBizDateTime(new Date());
-        userFundsFlowService.upsert(fundsFlow);
-        //补贴给平台和车位主
-        BigDecimal moneyPlatform = deductMoney.multiply(rentRatioPlatform);
-        BigDecimal moneyCarparker = deductMoney.multiply(rentRatioCarparker);
-        funds = userFundsService.addMoneyBalanceForFans(goodsOpenid, moneyCarparker);
-        fundsFlow = new UserFundsFlow();
-        fundsFlow.setFundsId(funds.getId());
-        fundsFlow.setOpenid(goodsOpenid);
-        fundsFlow.setMoney(moneyCarparker);
-        fundsFlow.setInOut("in");
-        fundsFlow.setInOutDesc("车主超时未驶离时补贴的金额");
-        fundsFlow.setInOutType(8);
-        fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-        fundsFlow.setBizDateTime(new Date());
-        userFundsFlowService.upsert(fundsFlow);
-//        funds = userFundsService.addMoneyBalanceForPlatform(moneyPlatform);
-        fundsFlow = new UserFundsFlow();
-        fundsFlow.setFundsId(funds.getId());
-        fundsFlow.setUid(funds.getUid());
-        fundsFlow.setMoney(moneyPlatform);
-        fundsFlow.setInOut("in");
-        fundsFlow.setInOutDesc("车主超时未驶离时补贴给平台的金额");
-        fundsFlow.setInOutType(8);
-        fundsFlow.setBizDate(Integer.parseInt(DateUtil.getCurrentDate()));
-        fundsFlow.setBizDateTime(new Date());
-        userFundsFlowService.upsert(fundsFlow);
-        return deductMoney;
-    }
+
+
 
 
     @Transactional(rollbackFor=Exception.class)
@@ -241,7 +192,8 @@ public class OrderInoutService {
                     paramMap.put("phone", phone.substring(7, 11));
                     hhtcHelper.sendSms(phone, "SMS_89040046", paramMap);
                     //罚钱并更新扣款时间
-                    obj.setLastDeductMoney(this.deduct(funds, obj.getGoodsOpenid()));
+                    //TODO
+//                    obj.setLastDeductMoney(this.deduct(funds, obj.getGoodsOpenid()));
                     obj.setLastDeductTime(currdate);
                     obj.setNextDeductStartTime(DateUtils.addMinutes(edate, 60));
                     obj.setNextDeductEndTime(DateUtils.addMinutes(edate, 90));
@@ -251,7 +203,8 @@ public class OrderInoutService {
                 //超时的第61分钟开始，每半个小时，罚一次钱，直至押金罚完（10：06-11：00扣10块，接下来每半小时系统做判断车主是否离场，若仍未离场（11：01）每半小时扣10元，并通知两边，11：31分再扣钱（此时不需要通知），扣完押金为止）
                 if(null!=obj.getLastDeductTime() && currdate.compareTo(obj.getNextDeductStartTime())>=0 && currdate.compareTo(obj.getNextDeductEndTime())<0){
                     //罚钱并更新扣款时间
-                    obj.setLastDeductMoney(this.deduct(funds, obj.getGoodsOpenid()));
+                    //TODO
+//                    obj.setLastDeductMoney(this.deduct(funds, obj.getGoodsOpenid()));
                     obj.setLastDeductTime(currdate);
                     obj.setNextDeductStartTime(obj.getNextDeductEndTime());
                     obj.setNextDeductEndTime(DateUtils.addMinutes(obj.getNextDeductEndTime(), 30));

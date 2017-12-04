@@ -188,7 +188,7 @@ public class WeixinHelperController {
         Map<String, String> dataMap = XmlUtil.xmlToMap(reqData);
         WeixinHelper.payVerifyIfSuccess(dataMap);
         WeixinHelper.payVerifySign(dataMap, dataMap.get("appid"));
-        //TODO
+        //TODO 现在充值流程还不是太懂 后面在调试
 //        OrderInfo orderInfo = orderService.getByOrderNo(dataMap.get("out_trade_no"));
         OrderInfo orderInfo =null;
         if(!StringUtils.equals(orderInfo.getTotalFee()+"", dataMap.get("total_fee"))){

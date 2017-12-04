@@ -7,13 +7,17 @@ import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinHelper;
 import com.jadyer.seed.mpp.sdk.weixin.helper.WeixinTokenHolder;
 import com.jadyer.seed.mpp.sdk.weixin.model.template.WeixinTemplateMsg;
+import com.jadyer.seed.mpp.web.model.MppUserInfo;
 import com.jadyer.seed.mpp.web.model.OrderInfo;
 import com.jadyer.seed.mpp.web.model.OrderInout;
+import com.jadyer.seed.mpp.web.repository.MppUserInfoRepository;
+import com.jadyer.seed.mpp.web.service.MppUserService;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.Date;
 
 /**
@@ -26,13 +30,18 @@ public class WeixinTemplateMsgAsync {
     private String hhtcContextPath;
     @Value("${hhtc.portalUrl.center}")
     private String portalCenterUrl;
+    @Resource
+    private MppUserInfoRepository mppUserInfoRepository;
 
 
     /**
      * TOKGO 发送微信审核结果模板消息
      * */
-    public void Send(String FirstData,String Key1Data,String Key2Data,String RemarkData
-            ,String appid,String openid,WxMsgEnum Template_id){
+    public void Send(String FirstData,String Key1Data,String Key2Data,String RemarkData,String openid,WxMsgEnum Template_id){
+        MppUserInfo mppUserInfo = mppUserInfoRepository.findByType(1);
+        String appid = mppUserInfo.getAppid();
+        //TODO  测试时使用
+        appid = "wx9777e4a1c1ee6ad8";
         try {
             WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
             dataItem.put("first", new WeixinTemplateMsg.DItem(FirstData));
@@ -42,11 +51,14 @@ public class WeixinTemplateMsgAsync {
             WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
             templateMsg.setTemplate_id(Template_id.getID());
             String url = this.hhtcContextPath + this.portalCenterUrl;
-            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+appid+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+appid+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
+            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+appid
+                    +"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+appid
+                    +"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
             templateMsg.setUrl(url);
             templateMsg.setTouser(openid);
             templateMsg.setData(dataItem);
-            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(appid), templateMsg);
+            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(appid)
+                    , templateMsg);
         }catch (Exception ex){
             new HHTCException(CodeEnum.SYSTEM_ERROR.getCode(),"微信模板消息错误");
         }

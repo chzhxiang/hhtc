@@ -39,16 +39,16 @@
             <th>操作</th>
         </tr>
         <c:forEach items="${page.content}" var="goods">
-            <c:if test="${goods.isRepetition eq 1}">
-                <tr class="cf30 fw">
-            </c:if>
-            <c:if test="${goods.isRepetition eq 0}">
-                <tr >
-            </c:if>
-                <td><span><img alt="头像" src="${goods.headimgurl}" height="30px" width="30px"></span></td>
-                <td><span>${goods.nickname}</span></td>
-                <td><span>${goods.communityName}</span></td>
-                <td><span>${goods.carParkNumber}</span></td>
+            <%--<c:if test="${goods.isRepetition eq 1}">--%>
+                <%--<tr class="cf30 fw">--%>
+            <%--</c:if>--%>
+            <%--<c:if test="${goods.isRepetition eq 0}">--%>
+                <%--<tr >--%>
+            <%--</c:if>--%>
+                <%--<td><span><img alt="头像" src="${goods.headimgurl}" height="30px" width="30px"></span></td>--%>
+                <%--<td><span>${goods.nickname}</span></td>--%>
+                <%--<td><span>${goods.communityName}</span></td>--%>
+                <%--<td><span>${goods.carParkNumber}</span></td>--%>
                 <%--
                 <c:choose>
                     <c:when test="${goods.carAuditStatus eq 2}">
@@ -59,16 +59,16 @@
                     </c:otherwise>
                 </c:choose>
                 --%>
-                <td><span>${goods.carUsefulFromDate} - ${goods.carUsefulEndDate}</span></td>
-                <td><span><fmt:formatDate value="${goods.createTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>
-                <td><span>${goods.carAuditStatus eq 1 ? "审核中" : goods.carAuditStatus eq 2 ? "审核通过" : "审核拒绝"}</span></td>
-                <td>
-                    <a class="c09f mr_15" href="${ctx}/view?url=sys/goods&id=${goods.id}">查看</a>
-                    <c:if test="${user.type eq 1}">
-                        <a class="c09f" href="javascript:deleteGoods('${goods.id}');">删除</a>
-                    </c:if>
-                </td>
-            </tr>
+                <%--<td><span>${goods.carUsefulFromDate} - ${goods.carUsefulEndDate}</span></td>--%>
+                <%--<td><span><fmt:formatDate value="${goods.createTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>--%>
+                <%--<td><span>${goods.carAuditStatus eq 1 ? "审核中" : goods.carAuditStatus eq 2 ? "审核通过" : "审核拒绝"}</span></td>--%>
+                <%--<td>--%>
+                    <%--<a class="c09f mr_15" href="${ctx}/view?url=sys/goods&id=${goods.id}">查看</a>--%>
+                    <%--<c:if test="${user.type eq 1}">--%>
+                        <%--<a class="c09f" href="javascript:deleteGoods('${goods.id}');">删除</a>--%>
+                    <%--</c:if>--%>
+                <%--</td>--%>
+            <%--</tr>--%>
         </c:forEach>
     </table>
     <!--/Table list-->

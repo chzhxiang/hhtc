@@ -6,6 +6,7 @@ import com.jadyer.seed.comm.constant.WxMsgEnum;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.jpa.Condition;
 import com.jadyer.seed.comm.util.DateUtil;
+import com.jadyer.seed.comm.util.LogUtil;
 import com.jadyer.seed.mpp.web.model.*;
 import com.jadyer.seed.mpp.web.repository.OrderHistoryRepository;
 import com.jadyer.seed.mpp.web.repository.OrderInforRepository;
@@ -136,9 +137,8 @@ public class OrderInforService {
      *
      * **/
     public void test(String openid){
-//        weixinTemplateMsgAsync.Send("111111111","2222222222","3333333333"
-//        ,"2222222222","wx9777e4a1c1ee6ad8","oyExF0yWol_vLIJDN_WlWREBshTE"
-//                , WxMsgEnum.WX_TEST);
+        weixinTemplateMsgAsync.Send("111111111","2222222222","3333333333"
+        ,"2222222222","oyExF0yWol_vLIJDN_WlWREBshTE", WxMsgEnum.WX_TEST);
 
     }
 
@@ -198,6 +198,14 @@ public class OrderInforService {
         orderInforRepository.delete(id);
     }
 
+    /**
+     * TOKGO 检测订单是否开始结束 （订单开始结束由系统完成）
+     * */
+    public void CheckStartOrEndOrder(){
+        LogUtil.getQuartzLogger().info("定时任务：订单开始结束检测");
+        CheckStartOrEndOrder(orderInforRepository.findAll());
+    }
+
 
     /**
      * TOKGO 检测订单是否开始 或者结束 （订单开始结束由系统完成）
@@ -211,26 +219,34 @@ public class OrderInforService {
      * TOKGO 检测的操作
      * */
     private boolean CheckStartOrEndOrder(OrderInfor orderInfor,long timenow){
-        if (orderInfor.getTimeStartCalculate() < timenow && orderInfor.getOrderStatus()==0) {
-            //订单开始
-            orderInforRepository.updateOrderState(1,orderInfor.getOrderId());
-            //TODO 发送微信模板消息
-            return true;
-        }
-        if (orderInfor.getTimeEndCalculate()<timenow) {
-            //订单结束
-            orderChange(orderInfor);
-            //分钱 车位主和平台
-            orderAsync.Penny(orderInfor.getTotalPrice().doubleValue()
-                    - orderInfor.getTotalOutPrice().doubleValue(),orderInfor);
-            orderInforRepository.delete(orderInfor);
-            //TODO 发送微信模板消息 双方
-            return true;
-        }
-        //计算可提取金额
-        if ((timenow-orderInfor.getOutPriceTime())>Constants.S_DATE_TIMES_MONTH){
-            orderAsync.CalculateMonth(orderInfor);
-        }
+        if (orderInfor ==null)
+            return false;
+        try{
+            if (orderInfor.getTimeStartCalculate() < timenow && orderInfor.getOrderStatus()==0) {
+                //订单开始
+                orderInforRepository.updateOrderState(1,orderInfor.getOrderId());
+                return true;
+            }
+            if (orderInfor.getTimeEndCalculate()<timenow) {
+                //订单结束
+                orderChange(orderInfor);
+                //分钱 车位主和平台
+                orderAsync.Penny(orderInfor.getTotalPrice().subtract(orderInfor.getTotalOutPrice())
+                        .doubleValue(),orderInfor);
+                orderInforRepository.delete(orderInfor);
+                // TODO 微信发消息 给车位主 订单完成
+                weixinTemplateMsgAsync.Send("订单完成","ke1","ke2","remakg"
+                        ,orderInfor.getPostOpenid(), WxMsgEnum.WX_TEST);
+                // TODO 微信发消息 给车主 订单完成
+                weixinTemplateMsgAsync.Send("订单完成","ke1","ke2","remakg"
+                        ,orderInfor.getOwnersOpenid(), WxMsgEnum.WX_TEST);
+                return true;
+            }
+            //计算可提取金额
+            if ((timenow-orderInfor.getOutPriceTime())>Constants.S_DATE_TIMES_MONTH){
+                orderAsync.CalculateMonth(orderInfor);
+            }
+        }catch (Exception e){}
         return false;
     }
 

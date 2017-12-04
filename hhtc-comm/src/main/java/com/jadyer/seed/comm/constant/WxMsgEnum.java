@@ -9,7 +9,7 @@ public enum WxMsgEnum {
         */
     AUDIT_NOTPASS("337mC1vqm0l4bxf8WdEKfiNYO9BOjKCWlJus7hw2bPI","审核被拒通知"),
 
-    WX_TEST("fOEkRO6S0OustUGIbCyRyQQ09wJRLB1fFs_i5w7foiY","测试用户"),
+    WX_TEST("oS4jS3saxCoTTUQtGTv8EBD4ZNP6H_JYyTn4BFn0aKI","测试用户"),
 
 
 

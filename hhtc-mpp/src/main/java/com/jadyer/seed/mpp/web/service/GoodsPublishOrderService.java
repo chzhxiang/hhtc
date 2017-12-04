@@ -2,6 +2,7 @@ package com.jadyer.seed.mpp.web.service;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.comm.constant.Constants;
+import com.jadyer.seed.comm.constant.WxMsgEnum;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.jpa.Condition;
 import com.jadyer.seed.comm.util.BeanUtil;
@@ -11,6 +12,7 @@ import com.jadyer.seed.comm.util.LogUtil;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.model.*;
 import com.jadyer.seed.mpp.web.repository.*;
+import com.jadyer.seed.mpp.web.service.async.WeixinTemplateMsgAsync;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -63,6 +65,8 @@ public class GoodsPublishOrderService {
     @Resource
     private GoodsPublishRepository goodsPublishRepository;
     @Resource
+    private WeixinTemplateMsgAsync weixinTemplateMsgAsync;
+    @Resource
     private GoodsPublishOrderRepository goodsPublishOrderRepository;
 
 
@@ -107,6 +111,9 @@ public class GoodsPublishOrderService {
         }
         //生成订单
         BuildOrder(goodsInfor,price,starttime,endtime);
+        // TODO 微信发消息 给车位主 订单发布成功
+        weixinTemplateMsgAsync.Send("fistdata","ke1","ke2","remakg"
+                ,openid, WxMsgEnum.WX_TEST);
     }
 
 
@@ -288,6 +295,7 @@ public class GoodsPublishOrderService {
      * TOKGO 订单到点后删除 所有订单
      * */
     public void CheckOverTime(){
+        LogUtil.getQuartzLogger().info("定时任务：订单发布超时 未接单检测");
         CheckOverTime(goodsPublishOrderRepository.findAll());
     }
     /**
@@ -302,10 +310,12 @@ public class GoodsPublishOrderService {
      * TOKGO 操作
      * */
     private boolean CheckOverTime(GoodsPublishOrder goodsPublishOrder, long timenow) {
-        if (goodsPublishOrder.getFromdateCalculate()<timenow) {
-            //TODO 发送微信模板消息
-            //TODO 看需要返回值不
+        if (goodsPublishOrder.getFromdateCalculate()<timenow){
+            String openid = goodsPublishOrder.getOpenid();
             goodsPublishOrderRepository.delete(goodsPublishOrder);
+            // TODO 微信发消息 给车位主 订单超时 未被预约 订单取消取消
+            weixinTemplateMsgAsync.Send(" 订单超时 未被预约 订单取消取消","ke1","ke2","remakg"
+                ,openid, WxMsgEnum.WX_TEST);
             return true;
         }
         return false;

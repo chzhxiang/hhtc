@@ -15,9 +15,10 @@
             <th>头像</th>
             <th>昵称</th>
             <th>性别</th>
+            <th>小区</th>
+            <th>门牌号</th>
             <th>手机</th>
             <th>身份</th>
-            <th>车牌号</th>
             <th>注册时间</th>
         </tr>
         <c:forEach items="${page.content}" var="fans">
@@ -25,23 +26,13 @@
                 <td><span><img alt="头像" src="${fans.headimgurl}" height="30px" width="30px"></span></td>
                 <td><span>${fans.nickname}</span></td>
                 <td><span>${fans.sex eq 1 ? '男' : fans.sex eq 2 ? '女' : '未知'}</span></td>
+                <td><span>${fans.communityName}</span></td>
+                <td><span>${fans.houseNumber}</span></td>
                 <td><span>${fans.phoneNo}</span></td>
-                <td><span>${fans.carOwnerStatus eq 2 && fans.carParkStatus eq 2 ? '车主 && 车位主' : fans.carOwnerStatus eq 2 ? '车主' : fans.carParkStatus eq 2 ? '车位主' : '未注册'}</span></td>
-                <td><span>${fans.carNumber}</span></td>
-                <c:choose>
-                    <c:when test="${fans.carOwnerStatus eq 2 && fans.carParkStatus eq 2}">
-                        <td><span><fmt:formatDate value="${fans.carOwnerRegTime}" pattern="yyyy-MM-dd HH:mm"/> && <fmt:formatDate value="${fans.carParkRegTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>
-                    </c:when>
-                    <c:when test="${fans.carOwnerStatus eq 2 && fans.carParkStatus ne 2}">
-                        <td><span><fmt:formatDate value="${fans.carOwnerRegTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>
-                    </c:when>
-                    <c:when test="${fans.carOwnerStatus ne 2 && fans.carParkStatus eq 2}">
-                        <td><span><fmt:formatDate value="${fans.carParkRegTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>
-                    </c:when>
-                    <c:otherwise>
-                        <td><span>-</span></td>
-                    </c:otherwise>
-                </c:choose>
+                <td><span>${fans.infor_state.charAt(4) eq 49?
+                                    (fans.infor_state.charAt(3) eq 49 ?"车主 && 车位主 ":" 车主 ")
+                                    :fans.infor_state.charAt(3) eq 49 ?"车位主":""}</span></td>
+                <td><span><fmt:formatDate value="${fans.createTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>
             </tr>
         </c:forEach>
     </table>

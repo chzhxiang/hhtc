@@ -32,8 +32,8 @@ public class WxMarketPostController {
     private GoodsPublishOrderService goodsPublishOrderService;
 
 
-    //TODO
-    String openid = "ojZ6h1QmJysqUUpDb9I9v5seu_Dw";
+
+
 
     /**
      * TOKGO 库存数量 获取市场的车位
@@ -49,8 +49,8 @@ public class WxMarketPostController {
      * */
     @GetMapping("/getcarparks")
     public CommonResult cancel(HttpSession session) {
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsService.GetPublishCarpark(openid));
     }
 
@@ -61,8 +61,8 @@ public class WxMarketPostController {
      */
     @PostMapping("/postCarpark")
     public CommonResult post(long goodsId, BigDecimal price,String starttime,String endtime, HttpSession session){
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         goodsPublishOrderService.postOrder(openid,goodsId,price,starttime,endtime);
         return new CommonResult();
     }
@@ -74,8 +74,8 @@ public class WxMarketPostController {
      */
     @GetMapping("/check/ordertime")
     public CommonResult CheckOrderTime(String starttime,String endtime,long goodsId,HttpSession session){
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsPublishOrderService.OrderTimeCheck(starttime,endtime,openid,goodsId));
     }
 
@@ -85,8 +85,8 @@ public class WxMarketPostController {
      * */
     @GetMapping("/getorder")
     public CommonResult getorder(HttpSession session){
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsPublishOrderService.Getfansorder(openid));
     }
 
@@ -96,8 +96,8 @@ public class WxMarketPostController {
      */
     @PostMapping("/cancel")
     public CommonResult cancel(String orderid, HttpSession session){
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         goodsPublishOrderService.cancel(openid, orderid);
         return new CommonResult();
     }

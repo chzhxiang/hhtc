@@ -95,7 +95,6 @@ public class MarketTransactionService {
      *TOKGO 用户取消下单
      * */
     public void CancelOrder(String openid,String orderid,String type){
-
         //获取订单
         OrderInfor orderInfor = orderInforService.GetOrder(orderid);
         //获取当前时间
@@ -105,7 +104,8 @@ public class MarketTransactionService {
             throw new HHTCException(CodeEnum.HHTC_ORDER_DISRESERVATION_FAIL);
         }
         //退钱给车主
-        userFundsService.addMoneyBalanceForFans(orderInfor.getOwnersOpenid(),orderInfor.getTotalPrice());
+        userFundsService.addMoneyBalanceForFans(orderInfor.getOwnersOpenid(),orderInfor.getTotalPrice()
+                ,orderInfor.getOrderId(),"订单取消，预约金退回");
         if ("owners".equals(type)){
             if (!openid.equals(orderInfor.getOwnersOpenid()))
                 throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
@@ -117,9 +117,12 @@ public class MarketTransactionService {
                 throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
             orderInforService.Delelte(orderInfor.getId());
         }
-//        // TODO 微信发消息
-//        weixinTemplateMsgAsync.Send("fistdata","ke1","ke2","remakg"
-//                ,fansInfor.getAppid(),fansInfor.getOpenid(), WxMsgEnum.WX_TEST);
+        // TODO 微信发消息 给车位主 订单取消
+        weixinTemplateMsgAsync.Send("订单取消","ke1","ke2","remakg"
+                ,orderInfor.getPostOpenid(), WxMsgEnum.WX_TEST);
+        // TODO 微信发消息 给车主 订单取消
+        weixinTemplateMsgAsync.Send("订单取消","ke1","ke2","remakg"
+               ,orderInfor.getOwnersOpenid(), WxMsgEnum.WX_TEST);
     }
 
 
@@ -154,12 +157,16 @@ public class MarketTransactionService {
         //进行订单预约
         OrderInfor orderInfor = orderInforService.AddOrder(fansInfor,goodsPublishOrder,CarNumber);
         //扣除用户的余额
-        userFundsService.subtractMoneyBalanceForFans(openid,goodsPublishOrder.getPrice());
+        userFundsService.subtractMoneyBalanceForFans(openid,goodsPublishOrder.getPrice()
+                ,orderid,"预定车位，订单扣款");
         //市场消除订单
         goodsPublishOrderService.delete(goodsPublishOrder.getId());
-        // TODO 微信发消息
-        weixinTemplateMsgAsync.Send("fistdata","ke1","ke2","remakg"
-                ,fansInfor.getAppid(),fansInfor.getOpenid(), WxMsgEnum.WX_TEST);
+        // TODO 微信发消息 给车位主 订单被预定
+        weixinTemplateMsgAsync.Send("订单被预定","ke1","ke2","remakg"
+                ,orderInfor.getPostOpenid(), WxMsgEnum.WX_TEST);
+        // TODO 微信发消息 给车主 订单预订成功
+        weixinTemplateMsgAsync.Send("订单被预定","ke1","ke2","remakg"
+                ,orderInfor.getOwnersOpenid(), WxMsgEnum.WX_TEST);
     }
 
     /**
@@ -197,9 +204,8 @@ public class MarketTransactionService {
         if (orderInfor.getOutPrice().doubleValue()<1){
             throw new HHTCException(CodeEnum.HHTC_ORDER_MONEY_NO);
         }
-        double toal = orderInfor.getTotalOutPrice().doubleValue() + orderInfor.getOutPrice().doubleValue();
         orderAsync.Penny(orderInfor.getOutPrice().doubleValue(),orderInfor);
-        orderInfor.setTotalOutPrice(new BigDecimal(toal));
+        orderInfor.setTotalOutPrice(orderInfor.getTotalOutPrice().add(orderInfor.getOutPrice()));
         orderInfor.setOutPrice(new BigDecimal(0));
         orderInforService.Save(orderInfor);
     }

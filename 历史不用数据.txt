@@ -143,7 +143,7 @@
      */
     @GetMapping("/deposit/isenough")
     public CommonResult depositIsenough(long communityId, HttpSession session){
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(userFundsService.depositIsenough(openid, communityId));
     }
 
@@ -159,7 +159,7 @@
     @ResponseBody
     @RequestMapping("/carAudit")
     public CommonResult carAudit(long id, int status, int type, String auditRemark, HttpSession session){
-          String appid = hhtcHelper.getWxAppidFromSession(session);
+         String appid = hhtcHelper.getWxAppidFromSession(session);
         MppUserInfo userInfo = (MppUserInfo)session.getAttribute(Constants.WEB_SESSION_USER);
         //fansService.carAudit(userInfo, id, status, type, auditRemark, appid);
         return new CommonResult();

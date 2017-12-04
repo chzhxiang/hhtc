@@ -4,6 +4,7 @@ import com.jadyer.seed.comm.constant.CommonResult;
 import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.service.FansService;
+import com.jadyer.seed.mpp.web.service.UserFundsFlowService;
 import com.jadyer.seed.mpp.web.service.UserFundsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,28 +26,47 @@ public class WxUserFundsController {
     private HHTCHelper hhtcHelper;
     @Resource
     private UserFundsService userFundsService;
+    @Resource
+    private UserFundsFlowService userFundsFlowService;
 
 
-    //TODO
-    String openid = "ojZ6h1QmJysqUUpDb9I9v5seu_Dw";
+
     /**
      * TOKGO 查询粉丝资金情况
      */
     @GetMapping("/get")
     public CommonResult get(HttpSession session){
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(userFundsService.get(openid));
     }
 
+    /***
+     * TOKGO 获取余额资金流水
+     * */
+    @GetMapping("/flow/list/balance")
+    public CommonResult listbalance(int pageNo, HttpSession session){
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(userFundsFlowService.listViaPageBalace(pageNo, openid));
+    }
+
+
+    /***
+     * TOKGO 获取押金资金流水
+     * */
+    @GetMapping("/flow/list/base")
+    public CommonResult listbase(int pageNo, HttpSession session){
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(userFundsFlowService.listViaPageBase(pageNo, openid));
+    }
     /**
      * TOKGO 提现请求
      *@param  type 4---余额提现 5---押金提现
      * */
     @PostMapping("/withdraw")
     public CommonResult Wthdraw(double amount, int type , HttpSession session){
-        //TODO
-        if(Constants.ISWEIXIN) openid = hhtcHelper.getWxOpenidFromSession(session);
+
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         userFundsService.WthdrawApplication(openid,amount,type);
         return new CommonResult();
     }

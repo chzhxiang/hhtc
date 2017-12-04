@@ -227,26 +227,6 @@ update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMES
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='商品需求信息表（存储车主已发布的需求）';
 
 
-DROP TABLE IF EXISTS t_goods_need_history;
-CREATE TABLE t_goods_need_history(
-id                     INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
-need_id                INT           NOT NULL COMMENT 't_goods_need_info#id',
-appid                  VARCHAR(32)   NOT NULL COMMENT '当前公众号的appid',
-openid                 VARCHAR(64)   NOT NULL COMMENT '粉丝的openid',
-community_id           INT           NOT NULL COMMENT '小区ID，对应t_community_info#id',
-car_number             VARCHAR(16)   NOT NULL COMMENT '车牌号',
-need_type              TINYINT(1)    NOT NULL COMMENT '需求的车位类型：1--日间，2--夜间，3--全天',
-need_from_time         INT           NOT NULL COMMENT '需求的停放起始时间，格式为900则表示09:00（24小时制）',
-need_end_time          INT           NOT NULL COMMENT '需求的停放截止时间，格式为1630则表示16:30（24小时制）',
-need_from_date         INT           NOT NULL COMMENT '需求的停放起始日期，格式为20170715',
-need_end_date          INT           NOT NULL COMMENT '需求的停放截止日期，格式为20170715',
-money_rent             DECIMAL(16,4) NOT NULL COMMENT '租金（不含押金），单位：元',
-status                 TINYINT(1)    NOT NULL COMMENT '需求状态：1--有效（可由系统自动匹配车位），2--已匹配',
-goods_publish_order_id INT           COMMENT '匹配到的发布订单ID，对应t_goods_publish_order#id',
-create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
-)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='商品需求历史表（存储没有匹配到的过期需求）';
-
 
 DROP TABLE IF EXISTS t_goods_publish_order;
 CREATE TABLE t_goods_publish_order(
@@ -370,7 +350,7 @@ INDEX index_outTradeNo(order_id)
 DROP TABLE IF EXISTS t_order_history;
 CREATE TABLE t_order_history(
 id                      INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
-order_id                VARCHAR(50)       NOT NULL COMMENT '订单ID，对应t_order_infor#id',
+order_id                 VARCHAR(50)  NOT NULL COMMENT '商品发布的订单ID，对应t_goods_publish_order#orde_id',
 post_openid             VARCHAR(64)   NOT NULL COMMENT '车位主的标识',
 post_phone_no                 CHAR(11)     COMMENT '车位主的手机号',
 owners_openid              VARCHAR(64)   NOT NULL COMMENT '车主的标识',
@@ -490,20 +470,15 @@ update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMES
 DROP TABLE IF EXISTS t_user_funds_flow;
 CREATE TABLE t_user_funds_flow(
 id              INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
-funds_id        INT           NOT NULL COMMENT '资金ID，对应t_user_funds#id',
-out_trade_no    VARCHAR(64)   COMMENT '订单号，对应t_order_info#out_trade_no',
-out_refund_no   VARCHAR(64)   COMMENT '退款单号，对应t_order_refund_info#out_refund_no',
+order_id        VARCHAR(50)            COMMENT '商品发布的订单ID，对应t_goods_publish_order#orde_id  同时还有充值号',
 uid             INT           COMMENT '用户ID，对应t_mpp_user_info#id',
 openid          VARCHAR(64)   COMMENT '粉丝的openid',
 money           DECIMAL(16,4) NOT NULL COMMENT '收入或支出金额绝对值，单位：元',
-in_out          VARCHAR(3)    NOT NULL COMMENT '收支类型：in--收入，out--支出',
+in_out_type     TINYINT(1)    NOT NULL COMMENT '收支轨迹：1--押金收入，2--押金支出，3--余额收入，4--余额支出',
 in_out_desc     VARCHAR(64)   NOT NULL COMMENT '收入或支出的描述',
-in_out_type     TINYINT(1)    NOT NULL COMMENT '收支轨迹：1--充值押金，2--充值余额，3--扣减押金，4--扣减余额，5--收入租金，6--返还余额，7--返还押金，8--收入超时补贴，9--无法停车补贴',
-biz_date        INT           NOT NULL COMMENT '业务发生日期，存储格式为20160718',
-biz_date_time   DATETIME      NOT NULL COMMENT '业务发生时间',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
-)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='资金流水表';
+)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='资金流水表 TOKGO';
 
 
 DROP TABLE IF EXISTS t_sms_infor;

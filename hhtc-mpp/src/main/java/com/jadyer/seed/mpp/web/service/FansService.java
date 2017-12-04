@@ -198,7 +198,7 @@ public class FansService {
         //检测用户是否已经提交房屋验证
         List<FansInforAudit> fansInforAudits = auditService.GetAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_COMMUNITY);
         if (fansInforAudits.size() > 0){
-            throw  new HHTCException(CodeEnum.HHTC_INFOR_COMMUNITY);
+            throw  new HHTCException(CodeEnum.HHTC_INFOR_COMMUNITY_COPY);
         }
         CommunityInfo communityInfo = communityService.get(CommunityID);
         //写入审核
@@ -302,7 +302,6 @@ public class FansService {
         //执行
         return fansInforRepository.findAll(spec, pageable);
     }
-
 
     public Page<AdviceInfor> listAdviceViaPage(String pageNo){
         Sort sort = new Sort(Sort.Direction.DESC, "id");
@@ -506,7 +505,7 @@ public class FansService {
         List<FansInforAudit> fansInforAudits = auditService.GetAudit(mppFansInfor.getUid()
                 ,mppFansInfor.getOpenid(),AUDTI_TEPY_CARNUMBER);
         List<OwnersInfor> ownersInfors = ownersInforServic.Get(mppFansInfor.getOpenid());
-        if ((ownersInfors.size()+fansInforAudits.size())>Constants.S_CARNUMBERMAX) {
+        if ((ownersInfors.size()+fansInforAudits.size())>=Constants.S_CARNUMBERMAX) {
             //判断用户已经拥有了两块车牌
             throw new HHTCException(CodeEnum.HHTC_INFOR_CARNUMBERFULL);
         }
@@ -590,10 +589,10 @@ public class FansService {
         }
         //审核结果发送微信模板消息
         if (status == 1)
-            weixinTemplateMsgAsync.Send(FirstData,Key1Data,Key2Data,RemarkData,appid
+            weixinTemplateMsgAsync.Send(FirstData,Key1Data,Key2Data,RemarkData
                     ,fansInfor.getOpenid(), WxMsgEnum.WX_TEST);
         else
-            weixinTemplateMsgAsync.Send(FirstData,Key1Data,Key2Data,RemarkData,appid
+            weixinTemplateMsgAsync.Send(FirstData,Key1Data,Key2Data,RemarkData
                     ,fansInfor.getOpenid(), WxMsgEnum.WX_TEST);
         //删除审核记录
         auditService.Delete(fansInforAudit);

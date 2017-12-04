@@ -27,7 +27,7 @@ public class GoodsController {
     @RequestMapping("/list")
     public String listViaPage(String pageNo, HttpServletRequest request){
         MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
-//        request.setAttribute("regcount", goodsService.count(userInfo));
+        request.setAttribute("regcount", goodsService.GetGoodsCount(userInfo));
 //        request.setAttribute("page", goodsService.listViaPage(userInfo, pageNo));
         return "sys/goods.list";
     }
@@ -40,15 +40,7 @@ public class GoodsController {
     }
 
 
-    /**
-     * 审核通过或拒绝车位
-     */
-//    @ResponseBody
-//    @PostMapping("/audit")
-//    public CommonResult audit(GoodsInfo goodsInfo, HttpSession session){
-//        MppUserInfo userInfo = (MppUserInfo)session.getAttribute(Constants.WEB_SESSION_USER);
-//        return new CommonResult(goodsService.audit(userInfo, goodsInfo));
-//    }
+
     @ResponseBody
     @PostMapping("/delete")
     public CommonResult delete(long id, HttpSession session){
