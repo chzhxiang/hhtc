@@ -140,7 +140,7 @@ public class UserFundsFlowService {
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无效的流水类型["+inOutType+"]");
         }
         String typedesc = inOutType==1 ? "个人中心押金充值" : "个人中心余额充值" ;
-        //TODO 微信支付的id
+        //TODO 用户充值做流水记录 微信支付的id
         AddFlowForRecharge(openid,"",money,inOutType,typedesc);
     }
 

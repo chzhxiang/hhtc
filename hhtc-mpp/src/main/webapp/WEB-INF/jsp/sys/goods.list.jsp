@@ -1,5 +1,4 @@
 <%@ page pageEncoding="UTF-8"%>
-<%@ page pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
@@ -45,8 +44,8 @@
             <%--<c:if test="${goods.isRepetition eq 0}">--%>
                 <%--<tr >--%>
             <%--</c:if>--%>
-                <%--<td><span><img alt="头像" src="${goods.headimgurl}" height="30px" width="30px"></span></td>--%>
-                <%--<td><span>${goods.nickname}</span></td>--%>
+                <td><span><img alt="头像" src="${goods.headimgurl}" height="30px" width="30px"></span></td>
+                <td><span>${goods.nickname}</span></td>
                 <%--<td><span>${goods.communityName}</span></td>--%>
                 <%--<td><span>${goods.carParkNumber}</span></td>--%>
                 <%--

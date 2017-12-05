@@ -124,6 +124,9 @@ public class GoodsPublishOrderService {
     public boolean OrderTimeCheck(String stime,String etime,String openid,long goodsId){
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            GoodsInfor goodsInfor = goodsService.get(goodsId);
+            if (sdf.parse(etime).getTime()>sdf.parse(goodsInfor.getCarUsefulEndDate()).getTime())
+                throw new HHTCException(CodeEnum.SYSTEM_ERROR);
             long starttime =  sdf.parse(stime).getTime()-Constants.S_ORDERINTERVAL;
             long endtime =  sdf.parse(etime).getTime()+Constants.S_ORDERINTERVAL;
             List<GoodsPublishOrder> goodsPublishOrders = goodsPublishOrderRepository.findByGoodsIdAndOpenid(goodsId,openid);
@@ -232,6 +235,7 @@ public class GoodsPublishOrderService {
         if (temp >= communityInfo.getMoneyRentFull().doubleValue())
             temp= communityInfo.getMoneyRentFull().doubleValue();
         free+=temp;
+//        free = (free *communityInfo.getRentRatioCarparker()/100.0);
         return  new BigDecimal(free);
     }
 

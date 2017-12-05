@@ -28,7 +28,7 @@ public class GoodsController {
     public String listViaPage(String pageNo, HttpServletRequest request){
         MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
         request.setAttribute("regcount", goodsService.GetGoodsCount(userInfo));
-//        request.setAttribute("page", goodsService.listViaPage(userInfo, pageNo));
+        request.setAttribute("page", goodsService.listViaPage(userInfo, pageNo));
         return "sys/goods.list";
     }
 
@@ -45,7 +45,7 @@ public class GoodsController {
     @PostMapping("/delete")
     public CommonResult delete(long id, HttpSession session){
         MppUserInfo userInfo = (MppUserInfo)session.getAttribute(Constants.WEB_SESSION_USER);
-        //TODO
+        //TODO  后台删除车位
 //        goodsService.del(userInfo, id);
         return new CommonResult();
     }

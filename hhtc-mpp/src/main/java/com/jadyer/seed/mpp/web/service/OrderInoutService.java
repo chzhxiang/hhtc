@@ -6,10 +6,7 @@ import com.jadyer.seed.comm.util.DateUtil;
 import com.jadyer.seed.comm.util.JadyerUtil;
 import com.jadyer.seed.comm.util.LogUtil;
 import com.jadyer.seed.mpp.web.HHTCHelper;
-import com.jadyer.seed.mpp.web.model.OrderInfo;
-import com.jadyer.seed.mpp.web.model.OrderInout;
-import com.jadyer.seed.mpp.web.model.UserFunds;
-import com.jadyer.seed.mpp.web.model.UserFundsFlow;
+import com.jadyer.seed.mpp.web.model.*;
 import com.jadyer.seed.mpp.web.repository.OrderInoutRepository;
 import com.jadyer.seed.mpp.web.repository.UserFundsRepository;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -21,10 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by 玄玉<http://jadyer.cn/> on 2017/8/21 20:55.
@@ -46,7 +40,7 @@ public class OrderInoutService {
     @Resource
     private FansService fansService;
     @Resource
-    private OrderService orderService;
+    private OrderInforService orderInforService;
     @Resource
     private CommunityService communityService;
     @Resource
@@ -57,6 +51,125 @@ public class OrderInoutService {
     private UserFundsFlowService userFundsFlowService;
     @Resource
     private OrderInoutRepository orderInoutRepository;
+
+
+    /**
+     *TOKGO  车牌车辆进入检测
+     * @param device 1--进场，2--出场
+     * */
+    public String CheckCarNumber(String carNumber,CommunityDevice device){
+        long nowdate = new Date().getTime();
+        //查找 该车牌订单
+        List<OrderInfor> orderInfors  = orderInforService.Get(carNumber,device.getCommunityId());
+        //TODO  超时补款的临时开门权限 检测
+        if (orderInfors.size() == 0)
+            return "进出无效通知：非平台下单车主";
+        OrderInfor order =null;
+        for (OrderInfor orderInfor :orderInfors){
+            if (nowdate>=orderInfor.getTimeStartCalculate() && nowdate <= orderInfor.getTimeEndCalculate()) {
+                order = orderInfor;
+                break;
+            }
+        }
+        //检测车辆进出状态  0--车在外面  1--车在里面
+        if(device.getType() == 1){
+            if (order.getInoutStatus() == 1)
+                return  "入场重复通知：车主已经入场了";
+            else
+                return "";
+
+        }else{
+            if (order.getInoutStatus() == 0)
+                return  "出场重复通知：车主已经出场了";
+            else
+                return "";
+        }
+
+//        if(type == 1){
+//            //后半夜入场及当天
+//            String yestoday = DateFormatUtils.format(DateUtils.addDays(new Date(), -1), "yyyyMMdd");
+//            List<Integer> fromDateList = Arrays.asList(Integer.parseInt(yestoday), Integer.parseInt(DateUtil.getCurrentDate()));
+//            List<OrderInout> inoutList = orderInoutRepository.findByCommunityIdAndCarNumberAndFromDateInOrderByFromDateAscFromTimeAsc(device.getCommunityId(), carNumber, fromDateList);
+//            if(null==inoutList || inoutList.isEmpty()) {
+//                respMsg = "入场无效通知：非平台下单车主";
+//            }else{
+//                OrderInout inout = this.findMatchInout(inoutList, 1);
+//                if(null == inout){
+//                    respMsg = "不能入场：今日订单均已完成";
+//                }else if(new Date().compareTo(hhtcHelper.convertToDate(inout.getFromDate(), inout.getFromTime())) < 0){
+//                    respMsg = "不能入场：订单起始时间未到";
+//                }else if(new Date().compareTo(inout.getAllowLatestOutDate()) >= 0){
+//                    respMsg = "不能入场：超过订单当日截止日";
+//                }else if(null!=inout.getInTime() && null==inout.getOutTime() && inout.getInTime().getTime()!=dtime.getTime()){
+//                    respMsg = "入场重复通知：车主已经入场了";
+//                    //}else if(null!=inout.getInTime() && null!=inout.getOutTime()){
+//                    //    //支持多次入场出场，故注释
+//                    //    respMsg = "无效通知：车主已离场";
+////                }else if(userFundsService.depositIsenough(inout.getOpenid(), device.getCommunityId()).get("isenough").equals("0")){
+////                    respMsg = "不能入场：车主押金不足";
+//                }else{
+//                    communityDeviceFlow.setScanAllowOpen(1);
+//                    communityDeviceFlow.setOpenTime(new Date());
+//                    if(hhtcHelper.openDoor(device.getSerialnoRelays(), device.getRelaysDoorid())){
+//                        respMsg = "in success";
+//                        communityDeviceFlow.setOpenResult(1);
+//                        inout.setInTime(new Date());
+//                        inout.setOutTime(null);
+//                        orderInoutRepository.saveAndFlush(inout);
+//                    }else{
+//                        respMsg = "开闸失败（入口）";
+//                        //TODO 开闸失败需要通知运营
+//                    }
+//                }
+//            }
+//        }else{
+//            //前半夜出场及当天
+//            String tomorrow = DateFormatUtils.format(DateUtils.addDays(new Date(), 1), "yyyyMMdd");
+//            List<Integer> endDateList = Arrays.asList(Integer.parseInt(tomorrow), Integer.parseInt(DateUtil.getCurrentDate()));
+//            List<OrderInout> inoutList = orderInoutRepository.findByCommunityIdAndCarNumberAndEndDateInOrderByFromDateAscFromTimeAsc(device.getCommunityId(), carNumber, endDateList);
+//            if(null==inoutList || inoutList.isEmpty()) {
+//                respMsg = "出场无效通知：非平台下单车主";
+//            }else{
+//                OrderInout inout = this.findMatchInout(inoutList, 2);
+//                if(null == inout) {
+//                    respMsg = "不能出场：今日订单均已完成";
+//                }else if(null==inout.getInTime()){
+//                    respMsg = "出场无效通知：车主未入场";
+//                }else if(null!=inout.getInTime() && null!=inout.getOutTime()){
+//                    respMsg = "出场重复通知：车主已经出场了";
+//                }else if(new Date().compareTo(inout.getAllowLatestOutDate()) > 0){
+//                    respMsg = "不能出场：超过本次允许离场时间";
+//                }else{
+//                    communityDeviceFlow.setScanAllowOpen(1);
+//                    communityDeviceFlow.setOpenTime(new Date());
+//                    if(hhtcHelper.openDoor(device.getSerialnoRelays(), device.getRelaysDoorid())){
+//                        respMsg = "out success";
+//                        communityDeviceFlow.setOpenResult(1);
+//                        //订单生命周期已结束
+////                        OrderInfo order = orderService.getByOrderNo(inout.getOrderNo());
+////                        Date orderEndDate = hhtcHelper.convertToDate(hhtcHelper.calcOrderEndDate(order), order.getOpenEndTime());
+////                        if(inout.getCardNo().endsWith(JadyerUtil.leftPadUseZero(inout.getMaxIndex()+"", 3)) && orderEndDate.compareTo(new Date())<1){
+////                            order.setOrderStatus(99);
+////                            orderService.upsert(order);
+////                            //更新车位的使用状态
+////                            if(orderService.countByGoodsIdAndOrderTypeInAndOrderStatusIn(order.getGoodsId(), Arrays.asList(1, 2), Arrays.asList(2, 9)) == 0){
+////                                goodsService.updateStatus(order.getGoodsId(), 1, 2);
+////                            }
+////                        }
+////                        inout.setOutTime(new Date());
+////                        orderInoutRepository.saveAndFlush(inout);
+////                        weixinTemplateMsgAsync.sendForCarownerOut(inout, order);
+//                    }else{
+//                        respMsg = "开闸失败（出口）";
+//                        //TODO 开闸失败需要通知运营
+//                    }
+//                }
+//            }
+//        }
+    }
+
+
+
 
     /**
      * 初始化订单出入明细及停车卡
@@ -192,8 +305,6 @@ public class OrderInoutService {
                     paramMap.put("phone", phone.substring(7, 11));
                     hhtcHelper.sendSms(phone, "SMS_89040046", paramMap);
                     //罚钱并更新扣款时间
-                    //TODO
-//                    obj.setLastDeductMoney(this.deduct(funds, obj.getGoodsOpenid()));
                     obj.setLastDeductTime(currdate);
                     obj.setNextDeductStartTime(DateUtils.addMinutes(edate, 60));
                     obj.setNextDeductEndTime(DateUtils.addMinutes(edate, 90));
@@ -203,7 +314,7 @@ public class OrderInoutService {
                 //超时的第61分钟开始，每半个小时，罚一次钱，直至押金罚完（10：06-11：00扣10块，接下来每半小时系统做判断车主是否离场，若仍未离场（11：01）每半小时扣10元，并通知两边，11：31分再扣钱（此时不需要通知），扣完押金为止）
                 if(null!=obj.getLastDeductTime() && currdate.compareTo(obj.getNextDeductStartTime())>=0 && currdate.compareTo(obj.getNextDeductEndTime())<0){
                     //罚钱并更新扣款时间
-                    //TODO
+                    //TODO  原工程的超时补款 可能要删除
 //                    obj.setLastDeductMoney(this.deduct(funds, obj.getGoodsOpenid()));
                     obj.setLastDeductTime(currdate);
                     obj.setNextDeductStartTime(obj.getNextDeductEndTime());

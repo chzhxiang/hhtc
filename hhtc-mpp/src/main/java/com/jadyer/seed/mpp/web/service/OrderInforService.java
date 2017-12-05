@@ -46,21 +46,21 @@ public class OrderInforService {
 
 
     /**
-     *TOKGO获取用户历史当担信息
-     * */
-    public List<HashMap> Gethistory(String openid, int pageNo){
+     * TOKGO获取用户历史当担信息
+     */
+    public List<HashMap> Gethistory(String openid, int pageNo) {
         List<HashMap> hashMapList = new ArrayList<>();
         //排序 降序排序
-        Sort sort = new Sort(Sort.Direction.DESC ,"id");
+        Sort sort = new Sort(Sort.Direction.DESC, "id");
         //分页
         Pageable pageable = new PageRequest(pageNo, 10, sort);
         //条件
-        Condition<OrderHistory> spec = Condition.<OrderHistory>or().eq("postOpenid",openid).eq("ownersOpenid",openid);
+        Condition<OrderHistory> spec = Condition.<OrderHistory>or().eq("postOpenid", openid).eq("ownersOpenid", openid);
         //执行
         Page<OrderHistory> page = orderHistoryRepository.findAll(spec, pageable);
         List<OrderHistory> list = page.getContent();
-        for (OrderHistory orderHistory:list){
-            loaddata(orderHistory,hashMapList,openid);
+        for (OrderHistory orderHistory : list) {
+            loaddata(orderHistory, hashMapList, openid);
         }
         return hashMapList;
     }
@@ -68,8 +68,8 @@ public class OrderInforService {
 
     /**
      * TOKGO 数据装填
-     * **/
-    private void loaddata(OrderHistory orderHistory,List<HashMap> list,String openid) {
+     **/
+    private void loaddata(OrderHistory orderHistory, List<HashMap> list, String openid) {
         HashMap hashMap = new HashMap();
         if (openid.equals(orderHistory.getOwnersOpenid())) {
             hashMap.put("type", "owners");
@@ -84,7 +84,7 @@ public class OrderInforService {
         hashMap.put("begintime", orderHistory.getFromTime());
         hashMap.put("endtime", orderHistory.getEndTime());
         hashMap.put("price", orderHistory.getTotalprice());
-        if (orderHistory.getFineFlag()==0)
+        if (orderHistory.getFineFlag() == 0)
             hashMap.put("Defaultprice", 0);
         else
             hashMap.put("Defaultprice", orderHistory.getFinePrice());
@@ -94,16 +94,17 @@ public class OrderInforService {
 
     /**
      * TOKGO 保存订单
-     * **/
-    public void Save (OrderInfor orderInfor){
+     **/
+    public void Save(OrderInfor orderInfor) {
         orderInforRepository.save(orderInfor);
     }
 
     /**
      * TOKGO 添加新增订单(预约)
-     * */
-    public OrderInfor AddOrder( MppFansInfor ownersInfor, GoodsPublishOrder goodsPublishOrder,String CarNumber){
+     */
+    public OrderInfor AddOrder(MppFansInfor ownersInfor, GoodsPublishOrder goodsPublishOrder, String CarNumber) {
         OrderInfor orderInfor = new OrderInfor();
+//        CommunityInfo communityInfo = communityService.get(communityId);
         //状态为预约
         orderInfor.setOrderStatus(0);
         orderInfor.setOrderId(goodsPublishOrder.getOrderID());
@@ -126,46 +127,46 @@ public class OrderInforService {
 
     /**
      * TOKGO 超时补款
-     * */
-    public void OvertimeRepayment(String openid,String orderid){
-        // TODO 超时补款
+     */
+    public void OvertimeRepayment(String openid, String orderid) {
+        // TODO 超时补款  计算方式  先 用户来请求价格  然后后天算出价格  最后再提交  处理  两个接口
     }
 
 
     /**
      * //TODO 测试接口
+     **/
+    public void test(String openid) {
+        weixinTemplateMsgAsync.Send("111111111", "2222222222", "3333333333"
+                , "2222222222", "oyExF0yWol_vLIJDN_WlWREBshTE", WxMsgEnum.WX_TEST);
+
+    }
+
+    /**
+     * TOKGO 车主获取订单
+     */
+    public List<OrderInfor> GetOwnersOrder(String ownersopenid) {
+        List<OrderInfor> orderInfors = orderInforRepository.findByOwnersOpenid(ownersopenid);
+        CheckStartOrEndOrder(orderInfors);
+        return orderInfors;
+    }
+
+    /**
+     * TOKGO 车位主获取订单
+     */
+    public List<OrderInfor> GetPostOrder(String postopenid) {
+        List<OrderInfor> orderInfors = orderInforRepository.findByPostOpenid(postopenid);
+        CheckStartOrEndOrder(orderInfors);
+        return orderInfors;
+    }
+
+    /**
+     * TOKGO 车位主获取订单
      *
-     * **/
-    public void test(String openid){
-        weixinTemplateMsgAsync.Send("111111111","2222222222","3333333333"
-        ,"2222222222","oyExF0yWol_vLIJDN_WlWREBshTE", WxMsgEnum.WX_TEST);
-
-    }
-
-    /**
-     * TOKGO 车主获取订单
-     * */
-    public List<OrderInfor> GetOwnersOrder(String ownersopenid){
-        List<OrderInfor> orderInfors =orderInforRepository.findByOwnersOpenid(ownersopenid);
-        CheckStartOrEndOrder(orderInfors);
-        return orderInfors;
-    }
-
-    /**
-     * TOKGO 车位主获取订单
-     * */
-    public List<OrderInfor> GetPostOrder(String postopenid){
-        List<OrderInfor> orderInfors =orderInforRepository.findByPostOpenid(postopenid);
-        CheckStartOrEndOrder(orderInfors);
-        return orderInfors;
-    }
-
-    /**
-     * TOKGO 车位主获取订单
      * @param type 1---预约订单  2----进行中的订单
-     * */
-    public List<OrderInfor> GetPostOrder(String postopenid,int type){
-        List<OrderInfor> orderInfors =orderInforRepository.findByPostOpenidAndOrderStatus(postopenid,type-1);
+     */
+    public List<OrderInfor> GetPostOrder(String postopenid, int type) {
+        List<OrderInfor> orderInfors = orderInforRepository.findByPostOpenidAndOrderStatus(postopenid, type - 1);
         CheckStartOrEndOrder(orderInfors);
         return orderInfors;
     }
@@ -173,18 +174,19 @@ public class OrderInforService {
 
     /**
      * TOKGO 车主获取订单
+     *
      * @param type 1---预约订单  2----进行中的订单
-     * */
-    public List<OrderInfor> GetOwnersOrder(String ownersopenid,int type){
-        List<OrderInfor> orderInfors =orderInforRepository.findByOwnersOpenidAndOrderStatus(ownersopenid,type-1);
+     */
+    public List<OrderInfor> GetOwnersOrder(String ownersopenid, int type) {
+        List<OrderInfor> orderInfors = orderInforRepository.findByOwnersOpenidAndOrderStatus(ownersopenid, type - 1);
         CheckStartOrEndOrder(orderInfors);
         return orderInfors;
     }
 
     /**
      * TOKGO 获取订单订单
-     * */
-    public OrderInfor GetOrder(String orderid){
+     */
+    public OrderInfor GetOrder(String orderid) {
         OrderInfor orderInfor = orderInforRepository.findByOrderId(orderid);
         CheckStartOrEndOrder(orderInfor);
         return orderInfor;
@@ -193,15 +195,15 @@ public class OrderInforService {
 
     /**
      * TOKGO 删除订单
-     * */
-    public void Delelte(long id){
+     */
+    public void Delelte(long id) {
         orderInforRepository.delete(id);
     }
 
     /**
      * TOKGO 检测订单是否开始结束 （订单开始结束由系统完成）
-     * */
-    public void CheckStartOrEndOrder(){
+     */
+    public void CheckStartOrEndOrder() {
         LogUtil.getQuartzLogger().info("定时任务：订单开始结束检测");
         CheckStartOrEndOrder(orderInforRepository.findAll());
     }
@@ -209,63 +211,64 @@ public class OrderInforService {
 
     /**
      * TOKGO 检测订单是否开始 或者结束 （订单开始结束由系统完成）
-     * */
-    public void CheckStartOrEndOrder(OrderInfor orderInfor){
+     */
+    public void CheckStartOrEndOrder(OrderInfor orderInfor) {
         //获取当前时间
-        CheckStartOrEndOrder(orderInfor,new Date().getTime());
+        CheckStartOrEndOrder(orderInfor, new Date().getTime());
     }
 
     /**
      * TOKGO 检测的操作
-     * */
-    private boolean CheckStartOrEndOrder(OrderInfor orderInfor,long timenow){
-        if (orderInfor ==null)
+     */
+    private boolean CheckStartOrEndOrder(OrderInfor orderInfor, long timenow) {
+        if (orderInfor == null)
             return false;
-        try{
-            if (orderInfor.getTimeStartCalculate() < timenow && orderInfor.getOrderStatus()==0) {
+        try {
+            if (orderInfor.getTimeStartCalculate() < timenow && orderInfor.getOrderStatus() == 0) {
                 //订单开始
-                orderInforRepository.updateOrderState(1,orderInfor.getOrderId());
+                orderInforRepository.updateOrderState(1, orderInfor.getOrderId());
                 return true;
             }
-            if (orderInfor.getTimeEndCalculate()<timenow) {
+            if (orderInfor.getTimeEndCalculate() < timenow) {
                 //订单结束
                 orderChange(orderInfor);
                 //分钱 车位主和平台
                 orderAsync.Penny(orderInfor.getTotalPrice().subtract(orderInfor.getTotalOutPrice())
-                        .doubleValue(),orderInfor);
+                        .doubleValue(), orderInfor);
                 orderInforRepository.delete(orderInfor);
                 // TODO 微信发消息 给车位主 订单完成
-                weixinTemplateMsgAsync.Send("订单完成","ke1","ke2","remakg"
-                        ,orderInfor.getPostOpenid(), WxMsgEnum.WX_TEST);
+                weixinTemplateMsgAsync.Send("订单完成", "ke1", "ke2", "remakg"
+                        , orderInfor.getPostOpenid(), WxMsgEnum.WX_TEST);
                 // TODO 微信发消息 给车主 订单完成
-                weixinTemplateMsgAsync.Send("订单完成","ke1","ke2","remakg"
-                        ,orderInfor.getOwnersOpenid(), WxMsgEnum.WX_TEST);
+                weixinTemplateMsgAsync.Send("订单完成", "ke1", "ke2", "remakg"
+                        , orderInfor.getOwnersOpenid(), WxMsgEnum.WX_TEST);
                 return true;
             }
             //计算可提取金额
-            if ((timenow-orderInfor.getOutPriceTime())>Constants.S_DATE_TIMES_MONTH){
+            if ((timenow - orderInfor.getOutPriceTime()) > Constants.S_DATE_TIMES_MONTH) {
                 orderAsync.CalculateMonth(orderInfor);
             }
-        }catch (Exception e){}
+        } catch (Exception e) {
+        }
         return false;
     }
 
 
     /**
      * TOKGO 检测订单是否开始结束 （订单开始结束由系统完成）
-     * */
-    public void CheckStartOrEndOrder(List<OrderInfor> orderInfors){
+     */
+    public void CheckStartOrEndOrder(List<OrderInfor> orderInfors) {
         //获取当前时间
         long timenow = new Date().getTime();
-        for(OrderInfor orderInfor : orderInfors){
-            CheckStartOrEndOrder(orderInfor,timenow);
+        for (OrderInfor orderInfor : orderInfors) {
+            CheckStartOrEndOrder(orderInfor, timenow);
         }
     }
 
     /**
      * TOKGO 订单由进行中转为已完成
-     * */
-    private void orderChange(OrderInfor orderInfor){
+     */
+    private void orderChange(OrderInfor orderInfor) {
         OrderHistory orderHistory = new OrderHistory();
         orderHistory.setOrderId(orderInfor.getOrderId());
         orderHistory.setPostOpenid(orderInfor.getPostOpenid());
@@ -286,4 +289,12 @@ public class OrderInforService {
     }
 
 
+    /**
+     * TOKGO  通过车牌获取订单
+     */
+    public List<OrderInfor> Get(String carnumber,long communityid){
+        List<OrderInfor> orderInfors = orderInforRepository.findByCarNumberAndCommunityId(carnumber,communityid);
+        CheckStartOrEndOrder(orderInfors);
+        return orderInfors;
+    }
 }

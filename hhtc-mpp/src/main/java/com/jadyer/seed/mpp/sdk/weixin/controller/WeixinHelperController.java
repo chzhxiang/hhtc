@@ -15,6 +15,7 @@ import com.jadyer.seed.mpp.web.model.OrderInfo;
 import com.jadyer.seed.mpp.web.service.FansService;
 import com.jadyer.seed.mpp.web.service.MppUserService;
 import com.jadyer.seed.mpp.web.service.OrderService;
+import com.jadyer.seed.mpp.web.service.UserFundsService;
 import com.jadyer.seed.mpp.web.service.async.AppidAsync;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
@@ -57,6 +58,8 @@ public class WeixinHelperController {
     private FansService fansService;
     @Resource
     private OrderService orderService;
+    @Resource
+    private UserFundsService userFundsService;
     @Resource
     private MppUserService mppUserService;
 
@@ -180,6 +183,9 @@ public class WeixinHelperController {
         out.close();
     }
 
+    /**
+     * TOKGO 平台收到用户充值
+     * */
 
     @RequestMapping("/pay/notify")
     void payNotify(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -188,8 +194,6 @@ public class WeixinHelperController {
         Map<String, String> dataMap = XmlUtil.xmlToMap(reqData);
         WeixinHelper.payVerifyIfSuccess(dataMap);
         WeixinHelper.payVerifySign(dataMap, dataMap.get("appid"));
-        //TODO 现在充值流程还不是太懂 后面在调试
-//        OrderInfo orderInfo = orderService.getByOrderNo(dataMap.get("out_trade_no"));
         OrderInfo orderInfo =null;
         if(!StringUtils.equals(orderInfo.getTotalFee()+"", dataMap.get("total_fee"))){
             throw new IllegalArgumentException("微信公众号支付后台通知订单总金额与商户订单金额不符");
@@ -204,9 +208,13 @@ public class WeixinHelperController {
             orderInfo.setTimeEnd(dataMap.get("time_end"));
             orderInfo.setNotifyTime(new Date());
             orderInfo.setIsNotify(1);
+
+
+
             orderInfo = orderService.upsert(orderInfo);
             orderService.query(orderInfo, 0);
         }
+//        userFundsService.
         response.setCharacterEncoding(HttpUtil.DEFAULT_CHARSET);
         response.setContentType("text/plain; charset=" + HttpUtil.DEFAULT_CHARSET);
         response.setHeader("Cache-Control", "no-cache");

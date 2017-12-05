@@ -64,6 +64,8 @@ public class OrderInfor extends BaseEntity<Long> {
     private BigDecimal outPrice;
     @Column(name="out_price_time")
     private long outPriceTime;
+    @Column(name="inout_status")
+    private int inoutStatus;
 
 
     public BigDecimal getTotalOutPrice() {
@@ -230,6 +232,14 @@ public class OrderInfor extends BaseEntity<Long> {
         } catch (ParseException e) {
             throw new HHTCException(CodeEnum.SYSTEM_NULL); }
         this.timeStart = timeStart;
+    }
+
+    public int getInoutStatus() {
+        return inoutStatus;
+    }
+
+    public void setInoutStatus(int inoutStatus) {
+        this.inoutStatus = inoutStatus;
     }
 
     public String getTimeEnd() {

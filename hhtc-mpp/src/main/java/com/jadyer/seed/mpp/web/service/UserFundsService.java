@@ -239,7 +239,7 @@ public class UserFundsService {
         orderInfo.setTotalFee(Long.parseLong(MoneyUtil.yuanToFen(_moneyBase.add(_moneyRent).toString())));
         orderInfo.setDepositMoney(_moneyBase);
         orderInfo.setCanRefundMoney(new BigDecimal(MoneyUtil.fenToYuan(orderInfo.getTotalFee()+"")));
-        //TODO
+        //TODO  充值 按照订单  后面看
 //        orderInfo.setCommunityId(0!=fansInfo.getCarOwnerCommunityId() ? fansInfo.getCarOwnerCommunityId() : fansInfo.getCarParkCommunityId());
 //        orderInfo.setCommunityName(0!=fansInfo.getCarOwnerCommunityId() ? fansInfo.getCarOwnerCommunityName() : fansInfo.getCarParkCommunityName());
         orderInfo.setGoodsId(StringUtils.isNotBlank(goodsId) ? Long.parseLong(goodsId) : 0);

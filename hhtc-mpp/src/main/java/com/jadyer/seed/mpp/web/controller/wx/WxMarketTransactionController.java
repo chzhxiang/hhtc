@@ -70,11 +70,8 @@ public class WxMarketTransactionController {
      */
     @PostMapping("/reservation")
     public CommonResult Reservation(String orderid,String CarNuber,int type,HttpSession session){
-        String appid = hhtcHelper.getWxAppidFromSession(session);
-
         String openid = hhtcHelper.getWxOpenidFromSession(session);
-        //TODO 测试时车牌号 还没有写
-        marketTransactionService.Reservation(openid,orderid,"testcar",type);
+        marketTransactionService.Reservation(openid,orderid,CarNuber,type);
         return new CommonResult();
     }
 
@@ -84,7 +81,6 @@ public class WxMarketTransactionController {
      */
     @PostMapping("/ordergetmoney")
     public CommonResult orderGetMoney(String orderid,HttpSession session){
-
         String openid = hhtcHelper.getWxOpenidFromSession(session);
         marketTransactionService.OrderGetMomey(orderid,openid);
         return new CommonResult();

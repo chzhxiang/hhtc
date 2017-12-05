@@ -31,7 +31,6 @@ public class WxGoodsController {
      */
     @GetMapping("/get/CarPark")
     public CommonResult getCarPark(HttpSession session){
-
         String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsService.getFansCarParkInfor(openid));
     }
@@ -50,11 +49,11 @@ public class WxGoodsController {
      * 车位绑定
      */
     @PostMapping("/infor/carParkBind")
-    public CommonResult BindCarPark(String carParkNumber, String carEquityImg,String carUsefulEndDate, HttpSession session){
-
+    public CommonResult BindCarPark(String carParkNumber, String carEquityImg,String carUsefulEndDate
+            ,String carparkstate, HttpSession session){
         String openid = hhtcHelper.getWxOpenidFromSession(session);
-        return new CommonResult(goodsService.regCarPark(openid
-                , carParkNumber, carEquityImg,carUsefulEndDate));
+        return new CommonResult(goodsService.regCarPark(openid, carParkNumber
+                , carEquityImg,carUsefulEndDate,carparkstate));
     }
 
 

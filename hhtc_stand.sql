@@ -80,7 +80,7 @@ uid                      INT            NOT NULL   COMMENT '平台用户ID，对
 community_id             INT          NOT NULL COMMENT '小区ID，对应t_community_info#id',
 community_name          VARCHAR(99)  NOT NULL COMMENT '小区名称，对应t_community_info#name',
 openid                   VARCHAR(64)   NOT NULL   COMMENT '粉丝的openid，对应t_mpp_fans_info#openid',
-type                     TINYINT(1)    NOT NULL   COMMENT '类型：1--住房地址，2--车位，3--车牌，4----余额提现，5---押金提现',
+type                     TINYINT(1)    NOT NULL   COMMENT '类型：1--住房地址，2--车位，3--车牌',
 content                  VARCHAR(999)  NOT NULL   COMMENT '申请内容',
 imgurl1                  VARCHAR(512)              COMMENT '申请附带图片资源1',
 imgurl2                  VARCHAR(512)              COMMENT '申请附带图片资源2',
@@ -154,7 +154,7 @@ type            TINYINT(1)   NOT NULL COMMENT '出入类型：1--进场，2--出
 remark          VARCHAR(999) NOT NULL COMMENT '备注',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
-)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='小区设备表';
+)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='小区设备表 TOKGO';
 
 
 DROP TABLE IF EXISTS t_community_device_flow;
@@ -179,16 +179,16 @@ CREATE TABLE t_goods_infor(
 id                   INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
 community_id         INT          NOT NULL COMMENT '小区ID，对应t_community_info#id',
 community_name       VARCHAR(32)  NOT NULL COMMENT '小区名称，冗余自t_community_info#name',
-appid                VARCHAR(64)  NOT NULL COMMENT '粉丝关注的公众号的appid',
 openid               VARCHAR(64)  NOT NULL COMMENT '粉丝的openid',
 car_park_number      VARCHAR(32)  NOT NULL COMMENT '车位号',
+state                VARCHAR(10) DEFAULT 'long'  COMMENT  '是否长租 long-长租  short-短租',
 car_park_img         VARCHAR(999) COMMENT '车位平面图',
 car_equity_img       VARCHAR(999) COMMENT '车位产权证明图片（多张则以`分隔）',
-car_useful_end_date  VARCHAR(32)          COMMENT '车位可用的截止有效期，格式为20170712',
-car_audit_uid        INT          COMMENT '车位审核人的uid,，对应t_mpp_user_info#id',
+car_useful_end_date  VARCHAR(32)  COMMENT '车位可用的截止有效期，格式为2017-11-27 1:18',
+car_audit_uid        INT          COMMENT '车位审核人的uid,，                                                                 #id',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
-UNIQUE INDEX unique_index_openid_carParkNumber(openid, car_park_number)
+update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+UNIQUE INDEX unique_index_openid_carParkNumber(openid, car_park_number),
 UNIQUE INDEX unique_index_community_Id_carParkNumber(community_id, car_park_number)
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='商品信息表（存储车位信息）TOKGO';
 
@@ -341,6 +341,7 @@ time_end_calculate    LONGTEXT     NOT NULL COMMENT '结束时间 用于计算  
 total_out_price              DECIMAL(16,2) default 0 COMMENT '提现总金额',
 out_price              DECIMAL(16,2) default 0 COMMENT '提现总金额',
 out_price_time        LONGTEXT       COMMENT '提现计算时间时间',
+inout_status            TINYINT(1)  default 0  NOT NULL COMMENT '车辆进出状态 1---车库里  0---车库外',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
 INDEX index_outTradeNo(order_id)
@@ -397,7 +398,7 @@ id                  INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
 refund_apply_id     INT         NOT NULL COMMENT '退款申请ID，对应t_refund_apply#id',
 refund_apply_type   TINYINT(1)  NOT NULL COMMENT '退款申请类型：1--退款（押金），2--提现（余额），对应t_refund_apply#apply_type',
 openid              VARCHAR(64) NOT NULL COMMENT '支付订单的粉丝openid',
-order_id            INT         NOT NULL COMMENT '订单ID，对应t_order_info#id',
+
 appid               VARCHAR(32) NOT NULL COMMENT 'wx-商户对应的微信公众号的appid',
 out_refund_no       VARCHAR(32) NOT NULL COMMENT 'wx-商户退款订单号',
 total_fee           INT         NOT NULL COMMENT 'wx-订单金额，单位为分',

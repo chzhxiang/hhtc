@@ -1,5 +1,6 @@
 package com.jadyer.seed.mpp.web.service;
 
+import com.jadyer.seed.comm.jpa.Condition;
 import com.jadyer.seed.mpp.web.model.CommunityDeviceFlow;
 import com.jadyer.seed.mpp.web.repository.CommunityDeviceFlowRepository;
 import org.apache.commons.lang3.StringUtils;
@@ -52,9 +53,9 @@ public class CommunityDeviceFlowService {
     public Page<CommunityDeviceFlow> list(String pageNo){
         Sort sort = new Sort(Sort.Direction.DESC, "id");
         Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
-        //Condition<CommunityDeviceFlow> spec = Condition.and();
-        //spec.eq("id", 2);
-        //return communityDeviceFlowRepository.findAll(spec, pageable);
+        Condition<CommunityDeviceFlow> spec = Condition.and();
+//        spec.eq("id", 2);
+//        return communityDeviceFlowRepository.findAll(spec, pageable);
         return communityDeviceFlowRepository.findAll(pageable);
     }
 

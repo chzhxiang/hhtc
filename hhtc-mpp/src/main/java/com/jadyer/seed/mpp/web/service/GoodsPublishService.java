@@ -60,35 +60,6 @@ public class GoodsPublishService {
     @Resource
     private GoodsPublishHistoryRepository goodsPublishHistoryRepository;
 
-    /**
-     * 业务校验（车位主发布车位）
-     */
-    public GoodsInfor verifyBeforeAdd(String openid, long goodsId, int publishType, int publishFromTime, int publishEndTime, String publishFromDates){
-        List<String> dateList = Arrays.asList(publishFromDates.split("-"));
-        hhtcHelper.verifyOfTime(publishType, publishFromTime, publishEndTime, Integer.parseInt(dateList.get(0)), Integer.parseInt(dateList.get(dateList.size()-1)));
-        //TODO
-        //        //校验是否注册车位主
-//        if(2 != fansService.getByOpenid(openid).getCarParkStatus()){
-//            throw new HHTCException(CodeEnum.HHTC_UNREG_CAR_PARK);
-//        }
-        GoodsInfor goodsInfor = goodsService.get(goodsId);
-        try {
-            Date endDate = DateUtils.parseDate(dateList.get(dateList.size()-1), "yyyyMMdd");
-            if(publishType==3 || (2==publishType && publishEndTime<publishFromTime)){
-                endDate = DateUtils.addDays(endDate, 1);
-            }
-//            if(Integer.parseInt(DateFormatUtils.format(endDate, "yyyyMMdd")) > goodsInfo.getCarUsefulEndDate()){
-//                throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "发布截止日不能超过车位有效期");
-//            }
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        //时间段不可重叠
-        hhtcHelper.verifyOfTimeCross(dateList, goodsId, publishFromTime, publishEndTime);
-        return goodsInfor;
-    }
-
-
 
     public GoodsPublishInfo get(long id){
         return goodsPublishRepository.findOne(id);

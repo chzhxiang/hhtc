@@ -2,7 +2,9 @@ package com.jadyer.seed.mpp.web.controller.wx;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.comm.constant.CommonResult;
+import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.util.DateUtil;
 import com.jadyer.seed.comm.util.HttpUtil;
 import com.jadyer.seed.comm.util.JadyerUtil;
@@ -14,11 +16,13 @@ import com.jadyer.seed.mpp.web.model.OrderInfo;
 import com.jadyer.seed.mpp.web.model.OrderInout;
 import com.jadyer.seed.mpp.web.repository.OrderInoutRepository;
 import com.jadyer.seed.mpp.web.service.GoodsService;
+import com.jadyer.seed.mpp.web.service.OrderInoutService;
 import com.jadyer.seed.mpp.web.service.OrderService;
 import com.jadyer.seed.mpp.web.service.UserFundsService;
 import com.jadyer.seed.mpp.web.service.async.CommunityDeviceCache;
 import com.jadyer.seed.mpp.web.service.async.CommunityDeviceFlowAsync;
 import com.jadyer.seed.mpp.web.service.async.WeixinTemplateMsgAsync;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.stereotype.Controller;
@@ -50,9 +54,7 @@ public class WxOrderInoutController {
     @Resource
     private OrderService orderService;
     @Resource
-    private UserFundsService userFundsService;
-    @Resource
-    private OrderInoutRepository orderInoutRepository;
+    private OrderInoutService orderInoutService;
     @Resource
     private WeixinTemplateMsgAsync weixinTemplateMsgAsync;
     @Resource
@@ -90,6 +92,7 @@ public class WxOrderInoutController {
 
 
     /**
+     * TOKGO  小区开 闸门开关信息
      * @param
      * @param deviceId    设备信息ID
      */
@@ -105,99 +108,60 @@ public class WxOrderInoutController {
         dataMap = JSON.parseObject(dataMap.get("AlarmInfoPlate"), new TypeReference<Map<String, String>>(){});
         dataMap = JSON.parseObject(dataMap.get("result"), new TypeReference<Map<String, String>>(){});
         dataMap = JSON.parseObject(dataMap.get("PlateResult"), new TypeReference<Map<String, String>>(){});
+        //获取车牌号
         String carNumber = dataMap.get("license");
+        carNumber = carNumber.toUpperCase();
         CommunityDevice device = CommunityDeviceCache.get(deviceId);
+        if (device== null)
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
         CommunityDeviceFlow communityDeviceFlow = new CommunityDeviceFlow();
+        //出入类型：1--进场，2--出场
+        if(null==device.getId() || device.getId()==0){
+            respMsg = "配置错误：无效的设备ID";
+        }
+        respMsg = orderInoutService.CheckCarNumber(carNumber,device);
+        if (StringUtils.isBlank(respMsg)){
+            communityDeviceFlow.setScanAllowOpen(1);
+            communityDeviceFlow.setOpenTime(new Date());
+            if(hhtcHelper.openDoor(device.getSerialnoRelays(), device.getRelaysDoorid())){
+//                        respMsg = "out success";
+                communityDeviceFlow.setOpenResult(1);
+                if (device.getType() ==1){
+
+                }
+//                        //订单生命周期已结束
+////                        OrderInfo order = orderService.getByOrderNo(inout.getOrderNo());
+////                        Date orderEndDate = hhtcHelper.convertToDate(hhtcHelper.calcOrderEndDate(order), order.getOpenEndTime());
+////                        if(inout.getCardNo().endsWith(JadyerUtil.leftPadUseZero(inout.getMaxIndex()+"", 3)) && orderEndDate.compareTo(new Date())<1){
+////                            order.setOrderStatus(99);
+////                            orderService.upsert(order);
+////                            //更新车位的使用状态
+////                            if(orderService.countByGoodsIdAndOrderTypeInAndOrderStatusIn(order.getGoodsId(), Arrays.asList(1, 2), Arrays.asList(2, 9)) == 0){
+////                                goodsService.updateStatus(order.getGoodsId(), 1, 2);
+////                            }
+////                        }
+////                        inout.setOutTime(new Date());
+////                        orderInoutRepository.saveAndFlush(inout);
+////                        weixinTemplateMsgAsync.sendForCarownerOut(inout, order);
+            }else{
+                respMsg = "开闸失败（出口）";
+                //TODO 开闸失败需要通知运营
+            }
+//                        respMsg = "in success";
+//                        communityDeviceFlow.setOpenResult(1);
+//                        inout.setInTime(new Date());
+//                        inout.setOutTime(null);
+//                        orderInoutRepository.saveAndFlush(inout);
+
+        }
+
+
+
         communityDeviceFlow.setDeviceId(device.getId());
         communityDeviceFlow.setCommunityId(device.getCommunityId());
         communityDeviceFlow.setCommunityName(device.getCommunityName());
         communityDeviceFlow.setScanTime(new Date());
         communityDeviceFlow.setScanCarNumber(carNumber);
-        carNumber = carNumber.toUpperCase();
-        //出入类型：1--进场，2--出场
-        if(null==device.getId() || device.getId()==0){
-            respMsg = "配置错误：无效的设备ID";
-        }else if(device.getType() == 1){
-            //后半夜入场及当天
-            String yestoday = DateFormatUtils.format(DateUtils.addDays(new Date(), -1), "yyyyMMdd");
-            List<Integer> fromDateList = Arrays.asList(Integer.parseInt(yestoday), Integer.parseInt(DateUtil.getCurrentDate()));
-            List<OrderInout> inoutList = orderInoutRepository.findByCommunityIdAndCarNumberAndFromDateInOrderByFromDateAscFromTimeAsc(device.getCommunityId(), carNumber, fromDateList);
-            if(null==inoutList || inoutList.isEmpty()) {
-                respMsg = "入场无效通知：非平台下单车主";
-            }else{
-                OrderInout inout = this.findMatchInout(inoutList, 1);
-                if(null == inout){
-                    respMsg = "不能入场：今日订单均已完成";
-                }else if(new Date().compareTo(hhtcHelper.convertToDate(inout.getFromDate(), inout.getFromTime())) < 0){
-                    respMsg = "不能入场：订单起始时间未到";
-                }else if(new Date().compareTo(inout.getAllowLatestOutDate()) >= 0){
-                    respMsg = "不能入场：超过订单当日截止日";
-                }else if(null!=inout.getInTime() && null==inout.getOutTime() && inout.getInTime().getTime()!=dtime.getTime()){
-                    respMsg = "入场重复通知：车主已经入场了";
-                //}else if(null!=inout.getInTime() && null!=inout.getOutTime()){
-                //    //支持多次入场出场，故注释
-                //    respMsg = "无效通知：车主已离场";
-//                }else if(userFundsService.depositIsenough(inout.getOpenid(), device.getCommunityId()).get("isenough").equals("0")){
-//                    respMsg = "不能入场：车主押金不足";
-                }else{
-                    communityDeviceFlow.setScanAllowOpen(1);
-                    communityDeviceFlow.setOpenTime(new Date());
-                    if(hhtcHelper.openDoor(device.getSerialnoRelays(), device.getRelaysDoorid())){
-                        respMsg = "in success";
-                        communityDeviceFlow.setOpenResult(1);
-                        inout.setInTime(new Date());
-                        inout.setOutTime(null);
-                        orderInoutRepository.saveAndFlush(inout);
-                    }else{
-                        respMsg = "开闸失败（入口）";
-                        //TODO 开闸失败需要通知运营
-                    }
-                }
-            }
-        }else{
-            //前半夜出场及当天
-            String tomorrow = DateFormatUtils.format(DateUtils.addDays(new Date(), 1), "yyyyMMdd");
-            List<Integer> endDateList = Arrays.asList(Integer.parseInt(tomorrow), Integer.parseInt(DateUtil.getCurrentDate()));
-            List<OrderInout> inoutList = orderInoutRepository.findByCommunityIdAndCarNumberAndEndDateInOrderByFromDateAscFromTimeAsc(device.getCommunityId(), carNumber, endDateList);
-            if(null==inoutList || inoutList.isEmpty()) {
-                respMsg = "出场无效通知：非平台下单车主";
-            }else{
-                OrderInout inout = this.findMatchInout(inoutList, 2);
-                if(null == inout) {
-                    respMsg = "不能出场：今日订单均已完成";
-                }else if(null==inout.getInTime()){
-                    respMsg = "出场无效通知：车主未入场";
-                }else if(null!=inout.getInTime() && null!=inout.getOutTime()){
-                    respMsg = "出场重复通知：车主已经出场了";
-                }else if(new Date().compareTo(inout.getAllowLatestOutDate()) > 0){
-                    respMsg = "不能出场：超过本次允许离场时间";
-                }else{
-                    communityDeviceFlow.setScanAllowOpen(1);
-                    communityDeviceFlow.setOpenTime(new Date());
-                    if(hhtcHelper.openDoor(device.getSerialnoRelays(), device.getRelaysDoorid())){
-                        respMsg = "out success";
-                        communityDeviceFlow.setOpenResult(1);
-                        //订单生命周期已结束
-//                        OrderInfo order = orderService.getByOrderNo(inout.getOrderNo());
-//                        Date orderEndDate = hhtcHelper.convertToDate(hhtcHelper.calcOrderEndDate(order), order.getOpenEndTime());
-//                        if(inout.getCardNo().endsWith(JadyerUtil.leftPadUseZero(inout.getMaxIndex()+"", 3)) && orderEndDate.compareTo(new Date())<1){
-//                            order.setOrderStatus(99);
-//                            orderService.upsert(order);
-//                            //更新车位的使用状态
-//                            if(orderService.countByGoodsIdAndOrderTypeInAndOrderStatusIn(order.getGoodsId(), Arrays.asList(1, 2), Arrays.asList(2, 9)) == 0){
-//                                goodsService.updateStatus(order.getGoodsId(), 1, 2);
-//                            }
-//                        }
-//                        inout.setOutTime(new Date());
-//                        orderInoutRepository.saveAndFlush(inout);
-//                        weixinTemplateMsgAsync.sendForCarownerOut(inout, order);
-                    }else{
-                        respMsg = "开闸失败（出口）";
-                        //TODO 开闸失败需要通知运营
-                    }
-                }
-            }
-        }
         communityDeviceFlow.setOpenRemark(respMsg);
         communityDeviceFlowAsync.add(communityDeviceFlow);
         String respData = "{\"Response_AlarmInfoPlate\":{\"manualTigger\":\"ok\",\"msg\":\""+ respMsg +"\"}}";

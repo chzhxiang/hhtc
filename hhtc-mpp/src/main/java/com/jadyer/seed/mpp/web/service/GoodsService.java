@@ -3,10 +3,15 @@ package com.jadyer.seed.mpp.web.service;
 import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.exception.HHTCException;
+import com.jadyer.seed.comm.jpa.Condition;
 import com.jadyer.seed.mpp.web.model.*;
 import com.jadyer.seed.mpp.web.repository.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +45,43 @@ public class GoodsService {
     private GoodsInforRepository goodsInforRepository;
     @Resource
     private GoodsPublishRepository goodsPublishRepository;
+
+
+
+
+    /**
+     * TOKGO 分页查询车位列表
+     * @param pageNo zero-based page index
+     */
+    public Page<GoodsInfor> listViaPage(MppUserInfo userInfo, String pageNo){
+        //排序
+         Sort sort = new Sort(Sort.Direction.ASC, "id");
+        //分页
+        Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
+        //条件（物管只能查询自己小区的车位列表）
+        Page<GoodsInfor> page;
+        Condition<GoodsInfor> spec ;
+        if(userInfo.getType() == 2){
+            List<Long> idList = new ArrayList<>();
+            for(CommunityInfo obj : communityService.getByUid(userInfo.getId())){
+                idList.add(obj.getId());
+            }
+            //执行
+            spec = Condition.<GoodsInfor>and().in("communityId", idList);
+            page = goodsInforRepository.findAll(spec, pageable);
+        }
+        else
+            page = goodsInforRepository.findAll(pageable);
+
+        List<GoodsInfor> list = page.getContent();
+        for(GoodsInfor obj : list){
+            MppFansInfor fans = fansService.getByOpenid(obj.getOpenid());
+            obj.setNickname(fans.getNickname());
+            obj.setHeadimgurl(fans.getHeadimgurl());
+        }
+        return page;
+    }
+
 
 
     /**
@@ -100,7 +142,7 @@ public class GoodsService {
      *TOKGO车位主注册
      */
     @Transactional(rollbackFor=Exception.class)
-    public HashMap regCarPark(String openid, String carParkNumber, String carEquityImg, String carUsefulEndDate){
+    public HashMap regCarPark(String openid, String carParkNumber, String carEquityImg, String carUsefulEndDate,String carparkstate){
         FansInforAudit fansInforAudit;
         if(StringUtils.isBlank(carParkNumber)||carUsefulEndDate==null){
             throw new HHTCException(CodeEnum.SYSTEM_PARAM_NULL);
@@ -116,21 +158,21 @@ public class GoodsService {
         //判断用户是否已经提交请求
         if (fansInforAudits.size() > 0){
             for (FansInforAudit Audit :fansInforAudits)
-                if (carParkNumber.equals(Audit.getContent().split("@")[0]))
+                if (carParkNumber.equals(Audit.getContent().split(SPLITFLAG)[0]))
                     throw new HHTCException(CodeEnum.HHTC_INFOR_CARPARK);
         }
-        //TODO  记录这个车位主 是租赁的还是自己拥有的
+        String infor = carParkNumber+SPLITFLAG+carUsefulEndDate+SPLITFLAG+carparkstate;
         if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) == '1'){
             //写入审核
             fansInforAudit= auditService.AddAudit(mppFansInfor,AUDTI_TEPY_CARPARK,mppFansInfor.getCommunityId()
-                    ,mppFansInfor.getCommunityName(),carParkNumber+"@"+carUsefulEndDate,carEquityImg);
+                    ,mppFansInfor.getCommunityName(),infor,carEquityImg);
         }else{
             List<FansInforAudit> audit = auditService.GetAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARNUMBER);
             if (audit.size()<1)
                 throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
             //写入审核
             fansInforAudit= auditService.AddAudit(mppFansInfor,AUDTI_TEPY_CARPARK,audit.get(0).getCommunityId()
-                    ,audit.get(0).getCommunityName(),carParkNumber+"@"+carUsefulEndDate,carEquityImg);
+                    ,audit.get(0).getCommunityName(),infor,carEquityImg);
         }
         if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_CARPARK_BIT)!='1')
             fansService.UpdatedataInforSate(INFOR_STATE_CARPARK_BIT,'2',mppFansInfor);
@@ -201,7 +243,7 @@ public class GoodsService {
     /**
      * TOKGO 添加车位
      * */
-    public void AddGoods(FansInforAudit fansInforAudit, String appid,long uid){
+    public void AddGoods(FansInforAudit fansInforAudit,long uid){
         //如果车位存在 直接改变openid
         GoodsInfor goodsInfor = goodsInforRepository.findByCommunityIdAndCarParkNumber(
                 fansInforAudit.getCommunityId(),fansInforAudit.getCommunityName());
@@ -209,13 +251,17 @@ public class GoodsService {
             goodsInfor = new GoodsInfor();
         goodsInfor.setCommunityId(fansInforAudit.getCommunityId());
         goodsInfor.setCommunityName(fansInforAudit.getCommunityName());
-        goodsInfor.setAppid(appid);
         goodsInfor.setOpenid(fansInforAudit.getOpenid());
         String[] ifor = fansInforAudit.getContent().split(Constants.SPLITFLAG);
-        if (ifor.length<2)
+        if (ifor.length<3)
             new HHTCException(CodeEnum.SYSTEM_NULL);
         goodsInfor.setCarParkNumber(ifor[0]);
-        goodsInfor.setCarUsefulEndDate(ifor[1]);
+        if ("long".equals(ifor[2])) {
+            //设置超长日期
+            goodsInfor.setCarUsefulEndDate("2100-1-1 0:0");
+        }else
+            goodsInfor.setCarUsefulEndDate(ifor[1]);
+        goodsInfor.setState(ifor[2]);
         goodsInfor.setCarEquityImg(fansInforAudit.getImgurl1());
         goodsInfor.setCarAuditUid(uid);
         goodsInforRepository.save(goodsInfor);

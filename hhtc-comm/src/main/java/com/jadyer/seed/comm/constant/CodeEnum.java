@@ -48,8 +48,8 @@ public enum CodeEnum {
     HHTC_ORDER_PORT_TIMEERROR (3400, "和已有订单时间重叠"),
     HHTC_ORDER_RESERVATION_FAIL (3410, "下单失败：您来晚了一步，该车位刚刚被其他人下单了"),
     HHTC_ORDER_DISRESERVATION_FAIL (3420, "订单开始时间小于三个小时，不能取消，只能申诉"),
-    HHTC_ORDER_MONEY_NO             (3430,"没有钱可收取");
-
+    HHTC_ORDER_MONEY_NO             (3430,"没有钱可收取"),
+    HHTC_ORDER_GOODS_TIMEOUT         (3440,"订单时间超过车位有效期");
     private final int code;
     private final String msg;
 

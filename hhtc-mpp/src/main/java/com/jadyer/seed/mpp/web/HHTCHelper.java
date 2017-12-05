@@ -93,7 +93,7 @@ public class HHTCHelper {
 
 
     /**
-     * 开闸
+     * TOKGO 开闸
      * @param serialno 继电器序列号
      */
     public boolean openDoor(String serialno, String doorid){

@@ -394,48 +394,6 @@ public class FansService {
         return list;
     }
 
-
-
-    /**
-     * 注册前的短信校验
-     * @param type：1--车主注册，2--车位主注册
-     */
-    private MppFansInfor verifyBeforeReg(String phoneNo, String verifyCode, int type, String openid){
-        //短信验证
-        if(!smsService.smsVerify(phoneNo, verifyCode, type)){
-            throw new HHTCException(CodeEnum.HHTC_SMS_VERIFY_FAIL);
-        }
-        //SmsInfor smsInfo = smsRepository.findFirstByPhoneNoAndTypeOrderByIdDesc(phoneNo, type);
-        //if(null==smsInfo || 1!=smsInfo.getUsedResult()){
-        //    throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "未验证短信");
-        //}
-        ////校验短信验证通过后，填写注册资料的时间间隔，不超过一个小时
-        //if(new Date().getTime() - smsInfo.getUsedTime().getTime() > 1000*60*60){
-        //    throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "超时，请重新提交注册申请");
-        //}
-        //校验粉丝是否已关注
-        MppFansInfor fansInfo = fansInforRepository.findByOpenid(openid);
-        if(null==fansInfo || "0".equals(fansInfo.getSubscribe())){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无此粉丝openid=[" + openid + "]或未关注公众号");
-        }
-        //TODO
-//        //校验车主或车位主注册状态
-//        if(1==type && fansInfo.getCarOwnerStatus()==2){
-//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "已注册车主，请不要重复注册");
-//        }
-//        if(2==type && fansInfo.getCarParkStatus()==2){
-//            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "已注册车位主，请不要重复注册");
-//        }
-        //校验手机号
-        if(StringUtils.isBlank(fansInfo.getPhoneNo()) && fansInforRepository.countByPhoneNo(phoneNo)>0){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "手机号已被注册");
-        }
-        if(StringUtils.isNotBlank(fansInfo.getPhoneNo()) && !StringUtils.equals(fansInfo.getPhoneNo(), phoneNo)){
-            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "一个人只能使用一个手机号");
-        }
-        return fansInfo;
-    }
-
     /**
      * TOKGO 车牌注销
      */
@@ -567,7 +525,7 @@ public class FansService {
         else if (fansInforAudit.getType() == Constants.AUDTI_TEPY_CARPARK){
             if (status == 1) {
                 FirstData = "尊敬的用户，你的车位："+fansInforAudit.getContent()+",审核通过了";
-                goodsService.AddGoods(fansInforAudit,appid,userInfo.getId());
+                goodsService.AddGoods(fansInforAudit,userInfo.getId());
                 UpdatedataInforSate(INFOR_STATE_CARPARK_BIT, '1', fansInfor);
             }else {
                 FirstData = "尊敬的用户，你的车牌："+fansInforAudit.getContent()+",审核未通过";

@@ -19,10 +19,16 @@ public interface OrderInforRepository extends BaseRepository<OrderInfor, Long> {
 
     List<OrderInfor> findByPostOpenidAndOrderStatus(String postopenid,int orderstatus);
     List<OrderInfor> findByOwnersOpenidAndOrderStatus(String ownersopenid,int orderstatus);
+    List<OrderInfor> findByCarNumberAndCommunityId(String carnumber, long communityid);
 
     @Modifying
     @Transactional
     @Query("UPDATE OrderInfor SET orderStatus=?1 WHERE orderId=?2")
     int updateOrderState(int orderStatus, String orderid);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE OrderInfor SET inoutStatus=?1 WHERE orderId=?2")
+    int updateinoutState(int inoutStatus, String orderid);
 
 }

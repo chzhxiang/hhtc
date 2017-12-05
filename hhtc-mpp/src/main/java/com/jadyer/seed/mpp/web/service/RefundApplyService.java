@@ -308,6 +308,7 @@ public class RefundApplyService {
         refundApplyRepository.saveAndFlush(apply);
         if(auditStatus == 1){
             if(apply.getApplyType() == 1){
+                //TODO 微信模板消息 发送
                 //模版CODE: SMS_86520128
                 //模版内容: 尊敬的手机尾号为${phone}的用户，您申请押金退回已通过平台审核，您交付平台的押金已退回您原支付账户，预计1~7个工作日到账，请注意查收。
                 String phone = fansService.getByOpenid(apply.getOpenid()).getPhoneNo();

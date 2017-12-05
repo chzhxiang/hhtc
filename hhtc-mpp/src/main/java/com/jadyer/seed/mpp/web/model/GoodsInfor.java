@@ -23,7 +23,7 @@ public class GoodsInfor extends BaseEntity<Long> {
     private long communityId;
     @Column(name="community_name")
     private String communityName;
-    private String appid;
+    private String state;
     private String openid;
     @Column(name="car_park_number")
     private String carParkNumber;
@@ -57,12 +57,12 @@ public class GoodsInfor extends BaseEntity<Long> {
         this.communityName = communityName;
     }
 
-    public String getAppid() {
-        return appid;
+    public String getState() {
+        return state;
     }
 
-    public void setAppid(String appid) {
-        this.appid = appid;
+    public void setState(String state) {
+        this.state = state;
     }
 
     public String getOpenid() {
