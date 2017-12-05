@@ -8,6 +8,7 @@ import com.jadyer.seed.comm.util.LogUtil;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.model.*;
 import com.jadyer.seed.mpp.web.repository.OrderInoutRepository;
+import com.jadyer.seed.mpp.web.repository.TemporaryOutRepository;
 import com.jadyer.seed.mpp.web.repository.UserFundsRepository;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -48,7 +49,7 @@ public class OrderInoutService {
     @Resource
     private UserFundsRepository userFundsRepository;
     @Resource
-    private UserFundsFlowService userFundsFlowService;
+    private TemporaryOutRepository temporaryOutRepository;
     @Resource
     private OrderInoutRepository orderInoutRepository;
 
@@ -56,15 +57,20 @@ public class OrderInoutService {
     /**
      *TOKGO  车牌车辆进入检测
      * @param device 1--进场，2--出场
+     * @return 1--非平台
      * */
-    public String CheckCarNumber(String carNumber,CommunityDevice device){
+    public int CheckCarNumber(String carNumber,CommunityDevice device,OrderInfor order){
         long nowdate = new Date().getTime();
+        //超时补款的临时开门权限 检测
+        TemporaryOut temporaryOut =temporaryOutRepository.findByCommunityIdAndCarNumber(
+                device.getCommunityId(),carNumber);
+        if (temporaryOut!=null){
+            return 6;
+        }
         //查找 该车牌订单
         List<OrderInfor> orderInfors  = orderInforService.Get(carNumber,device.getCommunityId());
-        //TODO  超时补款的临时开门权限 检测
         if (orderInfors.size() == 0)
-            return "进出无效通知：非平台下单车主";
-        OrderInfor order =null;
+            return 1;
         for (OrderInfor orderInfor :orderInfors){
             if (nowdate>=orderInfor.getTimeStartCalculate() && nowdate <= orderInfor.getTimeEndCalculate()) {
                 order = orderInfor;
@@ -74,15 +80,17 @@ public class OrderInoutService {
         //检测车辆进出状态  0--车在外面  1--车在里面
         if(device.getType() == 1){
             if (order.getInoutStatus() == 1)
-                return  "入场重复通知：车主已经入场了";
-            else
-                return "";
+                return  2;
+            else {
+                return 4;
+            }
 
         }else{
             if (order.getInoutStatus() == 0)
-                return  "出场重复通知：车主已经出场了";
-            else
-                return "";
+                return  3;
+            else {
+                return 5;
+            }
         }
 
 //        if(type == 1){

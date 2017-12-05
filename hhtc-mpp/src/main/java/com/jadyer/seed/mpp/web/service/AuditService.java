@@ -37,13 +37,15 @@ public class AuditService {
     /**
      * TOKGO 添加审核
      * */
-    public FansInforAudit AddAudit(MppFansInfor mppFansInfor,int type,long communityId,String communityName,String Content,String imageurl1){
-        return AddAudit(mppFansInfor,type,communityId,communityName,Content,"","");
+    public FansInforAudit AddAudit(MppFansInfor mppFansInfor,int type,long communityId,String communityName
+            ,String Content,String imageurl1){
+        return AddAudit(mppFansInfor,type,communityId,communityName,Content,imageurl1,"");
     }
     /**
      * TOKGO 添加审核
      * */
-    public FansInforAudit AddAudit(MppFansInfor mppFansInfor, int type, long communityId, String communityName, String Content, String imageurl1, String imageurl2){
+    public FansInforAudit AddAudit(MppFansInfor mppFansInfor, int type, long communityId, String communityName
+            , String Content, String imageurl1, String imageurl2){
         FansInforAudit fansInforAudit = new FansInforAudit();
         fansInforAudit.setUid(mppFansInfor.getUid());
         fansInforAudit.setOpenid(mppFansInfor.getOpenid());

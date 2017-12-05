@@ -40,7 +40,6 @@ public class WxGoodsController {
      * */
     @GetMapping("/check/CarPark")
     public CommonResult CheckCarPark(long communityid,String carParkNumber,HttpSession session){
-
         String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsService.IsExist(communityid,carParkNumber));
     }

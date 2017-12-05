@@ -10,15 +10,10 @@ import com.jadyer.seed.comm.util.HttpUtil;
 import com.jadyer.seed.comm.util.JadyerUtil;
 import com.jadyer.seed.comm.util.LogUtil;
 import com.jadyer.seed.mpp.web.HHTCHelper;
-import com.jadyer.seed.mpp.web.model.CommunityDevice;
-import com.jadyer.seed.mpp.web.model.CommunityDeviceFlow;
-import com.jadyer.seed.mpp.web.model.OrderInfo;
-import com.jadyer.seed.mpp.web.model.OrderInout;
+import com.jadyer.seed.mpp.web.model.*;
 import com.jadyer.seed.mpp.web.repository.OrderInoutRepository;
-import com.jadyer.seed.mpp.web.service.GoodsService;
-import com.jadyer.seed.mpp.web.service.OrderInoutService;
-import com.jadyer.seed.mpp.web.service.OrderService;
-import com.jadyer.seed.mpp.web.service.UserFundsService;
+import com.jadyer.seed.mpp.web.repository.TemporaryOutRepository;
+import com.jadyer.seed.mpp.web.service.*;
 import com.jadyer.seed.mpp.web.service.async.CommunityDeviceCache;
 import com.jadyer.seed.mpp.web.service.async.CommunityDeviceFlowAsync;
 import com.jadyer.seed.mpp.web.service.async.WeixinTemplateMsgAsync;
@@ -52,11 +47,13 @@ public class WxOrderInoutController {
     @Resource
     private GoodsService goodsService;
     @Resource
-    private OrderService orderService;
+    private OrderInforService orderInforService;
     @Resource
     private OrderInoutService orderInoutService;
     @Resource
     private WeixinTemplateMsgAsync weixinTemplateMsgAsync;
+    @Resource
+    private TemporaryOutRepository temporaryOutRepository;
     @Resource
     private CommunityDeviceFlowAsync communityDeviceFlowAsync;
 
@@ -102,7 +99,8 @@ public class WxOrderInoutController {
         String respMsg;
         String reqBodyMsg = JadyerUtil.extractHttpServletRequestBodyMessage(request);
         LogUtil.getLogger().info("收到一体机消息如下\n{}", JadyerUtil.extractHttpServletRequestHeaderMessage(request)+"\n"+reqBodyMsg);
-//        Map<String, Map<String, Map<String, Map<String, String>>>> dataMap = JSON.parseObject(reqBodyMsg, new TypeReference<Map<String, Map<String, Map<String, Map<String, String>>>>>(){});
+        //原工程注释
+        //        Map<String, Map<String, Map<String, Map<String, String>>>> dataMap = JSON.parseObject(reqBodyMsg, new TypeReference<Map<String, Map<String, Map<String, Map<String, String>>>>>(){});
 //        String carNumber = dataMap.get("AlarmInfoPlate").get("result").get("PlateResult").get("license");
         Map<String, String> dataMap = JSON.parseObject(reqBodyMsg, new TypeReference<Map<String, String>>(){});
         dataMap = JSON.parseObject(dataMap.get("AlarmInfoPlate"), new TypeReference<Map<String, String>>(){});
@@ -119,50 +117,49 @@ public class WxOrderInoutController {
         if(null==device.getId() || device.getId()==0){
             respMsg = "配置错误：无效的设备ID";
         }
-        respMsg = orderInoutService.CheckCarNumber(carNumber,device);
-        if (StringUtils.isBlank(respMsg)){
-            communityDeviceFlow.setScanAllowOpen(1);
-            communityDeviceFlow.setOpenTime(new Date());
-            if(hhtcHelper.openDoor(device.getSerialnoRelays(), device.getRelaysDoorid())){
-//                        respMsg = "out success";
-                communityDeviceFlow.setOpenResult(1);
-                if (device.getType() ==1){
+        //TODO 添加订单流水
+//        List<OrderInout> inoutList = orderInoutRepository.findByCommunityIdAndCarNumberAndFromDateInOrderByFromDateAscFromTimeAsc(device.getCommunityId(), carNumber, fromDateList);
+        OrderInfor order =null;
 
+        switch (orderInoutService.CheckCarNumber(carNumber,device,order)){
+            case 1:respMsg = "进出无效通知：非平台下单车主";break;
+            case 2:respMsg = "入场重复通知：车主已经入场了";break;
+            case 3:respMsg = "出场重复通知：车主已经出场了";break;
+            case 4:respMsg = "进入成功";
+                if (Open(communityDeviceFlow,device))
+                    //更新订单信息
+                    orderInforService.UpdateInoutState(1,order.getOrderId());
+                else {
+                    respMsg = "开闸失败（进口）";
+                    //TODO 开闸失败需要通知运营
                 }
-//                        //订单生命周期已结束
-////                        OrderInfo order = orderService.getByOrderNo(inout.getOrderNo());
-////                        Date orderEndDate = hhtcHelper.convertToDate(hhtcHelper.calcOrderEndDate(order), order.getOpenEndTime());
-////                        if(inout.getCardNo().endsWith(JadyerUtil.leftPadUseZero(inout.getMaxIndex()+"", 3)) && orderEndDate.compareTo(new Date())<1){
-////                            order.setOrderStatus(99);
-////                            orderService.upsert(order);
-////                            //更新车位的使用状态
-////                            if(orderService.countByGoodsIdAndOrderTypeInAndOrderStatusIn(order.getGoodsId(), Arrays.asList(1, 2), Arrays.asList(2, 9)) == 0){
-////                                goodsService.updateStatus(order.getGoodsId(), 1, 2);
-////                            }
-////                        }
-////                        inout.setOutTime(new Date());
-////                        orderInoutRepository.saveAndFlush(inout);
-////                        weixinTemplateMsgAsync.sendForCarownerOut(inout, order);
-            }else{
-                respMsg = "开闸失败（出口）";
-                //TODO 开闸失败需要通知运营
-            }
-//                        respMsg = "in success";
-//                        communityDeviceFlow.setOpenResult(1);
-//                        inout.setInTime(new Date());
-//                        inout.setOutTime(null);
-//                        orderInoutRepository.saveAndFlush(inout);
-
+                break;
+            case 5:respMsg = "出库成功";
+                if (Open(communityDeviceFlow,device))
+                    //更新订单信息
+                    orderInforService.UpdateInoutState(0,order.getOrderId());
+                else {
+                    respMsg = "开闸失败（出口）";
+                    //TODO 开闸失败需要通知运营
+                }
+            case 6:respMsg = "出库成功";
+                if (Open(communityDeviceFlow,device))
+                    temporaryOutRepository.delete(temporaryOutRepository.findByCommunityIdAndCarNumber(
+                            device.getCommunityId(),carNumber));
+                else {
+                    respMsg = "开闸失败（出口）";
+                    //TODO 开闸失败需要通知运营
+                }
+                break;
+             default:respMsg="进出无效通知：非平台下单车主";break;
         }
-
-
-
         communityDeviceFlow.setDeviceId(device.getId());
         communityDeviceFlow.setCommunityId(device.getCommunityId());
         communityDeviceFlow.setCommunityName(device.getCommunityName());
         communityDeviceFlow.setScanTime(new Date());
         communityDeviceFlow.setScanCarNumber(carNumber);
         communityDeviceFlow.setOpenRemark(respMsg);
+        //TODO 订单流水可以在这里做
         communityDeviceFlowAsync.add(communityDeviceFlow);
         String respData = "{\"Response_AlarmInfoPlate\":{\"manualTigger\":\"ok\",\"msg\":\""+ respMsg +"\"}}";
         LogUtil.getLogger().info("应答给一体机消息为{}", respData);
@@ -177,6 +174,17 @@ public class WxOrderInoutController {
         out.close();
         return null;
     }
+    private boolean Open(CommunityDeviceFlow communityDeviceFlow,CommunityDevice device){
+        communityDeviceFlow.setScanAllowOpen(1);
+        if(hhtcHelper.openDoor(device.getSerialnoRelays(), device.getRelaysDoorid())){
+            communityDeviceFlow.setOpenResult(1);
+            communityDeviceFlow.setOpenTime(new Date());
+            return true;
+        }else{
+            return false;
+        }
+    }
+
 }
 /*
 //下面是“简略”的消息

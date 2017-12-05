@@ -69,7 +69,7 @@ community_name           VARCHAR(32)  COMMENT '粉丝所在的小区名称，冗
 house_number             VARCHAR(32)  COMMENT '门牌号',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
-UNIQUE INDEX unique_index_phoneNo(phone_no),
+UNIQUE INDEX unique_index_phoneNo(phone_no)
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='粉丝表 TOKGO';
 
 
@@ -165,8 +165,8 @@ community_id    INT          NOT NULL COMMENT '小区ID，对应t_community_info
 community_name  VARCHAR(99)  NOT NULL COMMENT '小区名称，对应t_community_info#name',
 scan_time       DATETIME     COMMENT '车牌识别时间',
 scan_car_number VARCHAR(64)  COMMENT '识别的车牌号',
-scan_allow_open TINYINT(1)   COMMENT '识别结果：0--不开闸，1--开闸',
-open_result     TINYINT(1)   COMMENT '开闸结果：0--开闸失败，1--开闸成功',
+scan_allow_open TINYINT(1) default 0   COMMENT '识别结果：0--不开闸，1--开闸',
+open_result     TINYINT(1) default 0   COMMENT '开闸结果：0--开闸失败，1--开闸成功',
 open_time       DATETIME     COMMENT '开闸时间',
 open_remark     VARCHAR(99)  COMMENT '开闸备注',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -185,7 +185,7 @@ state                VARCHAR(10) DEFAULT 'long'  COMMENT  '是否长租 long-长
 car_park_img         VARCHAR(999) COMMENT '车位平面图',
 car_equity_img       VARCHAR(999) COMMENT '车位产权证明图片（多张则以`分隔）',
 car_useful_end_date  VARCHAR(32)  COMMENT '车位可用的截止有效期，格式为2017-11-27 1:18',
-car_audit_uid        INT          COMMENT '车位审核人的uid,，                                                                 #id',
+car_audit_uid        INT          COMMENT '车位审核人的uid,，             #id',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
 UNIQUE INDEX unique_index_openid_carParkNumber(openid, car_park_number),
@@ -316,6 +316,19 @@ other_money     DECIMAL(16,4) NOT NULL COMMENT '剩餘待分潤的訂單金額�
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='订单分潤表';
+
+
+DROP TABLE IF EXISTS t_temporary_out;
+CREATE TABLE t_temporary_out(
+id              INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+community_id    INT           NOT NULL COMMENT '小区ID，对应t_community_info#id',
+car_number      VARCHAR(16)  NOT NULL COMMENT '车牌号，即发生交易时车主使用的车牌',
+time_end      LONGTEXT     NOT NULL COMMENT '结束时间 用于计算',
+create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+UNIQUE INDEX unique_index_carNumber(car_number)
+)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='车牌临时出入表';
+
 
 
 DROP TABLE IF EXISTS t_order_infor;

@@ -109,10 +109,10 @@ function getInfo(time,num,isLast,isChina){
   }
   return str
 }
-function toJson(obj){
+function toJson(obj){// 转成JSON字符串
   return JSON.stringify(obj)
 }
-function toParse(str){
+function toParse(str){// 解析为JSON 对象
   return JSON.parse(str)
 }
 function count_time(arr){
@@ -132,7 +132,7 @@ function conversion(time,type){
     var arr=time.split(" ");
     return arr[0].replace("-","年").replace("-","月")+(arr[1]?(" "+arr[1]):"日")
   }
-  
+
 }
 window.onpageshow=function(){
   var str=location.href;

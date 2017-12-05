@@ -10,6 +10,7 @@ import com.jadyer.seed.comm.util.LogUtil;
 import com.jadyer.seed.mpp.web.model.*;
 import com.jadyer.seed.mpp.web.repository.OrderHistoryRepository;
 import com.jadyer.seed.mpp.web.repository.OrderInforRepository;
+import com.jadyer.seed.mpp.web.repository.OrderInoutRepository;
 import com.jadyer.seed.mpp.web.service.async.OrderAsync;
 import com.jadyer.seed.mpp.web.service.async.WeixinTemplateMsgAsync;
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +40,8 @@ public class OrderInforService {
     private OrderAsync orderAsync;
     @Resource
     private OrderInforRepository orderInforRepository;
+    @Resource
+    private OrderInoutRepository orderInoutRepository;
     @Resource
     private OrderHistoryRepository orderHistoryRepository;
     @Resource
@@ -130,6 +133,20 @@ public class OrderInforService {
      */
     public void OvertimeRepayment(String openid, String orderid) {
         // TODO 超时补款  计算方式  先 用户来请求价格  然后后天算出价格  最后再提交  处理  两个接口
+
+
+
+
+    }
+
+    /**
+     * TOKGO 计算超时罚款
+     * */
+    public double CalculateFine(String orderid){
+        long nowtime = new Date().getTime();
+//        Order
+        //TODO
+        return 12;
     }
 
 
@@ -296,5 +313,13 @@ public class OrderInforService {
         List<OrderInfor> orderInfors = orderInforRepository.findByCarNumberAndCommunityId(carnumber,communityid);
         CheckStartOrEndOrder(orderInfors);
         return orderInfors;
+    }
+
+    /**
+     * TOKGO 更新订单 车的位置
+     *   0--车在外面  1--车在里面
+     * */
+    public void UpdateInoutState(int state,String orderid){
+        orderInforRepository.updateinoutState(state,orderid);
     }
 }
