@@ -15,5 +15,6 @@ import java.util.List;
 public interface OwnersInforRepository extends BaseRepository<OwnersInfor, Long> {
     List<OwnersInfor> findByOpenid(String openid);
     OwnersInfor findByCaNumber(String carnumber);
+    OwnersInfor findByCaNumberAndOpenid(String carnumber,String openid);
 
 }

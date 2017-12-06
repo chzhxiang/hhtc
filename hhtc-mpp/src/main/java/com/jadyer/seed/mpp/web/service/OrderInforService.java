@@ -167,6 +167,16 @@ public class OrderInforService {
     }
 
     /**
+     * TOKGO  通过车位获取订单
+     */
+    public OrderInfor Getcarparknumber(String carparknumber,long communityid){
+        OrderInfor orderInfor= orderInforRepository.findByCarParkNumberAndCommunityId(carparknumber,communityid);
+        CheckStartOrEndOrder(orderInfor);
+        return orderInfor;
+    }
+
+
+    /**
      * TOKGO 计算超时罚款
      * */
     public double CalculateFine(String orderid){
@@ -216,6 +226,14 @@ public class OrderInforService {
         return orderInfors;
     }
 
+    /**
+     * TOKGO  通过车牌获取订单
+     */
+    public List<OrderInfor> Get(String carnumber,long communityid){
+        List<OrderInfor> orderInfors = orderInforRepository.findByCarNumberAndCommunityId(carnumber,communityid);
+        CheckStartOrEndOrder(orderInfors);
+        return orderInfors;
+    }
     /**
      * TOKGO 车位主获取订单
      */
@@ -352,15 +370,6 @@ public class OrderInforService {
         orderHistoryRepository.saveAndFlush(orderHistory);
     }
 
-
-    /**
-     * TOKGO  通过车牌获取订单
-     */
-    public List<OrderInfor> Get(String carnumber,long communityid){
-        List<OrderInfor> orderInfors = orderInforRepository.findByCarNumberAndCommunityId(carnumber,communityid);
-        CheckStartOrEndOrder(orderInfors);
-        return orderInfors;
-    }
 
     /**
      * TOKGO 更新订单 车的位置

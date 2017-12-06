@@ -20,6 +20,7 @@ public interface OrderInforRepository extends BaseRepository<OrderInfor, Long> {
     List<OrderInfor> findByPostOpenidAndOrderStatus(String postopenid,int orderstatus);
     List<OrderInfor> findByOwnersOpenidAndOrderStatus(String ownersopenid,int orderstatus);
     List<OrderInfor> findByCarNumberAndCommunityId(String carnumber, long communityid);
+    OrderInfor findByCarParkNumberAndCommunityId(String carparknumber,long communityid);
 
     @Modifying
     @Transactional

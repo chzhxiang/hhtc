@@ -73,14 +73,11 @@ public class WxUserFundsController {
 
     /**
      * 充值
-     * @param type      充值类型：10--个人中心充值，11--车位主发布车位充值，12--车主预约下单充值，13--车主发布需求充值
-     * @param goodsId   车位ID
-     * @param moneyBase 押金，单位：元
-     * @param moneyRent 租金，单位：元
+     * @param type "base" 押金  “balance”余额
      * @param money     实际充值金额，单位：元
      */
     @PostMapping("/recharge")
-    public CommonResult recharge(int type, String goodsId, String moneyBase, String moneyRent, BigDecimal money, HttpServletRequest request){
-        return new CommonResult(userFundsService.recharge(type, goodsId, moneyBase, moneyRent, money, request));
+    public CommonResult recharge(String type,BigDecimal money, HttpServletRequest request){
+        return new CommonResult(userFundsService.recharge(type,money, request));
     }
 }

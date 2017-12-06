@@ -34,17 +34,17 @@ public class GoodsService {
     @Resource
     private FansService fansService;
     @Resource
-    private OrderService orderService;
-    @Resource
     private AuditService auditService;
     @Resource
     private CommunityService communityService;
+    @Resource
+    private OrderInforService orderInforService;
     @Resource
     private FansInforRepository fansInforRepository;
     @Resource
     private GoodsInforRepository goodsInforRepository;
     @Resource
-    private GoodsPublishRepository goodsPublishRepository;
+    private GoodsPublishOrderService goodsPublishOrderService;
 
 
 
@@ -132,11 +132,28 @@ public class GoodsService {
             auditService.Delete(id);
         }
         else{
-            fansInforRepository.delete(id);
+            if (CheckDoingOrder(goodsInforRepository.findOne(id)))
+                throw new HHTCException(CodeEnum.HHTC_INFOR_CARPARK_ORDER);
+            goodsInforRepository.delete(id);
+            if (goodsInforRepository.findByOpenid(openid).size()==0)
+                fansService.UpdatedataInforSate(INFOR_STATE_CARPARK_BIT, '0', fansInforRepository.findByOpenid(openid));
+
         }
         return  fansInforRepository.findByOpenid(openid).getInfor_state();
     }
 
+
+    /**
+     * TOKGO 检测是否有正在进行中的订单
+     */
+    public boolean CheckDoingOrder(GoodsInfor goodsInfor){
+        if(goodsPublishOrderService.Get(goodsInfor.getId(),goodsInfor.getOpenid()).size()>0)
+            return true;
+        if (orderInforService.Getcarparknumber(goodsInfor.getCarParkNumber()
+                ,goodsInfor.getCommunityId()) !=null)
+            return true;
+        return false;
+    }
 
     /**
      *TOKGO车位主注册
@@ -165,12 +182,12 @@ public class GoodsService {
             //设置超长日期
             carUsefulEndDate = "2100-1-1";
         String infor = carParkNumber+SPLITFLAG+carUsefulEndDate+SPLITFLAG+carparkstate;
-        if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) == '1'){
+        if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_COMMUNITY_BIT) == '1'){
             //写入审核
             fansInforAudit= auditService.AddAudit(mppFansInfor,AUDTI_TEPY_CARPARK,mppFansInfor.getCommunityId()
                     ,mppFansInfor.getCommunityName(),infor,carEquityImg);
         }else{
-            List<FansInforAudit> audit = auditService.GetAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARNUMBER);
+            List<FansInforAudit> audit = auditService.GetAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_COMMUNITY);
             if (audit.size()<1)
                 throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
             //写入审核

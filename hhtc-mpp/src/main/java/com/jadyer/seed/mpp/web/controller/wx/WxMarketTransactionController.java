@@ -26,10 +26,6 @@ public class WxMarketTransactionController {
     @Resource
     private MarketTransactionService marketTransactionService;
 
-
-
-
-
     /**
      * TOKGO 获取粉丝自己的订单
      * @param type 1---预约订单  2----进行中的订单 3---所有
@@ -81,7 +77,17 @@ public class WxMarketTransactionController {
     @PostMapping("/ordersettlement")
     public CommonResult orderSettlement(String orderid,HttpSession session){
         String openid = hhtcHelper.getWxOpenidFromSession(session);
-        return new CommonResult(marketTransactionService.OrderGetMomey(orderid,openid));
+        marketTransactionService.OrderGetMomey(orderid,openid);
+        return new CommonResult();
+    }
+
+    /**
+     * TOKGO 订单结算 价格计算
+     */
+    @GetMapping("/orderCalculate")
+    public CommonResult orderSettlementCalculate(String orderid,HttpSession session){
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
+        return new CommonResult(marketTransactionService.OrderGetMomeyCalculate(orderid,openid));
     }
 
 }

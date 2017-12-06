@@ -29,13 +29,17 @@ public enum CodeEnum {
     HHTC_INFOR_COMMUNITY_COPY   (3120, "用户住房信息审核,重复提交"),
     HHTC_INFOR_COMMUNITY_NO   (3121, "没有通过住房审核"),
     HHTC_INFOR_COMMUNITY        (3122, "没有住房信息"),
+    HHTC_INFOR_COMMUNITY_ORDER     (3123, "你有订单没有完成，不能改变地址"),
 
     HHTC_INFOR_CARNUMBERFULL  (3130,"车牌审核或车牌数已满"),
-    HHTC_INFOR_CARNUMBER_USED  (3131,"已经提交了车牌请求"),
+    HHTC_INFOR_CARNUMBER_AUDITUSED  (3131,"已经提交了车牌请求"),
+    HHTC_INFOR_CARNUMBER_USED  (3133,"已经拥有了该车牌"),
     HHTC_INFOR_CARNUMBER_NO  (3132, "没有可使用的车牌"),
+    HHTC_INFOR_CARNUMBER_ORDER  (3133, "你有订单没有完成，不能删除"),
 
     HHTC_INFOR_CARPARK     (3140,"已经提交了车位请求"),
     HHTC_INFOR_CARPARK_NO   (3141, "没有可使用的车位"),
+    HHTC_INFOR_CARPARK_ORDER   (3142, "你有订单没有完成，不能删除"),
 
     HHTC_SMS_VERIFY_FAIL  (3200, "短信验证码错误"),
     HHTC_SMS_SEND_FAIL_1  (3210, "短信发送失败：每分钟只能发送一条"),
@@ -48,7 +52,7 @@ public enum CodeEnum {
     HHTC_ORDER_PORT_TIMEERROR (3400, "和已有订单时间重叠"),
     HHTC_ORDER_RESERVATION_FAIL (3410, "下单失败：您来晚了一步，该车位刚刚被其他人下单了"),
     HHTC_ORDER_DISRESERVATION_FAIL (3420, "订单开始时间小于三个小时，不能取消，只能申诉"),
-    HHTC_ORDER_MONEY_NO             (3430,"没有钱可收取"),
+    HHTC_ORDER_MONEY_NO             (3430,"时间未到，请阅读细则"),
     HHTC_ORDER_GOODS_TIMEOUT         (3440,"订单时间超过车位有效期"),
     HHTC_ORDER_FINE_ED         (3450,"订单超时罚金已经缴纳");
 

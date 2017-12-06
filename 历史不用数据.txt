@@ -1,3 +1,28 @@
+ //记录一笔订单
+        MppFansInfor fansInfor = fansService.getByOpenid(openid);
+        orderInfo.setTotalFee(Long.parseLong(MoneyUtil.yuanToFen(_moneyBase.add(_moneyRent).toString())));
+        orderInfo.setDepositMoney(_moneyBase);
+        orderInfo.setCanRefundMoney(new BigDecimal(MoneyUtil.fenToYuan(orderInfo.getTotalFee()+"")));
+        //TODO  充值 按照订单  后面看
+        orderInfo.setCommunityId(0!=fansInfo.getCarOwnerCommunityId() ? fansInfo.getCarOwnerCommunityId() : fansInfo.getCarParkCommunityId());
+//        orderInfo.setCommunityName(0!=fansInfo.getCarOwnerCommunityId() ? fansInfo.getCarOwnerCommunityName() : fansInfo.getCarParkCommunityName());
+        orderInfo.setGoodsId(StringUtils.isNotBlank(goodsId) ? Long.parseLong(goodsId) : 0);
+        orderInfo.setAppid(appid);
+        orderInfo.setBody("吼吼共享车位 - 充值 - " + orderInfo.getCanRefundMoney() + " 元");
+        orderInfo.setOutTradeNo(hhtcHelper.buildOrderNo());
+        orderInfo.setAttach(orderInfo.getOutTradeNo());
+        orderInfo.setSpbillCreateIp(IPUtil.getClientIP(request));
+        orderInfo.setTimeStart(DateFormatUtils.format(new Date(), "yyyyMMddHHmmss"));
+        orderInfo.setNotifyUrl(hhtcContextPath + "/weixin/helper/pay/notify");
+        orderInfo.setTradeType("JSAPI");
+        orderInfo.setOpenid(openid);
+        orderInfo.setIsNotify(0);
+        orderInfo.setOrderType(type);
+        orderInfo.setOrderStatus(1);
+                orderRepository.saveAndFlush(orderInfo);
+
+
+
 if(applyType == 1){
             //模版CODE: SMS_86680145
             //模版内容: 尊敬的手机尾号为${phone}的用户，您于${time}申请的押金退回业务已受理成功，平台审核通过后即可将押金退回您原支付账户。

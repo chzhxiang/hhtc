@@ -151,13 +151,11 @@ public class OrderService {
         }
     }
 
-
-
     public OrderInfo get(long id) {
         OrderInfo order = orderRepository.findOne(id);
         order.setSpbillCreateIp(MoneyUtil.fenToYuan(order.getTotalFee()+""));
         //order.setOrderStatus(hhtcHelper.convertOrderStatus(order.getOrderType(), order.getOrderStatus(), order.getSettleStatus(), order.getInTime(), order.getOutTime(), hhtcHelper.getEndDateFromOrder(order), order.getOpenEndTime()));
-        order.setAllowRent(hhtcHelper.calcOrderAllowRent(order));
+//        order.setAllowRent(hhtcHelper.calcOrderAllowRent(order));
         return order;
     }
 
@@ -173,7 +171,7 @@ public class OrderService {
         for(OrderInfo order : list){
             order.setSpbillCreateIp(MoneyUtil.fenToYuan(order.getTotalFee()+""));
             //order.setOrderStatus(hhtcHelper.convertOrderStatus(order.getOrderType(), order.getOrderStatus(), order.getSettleStatus(), order.getInTime(), order.getOutTime(), hhtcHelper.getEndDateFromOrder(order), order.getOpenEndTime()));
-            order.setAllowRent(hhtcHelper.calcOrderAllowRent(order));
+//            order.setAllowRent(hhtcHelper.calcOrderAllowRent(order));
         }
         return list;
     }

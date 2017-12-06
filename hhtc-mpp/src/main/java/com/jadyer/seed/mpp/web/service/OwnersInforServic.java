@@ -27,6 +27,14 @@ public class OwnersInforServic {
         return ownersInforRepository.findByOpenid(opendid);
     }
 
+
+    /**
+     * TOKGO 获取车牌数据
+     * */
+    public OwnersInfor Get(long id){
+        return ownersInforRepository.findOne(id);
+    }
+
     /**
      * TOKGO 删除车牌
      * **/
@@ -39,6 +47,13 @@ public class OwnersInforServic {
      * */
     public boolean IsExist(String carNumber){
         return ownersInforRepository.findByCaNumber(carNumber)!=null;
+    }
+
+    /**
+     * TOKGO 检查是否存在车牌号
+     * */
+    public boolean IsExist(String carNumber,String openid){
+        return ownersInforRepository.findByCaNumberAndOpenid(carNumber,openid)!=null;
     }
 
     /**

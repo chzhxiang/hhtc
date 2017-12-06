@@ -2,6 +2,7 @@ package com.jadyer.seed.mpp.web.service;
 
 import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.comm.constant.Constants;
+import com.jadyer.seed.comm.constant.WxMsgEnum;
 import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.jpa.Condition;
 import com.jadyer.seed.comm.util.DateUtil;
@@ -21,6 +22,7 @@ import com.jadyer.seed.mpp.web.repository.OrderRepository;
 import com.jadyer.seed.mpp.web.repository.RedpackInfoRepository;
 import com.jadyer.seed.mpp.web.repository.RefundApplyRepository;
 import com.jadyer.seed.mpp.web.repository.RefundRepository;
+import com.jadyer.seed.mpp.web.service.async.WeixinTemplateMsgAsync;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -70,6 +72,8 @@ public class RefundApplyService {
     private RefundRepository refundRepository;
     @Resource
     private UserFundsService userFundsService;
+    @Resource
+    private WeixinTemplateMsgAsync weixinTemplateMsgAsync;
     @Resource
     private GoodsNeedRepository goodsNeedRepository;
     @Resource
@@ -218,6 +222,9 @@ public class RefundApplyService {
         apply.setAuditStatus(auditStatus);
         refundApplyRepository.saveAndFlush(apply);
         if(auditStatus == 2){
+            weixinTemplateMsgAsync.Send("您申请的" + (apply.getApplyType()==1?"退款":"提现") + "业务通过了审核"
+                    ,MoneyUtil.fenToYuan(apply.getRefundFee()+"") + "元","仍有未完成的订单或系统交易忙"
+                    ,"请您做出相应调整后，再申请提现。",apply.getOpenid(), WxMsgEnum.WITHDRAWAL_FAILED);
             if(apply.getApplyType() == 1){
                 //模版CODE: SMS_86520128
                 //模版内容: 尊敬的手机尾号为${phone}的用户，您申请押金退回已通过平台审核，您交付平台的押金已退回您原支付账户，预计1~7个工作日到账，请注意查收。
@@ -228,7 +235,9 @@ public class RefundApplyService {
             }
         }
         if(auditStatus == 3){
-
+            weixinTemplateMsgAsync.Send("您申请的" + (apply.getApplyType()==1?"退款":"提现") + "业务未通过审核"
+            ,MoneyUtil.fenToYuan(apply.getRefundFee()+"") + "元","仍有未完成的订单或系统交易忙"
+                    ,"请您做出相应调整后，再申请提现。",apply.getOpenid(), WxMsgEnum.WITHDRAWAL_FAILED);
         }
     }
 

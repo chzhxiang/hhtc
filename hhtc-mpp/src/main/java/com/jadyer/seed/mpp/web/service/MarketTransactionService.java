@@ -39,6 +39,8 @@ public class MarketTransactionService {
     @Resource
     private OrderInforService orderInforService;
     @Resource
+    private CommunityService communityService;
+    @Resource
     private WeixinTemplateMsgAsync weixinTemplateMsgAsync;
     @Resource
     private GoodsPublishOrderService goodsPublishOrderService;
@@ -122,18 +124,18 @@ public class MarketTransactionService {
                 throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
             orderInforService.Delelte(orderInfor.getId());
             goodsPublishOrderService.BackMarket(orderInfor);
+            // TODO 微信发消息 给车主 订单取消
+            weixinTemplateMsgAsync.Send("订单取消","ke1","ke2","remakg"
+                    ,orderInfor.getOwnersOpenid(), WxMsgEnum.WX_TEST);
 
         }else {
             if (!openid.equals(orderInfor.getPostOpenid()))
                 throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
             orderInforService.Delelte(orderInfor.getId());
+            // TODO 微信发消息 给车位主 订单取消
+            weixinTemplateMsgAsync.Send("订单取消","ke1","ke2","remakg"
+                    ,orderInfor.getPostOpenid(), WxMsgEnum.WX_TEST);
         }
-        // TODO 微信发消息 给车位主 订单取消
-        weixinTemplateMsgAsync.Send("订单取消","ke1","ke2","remakg"
-                ,orderInfor.getPostOpenid(), WxMsgEnum.WX_TEST);
-        // TODO 微信发消息 给车主 订单取消
-        weixinTemplateMsgAsync.Send("订单取消","ke1","ke2","remakg"
-               ,orderInfor.getOwnersOpenid(), WxMsgEnum.WX_TEST);
     }
 
 
@@ -175,9 +177,6 @@ public class MarketTransactionService {
         // TODO 微信发消息 给车位主 订单被预定
         weixinTemplateMsgAsync.Send("订单被预定","ke1","ke2","remakg"
                 ,orderInfor.getPostOpenid(), WxMsgEnum.WX_TEST);
-        // TODO 微信发消息 给车主 订单预订成功
-        weixinTemplateMsgAsync.Send("订单被预定","ke1","ke2","remakg"
-                ,orderInfor.getOwnersOpenid(), WxMsgEnum.WX_TEST);
     }
 
     /**
@@ -208,7 +207,7 @@ public class MarketTransactionService {
     /**
      * TOKGO 订单结算
      * **/
-    public double OrderGetMomey(String orderid,String openid){
+    public void OrderGetMomey(String orderid,String openid){
         OrderInfor orderInfor = orderInforService.GetOrder(orderid);
         if (orderInfor == null ||!orderInfor.getPostOpenid().equals(openid) )
             throw new HHTCException(CodeEnum.SYSTEM_PARAM_ERROR);
@@ -216,12 +215,27 @@ public class MarketTransactionService {
             throw new HHTCException(CodeEnum.HHTC_ORDER_MONEY_NO);
         }
         double outprice = orderInfor.getOutPrice().doubleValue();
-        outprice = orderAsync.Penny(outprice,orderInfor);
+        orderAsync.Penny(outprice,orderInfor);
         orderInfor.setTotalOutPrice(orderInfor.getTotalOutPrice().add(orderInfor.getOutPrice()));
         orderInfor.setOutPrice(new BigDecimal(0));
         orderInforService.Save(orderInfor);
-        return outprice;
     }
+    /**
+     * TOKGO 订单结算 计算价格
+     * */
+    public double OrderGetMomeyCalculate(String orderid,String openid){
+        OrderInfor orderInfor = orderInforService.GetOrder(orderid);
+        MppFansInfor mppFansInfor = fansService.getByOpenid(orderInfor.getPostOpenid());
+        CommunityInfo communityInfo = communityService.get(mppFansInfor.getCommunityId());
+        if (orderInfor == null ||!orderInfor.getPostOpenid().equals(openid) )
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_ERROR);
+        if (orderInfor.getOutPrice().doubleValue()<1){
+            throw new HHTCException(CodeEnum.HHTC_ORDER_MONEY_NO);
+        }
+       return (orderInfor.getOutPrice().doubleValue()*communityInfo.getRentRatioCarparker())/100;
+    }
+
+
 
 
 }

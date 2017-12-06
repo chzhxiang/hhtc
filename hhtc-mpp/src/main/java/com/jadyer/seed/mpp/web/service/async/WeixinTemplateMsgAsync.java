@@ -74,14 +74,15 @@ public class WeixinTemplateMsgAsync {
     public void SendAuditResult(FansInforAudit fansInforAudit,int status, String auditRemark){
         String FirstData = null, Key1Data = null, Key2Data, RemarkData ;
         if (fansInforAudit.getType() == Constants.AUDTI_TEPY_CARNUMBER){
-            if(status == 1)
-                Send("尊敬的用户，您提交的车牌资料已通过物业审核。",fansInforAudit.getContent()
-                        ,new SimpleDateFormat("yyyy-MM-dd").format(new Date())
-                        ,"登录吼吼停车微信公众号开始抢车位吧！",fansInforAudit.getOpenid(),WxMsgEnum.AUDIT_CARNUMBERPASS);
-            return;
+            if(status == 1) {
+                Send("尊敬的用户，您提交的车牌资料已通过物业审核。", fansInforAudit.getContent()
+                        , new SimpleDateFormat("yyyy-MM-dd").format(new Date())
+                        , "登录吼吼停车微信公众号开始抢车位吧！", fansInforAudit.getOpenid(), WxMsgEnum.AUDIT_CARNUMBERPASS);
+                return;
+            }
         }
         RemarkData ="拒绝理由："+ auditRemark;
-        Key1Data = "尾号"+fansInforAudit.getPhoneNo().substring(7,10);
+        Key1Data = "尾号"+fansInforAudit.getPhoneNo().substring(7,11);
         if(status == 1)
             Key2Data ="通过";
         else
@@ -112,38 +113,6 @@ public class WeixinTemplateMsgAsync {
         }
         Send(FirstData,Key1Data,Key2Data,RemarkData,fansInforAudit.getOpenid(), WxMsgEnum.AUDIT_COMMON);
     }
-
-
-    /**
-     * TOKGO 资金审核通知
-     * */
-    public void FundsAudit(RefundApply apply){
-         /*
-            {{first.DATA}}
-            提现金额：{{keyword1.DATA}}
-            失败原因：{{keyword2.DATA}}
-            {{remark.DATA}}
-
-            您申请的提现业务未通过审核
-            提现金额：30元
-            失败原因：仍有未完成的订单
-            请您做出相应调整后，再申请提现。
-            */
-        WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
-        dataItem.put("first", new WeixinTemplateMsg.DItem("您申请的" + (apply.getApplyType()==1?"退款":"提现") + "业务未通过审核"));
-        dataItem.put("keyword1", new WeixinTemplateMsg.DItem(MoneyUtil.fenToYuan(apply.getRefundFee()+"") + "元"));
-        dataItem.put("keyword2", new WeixinTemplateMsg.DItem("仍有未完成的订单或系统交易忙"));
-        dataItem.put("remark", new WeixinTemplateMsg.DItem("请您做出相应调整后，再申请提现。"));
-        String url = this.hhtcContextPath + this.portalCenterUrl;
-        url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+apply.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+apply.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
-        WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
-        templateMsg.setTemplate_id("ZhGiBnC7ugrDs-raCC0E1kJ2aaRl_i1by8bwAkBIGtA");
-        templateMsg.setUrl(url);
-        templateMsg.setTouser(apply.getOpenid());
-        templateMsg.setData(dataItem);
-        WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(apply.getAppid()), templateMsg);
-    }
-
 
 
     /**

@@ -46,7 +46,7 @@ public class FansService {
     @Resource
     private SmsService smsService;
     @Resource
-    private OrderService orderService;
+    private OrderInforService orderInforService;
     @Resource
     private GoodsService goodsService;
     @Resource
@@ -61,6 +61,8 @@ public class FansService {
     private MppUserInfoRepository mppUserInfoRepository;
     @Resource
     private WeixinTemplateMsgAsync weixinTemplateMsgAsync;
+    @Resource
+    private GoodsPublishOrderService goodsPublishOrderService;
 
 
     /**
@@ -75,6 +77,13 @@ public class FansService {
      * */
     public String GetInforState(long uid, String openid){
         return fansInforRepository.findByUidAndOpenid(uid,openid).getInfor_state();
+    }
+
+    /**
+     * 查询粉丝的信息状态
+     * */
+    public MppFansInfor Get(String phoneNO){
+        return fansInforRepository.findByPhoneNo(phoneNO);
     }
 
     /**
@@ -200,6 +209,9 @@ public class FansService {
         if (fansInforAudits.size() > 0){
             throw  new HHTCException(CodeEnum.HHTC_INFOR_COMMUNITY_COPY);
         }
+        //检测是否有正在进行中的订单
+        if (CheckDoingOrder(openid))
+            throw new HHTCException(CodeEnum.HHTC_INFOR_COMMUNITY_ORDER);
         CommunityInfo communityInfo = communityService.get(CommunityID);
         //写入审核
         auditService.AddAudit(mppFansInfor,AUDTI_TEPY_COMMUNITY,CommunityID,communityInfo.getName(),houseNumber);
@@ -207,6 +219,20 @@ public class FansService {
         //返回当前状态码
         return  fansInforRepository.findByOpenid(openid).getInfor_state();
     }
+
+    /**
+     * TOKGO 检测是否有正在进行中的订单
+     */
+     public boolean CheckDoingOrder(String openid){
+        if(goodsPublishOrderService.Getfansorder(openid).size()>0)
+            return true;
+        if (orderInforService.GetOwnersOrder(openid).size()>0)
+            return true;
+        if (orderInforService.GetPostOrder(openid).size()>0)
+            return true;
+        return false;
+     }
+
 
 
 
@@ -405,14 +431,24 @@ public class FansService {
             auditService.Delete(id);
         }
         else{
+            if (CheckDoingOrderCarnumber(ownersInforServic.Get(id)))
+                throw new HHTCException(CodeEnum.HHTC_INFOR_CARNUMBER_ORDER);
             ownersInforServic.Delete(id);
             if (ownersInforServic.Get(openid).size()==0)
-                UpdatedataInforSate(INFOR_STATE_CARPARK_BIT, '0', fansInforRepository.findByOpenid(openid));
+                UpdatedataInforSate(INFOR_STATE_CARNUMBE_BIT, '0', fansInforRepository.findByOpenid(openid));
 
         }
         return  fansInforRepository.findByOpenid(openid).getInfor_state();
     }
 
+    /**
+     * TOKGO 检测是否有正在进行中的订单
+     */
+    public boolean CheckDoingOrderCarnumber(OwnersInfor ownersInfor){
+        if (orderInforService.Get(ownersInfor.getCaNumber(),ownersInfor.getCommunityId()).size()>0)
+            return true;
+        return false;
+    }
 
 
     /**
@@ -432,12 +468,12 @@ public class FansService {
             throw  new HHTCException(CodeEnum.HHTC_INFOR_COMMUNITY);
         //检测用户是否已经提交改车牌号 或者提交了两次车牌审核
         CheckCarnumber(mppFansInfor,CarNumber);
-         if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) == '1'){
+         if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_COMMUNITY_BIT) == '1'){
             //写入审核
             fansInforAudit= auditService.AddAudit(mppFansInfor,AUDTI_TEPY_CARNUMBER,mppFansInfor.getCommunityId()
                     ,mppFansInfor.getCommunityName(),CarNumber,carNumberImg);
         }else{
-             List<FansInforAudit> audit = auditService.GetAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_CARNUMBER);
+             List<FansInforAudit> audit = auditService.GetAudit(mppFansInfor.getUid(),openid,AUDTI_TEPY_COMMUNITY);
              if (audit.size()<1)
                  throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
             //写入审核
@@ -469,7 +505,11 @@ public class FansService {
         //判断用户是否已经提交请求
         for (FansInforAudit fansInforAudit :fansInforAudits) {
             if (CarNumber.equals(fansInforAudit.getContent()))
-                throw new HHTCException(CodeEnum.HHTC_INFOR_CARNUMBER_USED);
+                throw new HHTCException(CodeEnum.HHTC_INFOR_CARNUMBER_AUDITUSED);
+        }
+        //判断用户是否拥有这个车牌
+        if (ownersInforServic.IsExist(CarNumber,mppFansInfor.getOpenid())){
+            throw new HHTCException(CodeEnum.HHTC_INFOR_CARNUMBER_USED);
         }
     }
 
@@ -545,12 +585,15 @@ public class FansService {
      * */
     private void ChangeAdrres(MppFansInfor fansInfor,FansInforAudit fansInforAudit){
         int ownerfalg =0,carparkflag=0;
+        boolean flag = false;
         //检测审核的车位
         List<FansInforAudit> fansInforAudits;
         fansInforAudits = auditService.GetAudit(fansInfor.getUid(),fansInfor.getOpenid(),AUDTI_TEPY_CARPARK);
         for (FansInforAudit audit:fansInforAudits){
-            if (audit.getCommunityId()!=0 &&audit.getCommunityId() != fansInforAudit.getCommunityId())
+            if (audit.getCommunityId()!=0 &&audit.getCommunityId() != fansInforAudit.getCommunityId()) {
                 auditService.Delete(audit);
+                flag = true;
+            }
             else {
                 audit.setState(0);
                 audit.setCommunityId(fansInfor.getCommunityId());
@@ -564,8 +607,10 @@ public class FansService {
         //检测审核的车牌
         fansInforAudits = auditService.GetAudit(fansInfor.getUid(),fansInfor.getOpenid(),AUDTI_TEPY_CARNUMBER);
         for (FansInforAudit audit:fansInforAudits){
-            if (audit.getCommunityId()!=0 &&audit.getCommunityId() != fansInforAudit.getCommunityId())
+            if (audit.getCommunityId()!=0 &&audit.getCommunityId() != fansInforAudit.getCommunityId()) {
                 auditService.Delete(audit);
+                flag = true;
+            }
             else {
                 audit.setState(0);
                 audit.setCommunityId(fansInfor.getCommunityId());
@@ -578,21 +623,29 @@ public class FansService {
             auditService.save(fansInforAudits);
         //检测车牌
         for (OwnersInfor ownersInfor: ownersInforServic.Get(fansInfor.getOpenid())){
-            if (ownersInfor.getCommunityId() != fansInforAudit.getCommunityId())
+            if (ownersInfor.getCommunityId() != fansInforAudit.getCommunityId()) {
                 ownersInforServic.Delete(ownersInfor.getId());
+                flag = true;
+            }
             else
                 ownerfalg =1;
         }
         //检测车位
         for (GoodsInfor goodsInfor: goodsService.get(fansInfor.getOpenid())){
-            if (goodsInfor.getCommunityId() != fansInforAudit.getCommunityId())
+            if (goodsInfor.getCommunityId() != fansInforAudit.getCommunityId()) {
                 goodsService.Delete(goodsInfor);
+                flag = true;
+            }
             else
                 carparkflag=1;
         }
         String string = fansInfor.getInfor_state().substring(0,2);
         fansInfor.setInfor_state(string+"1"+carparkflag+ownerfalg);
         fansInforRepository.saveAndFlush(fansInfor);
+        if (flag)
+            // TODO 微信发消息 信息改变
+            weixinTemplateMsgAsync.Send("信息改变","ke1","ke2","remakg"
+                ,fansInfor.getOpenid(), WxMsgEnum.WX_TEST);
     }
 
 

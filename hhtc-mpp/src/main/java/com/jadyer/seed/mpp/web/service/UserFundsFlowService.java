@@ -116,7 +116,7 @@ public class UserFundsFlowService {
      * */
     public void AddFlowForRecharge(String openid, String orderId, BigDecimal money,int type,String desc){
         UserFundsFlow fundsFlow = new UserFundsFlow();
-        fundsFlow.setOpenid(orderId);
+        fundsFlow.setOrderId(orderId);
         if (StringUtils.isBlank(openid))
             fundsFlow.setUid(2);
         else {

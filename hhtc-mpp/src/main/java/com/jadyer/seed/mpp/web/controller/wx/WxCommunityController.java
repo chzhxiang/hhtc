@@ -34,6 +34,15 @@ public class WxCommunityController {
 
 
     /**
+     * TOKGO 获取所有的小区
+     * */
+    @GetMapping("/alllist")
+    public CommonResult getAllList(){
+        return new CommonResult(communityService.listAll());
+    }
+
+
+    /**
      * 根据省份名称获取城市列表
      */
     @GetMapping("/city/list")

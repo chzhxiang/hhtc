@@ -32,7 +32,7 @@ public class WxAdviceController {
     @PostMapping("/add")
     public CommonResult add(String content, String orderid,String img,HttpSession session){
         String openid = hhtcHelper.getWxOpenidFromSession(session);
-        adviceService.add(openid, content,img);
+        adviceService.add(openid, content,orderid,img);
         return new CommonResult();
     }
 
@@ -42,9 +42,7 @@ public class WxAdviceController {
 
     @GetMapping("/get")
     public CommonResult get(HttpSession session){
-
-        String
-            openid = hhtcHelper.getWxOpenidFromSession(session);
+        String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(adviceService.Get(openid));
     }
 

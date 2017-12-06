@@ -73,8 +73,8 @@ hhtc:
   needExpire:
     minute: 60  # 主动需求匹配过期的提前时长（假设配置30，表示起始时间的30分钟前仍未匹配到，则置其为过期）
   portalUrl:
-    login: /portal/#/     # 微信端注册页面地址
-    center: /portal/#/  # 微信端个人中心个人资料页面地址
+    login: /portal/@/     # 微信端注册页面地址
+    center: /portal/@/  # 微信端个人中心个人资料页面地址
   wxtemplateUrl:
     needsucc: /portal/index.html#/order_detail?orderId={orderId} # 微信模板消息之车主需求匹配的模板URL
     needfail: /portal/index.html#/park?type={type}/beginDay={beginDay}/endDay={endDay}/beginTime={beginTime}/endTime={endTime}

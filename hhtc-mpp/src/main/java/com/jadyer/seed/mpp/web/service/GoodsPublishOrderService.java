@@ -4,23 +4,14 @@ import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.constant.WxMsgEnum;
 import com.jadyer.seed.comm.exception.HHTCException;
-import com.jadyer.seed.comm.jpa.Condition;
-import com.jadyer.seed.comm.util.BeanUtil;
-import com.jadyer.seed.comm.util.DateUtil;
-import com.jadyer.seed.comm.util.JadyerUtil;
-import com.jadyer.seed.comm.util.LogUtil;
 import com.jadyer.seed.mpp.web.HHTCHelper;
-import com.jadyer.seed.mpp.web.model.*;
-import com.jadyer.seed.mpp.web.repository.*;
+import com.jadyer.seed.mpp.web.model.CommunityInfo;
+import com.jadyer.seed.mpp.web.model.GoodsInfor;
+import com.jadyer.seed.mpp.web.model.GoodsPublishOrder;
+import com.jadyer.seed.mpp.web.model.OrderInfor;
+import com.jadyer.seed.mpp.web.repository.GoodsPublishOrderRepository;
 import com.jadyer.seed.mpp.web.service.async.WeixinTemplateMsgAsync;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,13 +20,8 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by 玄玉<http://jadyer.cn/> on 2017/8/15 16:29.
@@ -47,23 +33,13 @@ public class GoodsPublishOrderService {
     @Value("${hhtc.publishTime.night}")
     private int timeNight;
     @Resource
-    private HHTCHelper hhtcHelper;
-    @Resource
     private FansService fansService;
     @Resource
     private GoodsService goodsService;
     @Resource
-    private OrderService orderService;
-    @Resource
     private UserFundsService userFundsService;
     @Resource
     private CommunityService communityService;
-    @Resource
-    private OrderInforService orderInforService;
-    @Resource
-    private UserFundsFlowService userFundsFlowService;
-    @Resource
-    private GoodsPublishRepository goodsPublishRepository;
     @Resource
     private WeixinTemplateMsgAsync weixinTemplateMsgAsync;
     @Resource
@@ -111,9 +87,6 @@ public class GoodsPublishOrderService {
         }
         //生成订单
         BuildOrder(goodsInfor,price,starttime,endtime);
-        // TODO 微信发消息 给车位主 订单发布成功
-        weixinTemplateMsgAsync.Send("订单发布成功","ke1","ke2","remakg"
-                ,openid, WxMsgEnum.WX_TEST);
     }
 
 
@@ -332,26 +305,6 @@ public class GoodsPublishOrderService {
         for(GoodsPublishOrder goodsPublishOrder : goodsPublishOrders){
             CheckOverTime(goodsPublishOrder,timenow);
         }
-    }
-
-
-
-
-    /**
-     * 车主预约下单成功后，去停車发現不能停，聯繫客服后客服調配車位時，釋放原車位发布信息
-     */
-    @Transactional(rollbackFor=Exception.class)
-    public void updateStatusToPublishing(List<GoodsPublishOrder> orderList){
-        for(GoodsPublishOrder order : orderList){
-//            order.setStatus(1);
-            goodsPublishOrderRepository.saveAndFlush(order);
-            List<GoodsPublishInfo> publishList = goodsPublishRepository.findByGoodsPublishOrderId(order.getId());
-            for(GoodsPublishInfo obj : publishList){
-                obj.setStatus(1);
-                goodsPublishRepository.saveAndFlush(obj);
-            }
-        }
-
     }
 
 

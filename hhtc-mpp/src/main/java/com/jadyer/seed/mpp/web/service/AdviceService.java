@@ -23,7 +23,7 @@ public class AdviceService {
      * TOKGO 新增意见反馈
      */
     @Transactional(rollbackFor=Exception.class)
-    public AdviceInfor add(String openid,String img, String content){
+    public AdviceInfor add(String openid, String content,String orderid,String img){
         AdviceInfor infor = new AdviceInfor();
         infor.setOpenid(openid);
         infor.setContent(content);

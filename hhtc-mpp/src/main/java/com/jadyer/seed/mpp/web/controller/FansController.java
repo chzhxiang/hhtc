@@ -7,11 +7,10 @@ import com.jadyer.seed.comm.exception.HHTCException;
 import com.jadyer.seed.comm.util.LogUtil;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.model.FansInforAudit;
+import com.jadyer.seed.mpp.web.model.MppFansInfor;
 import com.jadyer.seed.mpp.web.model.MppUserInfo;
-import com.jadyer.seed.mpp.web.service.AdviceService;
-import com.jadyer.seed.mpp.web.service.AuditService;
-import com.jadyer.seed.mpp.web.service.FansService;
-import com.jadyer.seed.mpp.web.service.GoodsService;
+import com.jadyer.seed.mpp.web.model.UserFunds;
+import com.jadyer.seed.mpp.web.service.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.HashMap;
 
 @Controller
 @RequestMapping(value="/fans")
@@ -29,6 +29,8 @@ public class FansController{
     private FansService fansService;
     @Resource
     private AuditService auditService;
+    @Resource
+    private UserFundsService userFundsService;
 
     /**
      * TOKGO 分页查询待审核的车位列表
@@ -92,8 +94,6 @@ public class FansController{
     }
 
 
-
-
     @RequestMapping("/advice/list")
     public String listAdviceViaPage(String pageNo, HttpServletRequest request){
         MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
@@ -102,5 +102,28 @@ public class FansController{
         }
         request.setAttribute("page", fansService.listAdviceViaPage(pageNo));
         return "fans/advice.list";
+    }
+
+    /**
+     * 获取用户资金信息
+     * **/
+    @RequestMapping("/funds")
+    public CommonResult Getfunds(String phoneNO, HttpServletRequest request){
+        MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
+        if(userInfo.getType() != 1){
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "只有平台运营才可以查看意见反馈");
+        }
+        HashMap hashMap = new HashMap();
+        MppFansInfor mppFansInfor = fansService.Get(phoneNO);
+        if (mppFansInfor ==null )
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "查询无果");
+        UserFunds userFunds = userFundsService.get(mppFansInfor.getOpenid());
+        if (mppFansInfor ==null )
+            throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "查询无果");
+        hashMap.put("phoneNO",mppFansInfor.getPhoneNo());
+        hashMap.put("nickname",mppFansInfor.getNickname());
+        hashMap.put("moneybase",userFunds.getMoneyBase());
+        hashMap.put("moneybalance",userFunds.getMoneyBalance());
+        return new CommonResult(hashMap);
     }
 }

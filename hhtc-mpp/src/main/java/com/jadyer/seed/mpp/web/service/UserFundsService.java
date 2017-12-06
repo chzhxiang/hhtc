@@ -3,15 +3,13 @@ package com.jadyer.seed.mpp.web.service;
 import com.jadyer.seed.comm.constant.CodeEnum;
 import com.jadyer.seed.comm.constant.Constants;
 import com.jadyer.seed.comm.exception.HHTCException;
-import com.jadyer.seed.comm.util.IPUtil;
-import com.jadyer.seed.comm.util.MoneyUtil;
 import com.jadyer.seed.mpp.sdk.weixin.model.pay.WeixinPayUnifiedorderRespData;
 import com.jadyer.seed.mpp.web.HHTCHelper;
 import com.jadyer.seed.mpp.web.model.*;
-import com.jadyer.seed.mpp.web.repository.*;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
-import org.apache.commons.lang3.time.DateUtils;
+import com.jadyer.seed.mpp.web.repository.FansAuditRepository;
+import com.jadyer.seed.mpp.web.repository.MppUserInfoRepository;
+import com.jadyer.seed.mpp.web.repository.UserFundsRepository;
+import com.jadyer.seed.mpp.web.service.async.WeixinTemplateMsgAsync;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by 玄玉<http://jadyer.cn/> on 2017/7/27 18:34.
@@ -35,8 +30,6 @@ public class UserFundsService {
     @Resource
     private FansService fansService;
     @Resource
-    private OrderRepository orderRepository;
-    @Resource
     private CommunityService communityService;
     @Resource
     private UserFundsRepository userFundsRepository;
@@ -44,6 +37,8 @@ public class UserFundsService {
     private FansAuditRepository fansAuditRepository;
     @Resource
     private UserFundsFlowService userFundsFlowService;
+    @Resource
+    private WeixinTemplateMsgAsync weixinTemplateMsgAsync;
     @Resource
     private MppUserInfoRepository mppUserInfoRepository;
     /**
@@ -202,59 +197,36 @@ public class UserFundsService {
         return userFundsRepository.saveAndFlush(funds);
     }
 
+
+    /**
+     * TOKGO 后台控制用户资金
+     * */
+    public void AdminChange(double moneybase, double moneybalance,UserFunds userFunds){
+        //TODO  资金流水没有做
+        if (moneybalance!=0){
+
+            userFunds.setMoneyBalance(userFunds.getMoneyBalance().add(BigDecimal.valueOf(moneybalance)));
+            userFundsRepository.save(userFunds);
+        }
+        if (moneybase >0){
+            userFunds.setMoneyBase(userFunds.getMoneyBase().add(BigDecimal.valueOf(moneybase)));
+            userFundsRepository.save(userFunds);
+        }
+       else {
+            userFunds.setMoneyBase(userFunds.getMoneyBase().add(BigDecimal.valueOf(moneybase)));
+            userFundsRepository.save(userFunds);
+        }
+    }
+
+
+
     /**
      * 充值（返回弹出微信支付所需的数据）
-     * @param type      充值类型：10--个人中心充值，11--车位主发布车位充值，12--车主预约下单充值，13--车主发布需求充值
-     * @param goodsId   车位ID
-     * @param moneyBase 押金，单位：元
-     * @param moneyRent 租金，单位：元
      */
     @Transactional(rollbackFor=Exception.class)
-    public WeixinPayUnifiedorderRespData recharge(int type, String goodsId, String moneyBase, String moneyRent, BigDecimal money, HttpServletRequest request) {
+    public WeixinPayUnifiedorderRespData recharge(String type,BigDecimal money, HttpServletRequest request) {
         String appid = hhtcHelper.getWxAppidFromSession(request.getSession());
         String openid = hhtcHelper.getWxOpenidFromSession(request.getSession());
-        //计算该增加押金和余额
-        BigDecimal _moneyBase = new BigDecimal(0);
-        BigDecimal _moneyRent = new BigDecimal(0);
-        switch(type){
-            case 10 :
-                //个人中心充值的时候，可以选择充值到押金还是余额。选择充值到押金时，moneyBase和money都要传充值的金额（此时moneyRent可不传），同理选择充值到余额时moneyRent和money也都要传充值的金额（此时moneyBase可不传）
-                //换句话说：money必传且传实际充值的金额，而moneyBase和moneyRent看粉丝选择的充值目标，选哪个，就传哪个值，就行了
-                if(StringUtils.isBlank(moneyBase) && StringUtils.isBlank(moneyRent)){
-                    throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "押金或余额至少传一");
-                }
-                if(StringUtils.isNotBlank(moneyBase)){
-                    _moneyBase = new BigDecimal(moneyBase);
-                }
-                if(StringUtils.isNotBlank(moneyRent)){
-                    _moneyRent = new BigDecimal(moneyRent);
-                }
-                break;
-            default: throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "无效的充值类型["+type+"]");
-        }
-        //记录一笔订单
-        MppFansInfor fansInfo = fansService.getByOpenid(openid);
-        OrderInfo orderInfo = new OrderInfo();
-        orderInfo.setTotalFee(Long.parseLong(MoneyUtil.yuanToFen(_moneyBase.add(_moneyRent).toString())));
-        orderInfo.setDepositMoney(_moneyBase);
-        orderInfo.setCanRefundMoney(new BigDecimal(MoneyUtil.fenToYuan(orderInfo.getTotalFee()+"")));
-        //TODO  充值 按照订单  后面看
-//        orderInfo.setCommunityId(0!=fansInfo.getCarOwnerCommunityId() ? fansInfo.getCarOwnerCommunityId() : fansInfo.getCarParkCommunityId());
-//        orderInfo.setCommunityName(0!=fansInfo.getCarOwnerCommunityId() ? fansInfo.getCarOwnerCommunityName() : fansInfo.getCarParkCommunityName());
-        orderInfo.setGoodsId(StringUtils.isNotBlank(goodsId) ? Long.parseLong(goodsId) : 0);
-        orderInfo.setAppid(appid);
-        orderInfo.setBody("吼吼共享车位 - 充值 - " + orderInfo.getCanRefundMoney() + " 元");
-        orderInfo.setOutTradeNo(hhtcHelper.buildOrderNo());
-        orderInfo.setAttach(orderInfo.getOutTradeNo());
-        orderInfo.setSpbillCreateIp(IPUtil.getClientIP(request));
-        orderInfo.setTimeStart(DateFormatUtils.format(new Date(), "yyyyMMddHHmmss"));
-        orderInfo.setNotifyUrl(hhtcContextPath + "/weixin/helper/pay/notify");
-        orderInfo.setTradeType("JSAPI");
-        orderInfo.setOpenid(openid);
-        orderInfo.setIsNotify(0);
-        orderInfo.setOrderType(type);
-        orderInfo.setOrderStatus(1);
-        orderRepository.saveAndFlush(orderInfo);
-        return hhtcHelper.payUnifiedorder(orderInfo);
+        return hhtcHelper.payUnifiedorder(appid,openid,money,request);
     }
 }

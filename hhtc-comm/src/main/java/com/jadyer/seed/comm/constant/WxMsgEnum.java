@@ -18,6 +18,17 @@ public enum WxMsgEnum {
     /*upsa1MpVfulcu69n_f7B6kF2s8uV9ODU47estmNWuK4*/
     AUDIT_COMMON("crGTxcHRTABjZu6hgUCmseLK-ra0YvmWs6lCAHVldY4","审核结果通用版"),
 
+    /**
+     您申请的提现业务未通过审核
+     提现金额：30元
+     失败原因：仍有未完成的订单
+     请您做出相应调整后，再申请提现。
+     * */
+     /*ZhGiBnC7ugrDs-raCC0E1kJ2aaRl_i1by8bwAkBIGtA*/
+    WITHDRAWAL_FAILED("crGTxcHRTABjZu6hgUCmseLK-ra0YvmWs6lCAHVldY4","提现失败"),
+
+
+
     WX_TEST("oS4jS3saxCoTTUQtGTv8EBD4ZNP6H_JYyTn4BFn0aKI","测试用户"),
 
 
