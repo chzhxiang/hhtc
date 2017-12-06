@@ -161,6 +161,9 @@ public class GoodsService {
                 if (carParkNumber.equals(Audit.getContent().split(SPLITFLAG)[0]))
                     throw new HHTCException(CodeEnum.HHTC_INFOR_CARPARK);
         }
+        if ("long".equals(carparkstate))
+            //设置超长日期
+            carUsefulEndDate = "2100-1-1";
         String infor = carParkNumber+SPLITFLAG+carUsefulEndDate+SPLITFLAG+carparkstate;
         if (mppFansInfor.getInfor_state().charAt(INFOR_STATE_PHOMENO_BIT) == '1'){
             //写入审核
@@ -256,11 +259,7 @@ public class GoodsService {
         if (ifor.length<3)
             new HHTCException(CodeEnum.SYSTEM_NULL);
         goodsInfor.setCarParkNumber(ifor[0]);
-        if ("long".equals(ifor[2])) {
-            //设置超长日期
-            goodsInfor.setCarUsefulEndDate("2100-1-1 0:0");
-        }else
-            goodsInfor.setCarUsefulEndDate(ifor[1]);
+        goodsInfor.setCarUsefulEndDate(ifor[1]);
         goodsInfor.setState(ifor[2]);
         goodsInfor.setCarEquityImg(fansInforAudit.getImgurl1());
         goodsInfor.setCarAuditUid(uid);

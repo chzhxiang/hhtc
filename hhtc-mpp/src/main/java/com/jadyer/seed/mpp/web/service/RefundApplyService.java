@@ -197,29 +197,14 @@ public class RefundApplyService {
     /**
      * 退款审核列表
      */
-    public Page<FansInforAudit> listTaskViaPage(MppUserInfo userInfo, String pageNo){
+    public Page<RefundApply> listTaskViaPage(MppUserInfo userInfo, String pageNo){
         if(userInfo.getType() != 1){
             throw new HHTCException(CodeEnum.SYSTEM_BUSY.getCode(), "只有平台运营才可以查看退款审核列表");
         }
         Sort sort = new Sort(Sort.Direction.ASC, "id");
         Pageable pageable = new PageRequest(StringUtils.isBlank(pageNo)?0:Integer.parseInt(pageNo), 10, sort);
-        Condition<FansInforAudit> spec = Condition.<FansInforAudit>or().eq("type", Constants.AUDTI_TEPY_BALANCE)
-                .eq("type", Constants.AUDTI_TEPY_DEPOSIT);
-        //执行
-        Page<FansInforAudit> page = auditService.getpage(spec, pageable);
-        List<FansInforAudit> list = page.getContent();
-        for(FansInforAudit obj : list){
-            MppFansInfor fans = fansService.getByOpenid(obj.getOpenid());
-            //检测住址是否验证 如果住址未审核通过 不给与显示
-            if (fans.getInfor_state().charAt(Constants.INFOR_STATE_COMMUNITY_BIT)!='1'){
-                list.remove(obj);
-                continue;
-            }
-            obj.setNickname(fans.getNickname());
-            obj.setHeadimgurl(fans.getHeadimgurl());
-            obj.setCommunity(fans.getCommunityName()+fans.getHouseNumber());
-        }
-        return page;
+        Condition<RefundApply> spec = Condition.<RefundApply>and().eq("auditStatus", 1);
+        return refundApplyRepository.findAll(spec, pageable);
     }
 
 

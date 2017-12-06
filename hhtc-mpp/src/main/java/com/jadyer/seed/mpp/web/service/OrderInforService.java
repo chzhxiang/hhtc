@@ -151,7 +151,10 @@ public class OrderInforService {
         BigDecimal price =BigDecimal.valueOf(fineprice);
         if (!userFundsService.BalanceIsenough(openid,price ))
             throw new HHTCException(CodeEnum.HHTC_FUNDS_BALANCE_NO);
+        //扣款
         userFundsService.subtractMoneyBalanceForFans(openid,price,orderid,"订单超时扣款");
+        //分润
+        orderAsync.Penny(price.doubleValue(),orderHistory);
         //添加临时开门权限
         TemporaryOut temporaryOut = new TemporaryOut();
         temporaryOut.setCarNumber(orderHistory.getCarNumber());
@@ -307,7 +310,7 @@ public class OrderInforService {
             }
             //计算可提取金额
             if ((timenow - orderInfor.getOutPriceTime()) > Constants.S_DATE_TIMES_MONTH) {
-                orderAsync.CalculateMonth(orderInfor);
+                orderAsync.CalculateMonth(orderInfor,timenow);
             }
         } catch (Exception e) {
         }
