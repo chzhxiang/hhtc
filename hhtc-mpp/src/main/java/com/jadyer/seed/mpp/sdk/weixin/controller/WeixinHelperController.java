@@ -76,7 +76,8 @@ public class WeixinHelperController {
         }else{
             fullURI = state;
         }
-        fullURI = fullURI.replace("#wechat_redirect", "").replace("#?", "#/").replace("/index.html/", "/index.html#/");
+        fullURI = fullURI.replace("#wechat_redirect", "").replace("#?", "#/")
+                .replace("/index.html/", "/index.html#/").replace("/@/", "/#/");
         LogUtil.getLogger().info("网页授权-->还原粉丝请求的资源得到state=[{}]", fullURI);
         if(StringUtils.isNotBlank(code)){
             WeixinOAuthAccessToken oauthAccessToken = WeixinTokenHolder.getWeixinOAuthAccessToken(appid, code);

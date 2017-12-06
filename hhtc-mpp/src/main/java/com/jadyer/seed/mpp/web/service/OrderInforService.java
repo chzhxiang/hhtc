@@ -11,6 +11,7 @@ import com.jadyer.seed.mpp.web.model.*;
 import com.jadyer.seed.mpp.web.repository.OrderHistoryRepository;
 import com.jadyer.seed.mpp.web.repository.OrderInforRepository;
 import com.jadyer.seed.mpp.web.repository.OrderInoutRepository;
+import com.jadyer.seed.mpp.web.repository.TemporaryOutRepository;
 import com.jadyer.seed.mpp.web.service.async.OrderAsync;
 import com.jadyer.seed.mpp.web.service.async.WeixinTemplateMsgAsync;
 import org.apache.commons.lang3.StringUtils;
@@ -21,10 +22,17 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+
+import static com.jadyer.seed.comm.constant.Constants.S_DATE_TIMES_HOUR;
+import static com.jadyer.seed.comm.constant.Constants.S_DATE_TIMES_HOURHALF;
+import static com.jadyer.seed.comm.constant.Constants.S_FINE;
 
 /**
  * @描述
@@ -42,6 +50,8 @@ public class OrderInforService {
     private OrderInforRepository orderInforRepository;
     @Resource
     private OrderInoutRepository orderInoutRepository;
+    @Resource
+    private TemporaryOutRepository temporaryOutRepository;
     @Resource
     private OrderHistoryRepository orderHistoryRepository;
     @Resource
@@ -131,12 +141,26 @@ public class OrderInforService {
     /**
      * TOKGO 超时补款
      */
-    public void OvertimeRepayment(String openid, String orderid) {
-        // TODO 超时补款  计算方式  先 用户来请求价格  然后后天算出价格  最后再提交  处理  两个接口
-
-
-
-
+    public void OvertimeRepayment(String openid, String orderid,double fineprice) {
+        //查找订单
+        OrderHistory orderHistory = orderHistoryRepository.findByOrderId(orderid);
+        //查找用户资金
+        UserFunds userFunds = userFundsService.get(openid);
+        if (orderHistory==null ||userFunds ==null)
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_ERROR);
+        BigDecimal price =BigDecimal.valueOf(fineprice);
+        if (!userFundsService.BalanceIsenough(openid,price ))
+            throw new HHTCException(CodeEnum.HHTC_FUNDS_BALANCE_NO);
+        userFundsService.subtractMoneyBalanceForFans(openid,price,orderid,"订单超时扣款");
+        //添加临时开门权限
+        TemporaryOut temporaryOut = new TemporaryOut();
+        temporaryOut.setCarNumber(orderHistory.getCarNumber());
+        temporaryOut.setCommunityId(orderHistory.getCommunityId());
+        temporaryOut.setTimeEnd(new Date().getTime()+Constants.S_TEMPORARYOUT_TIME);
+        temporaryOutRepository.save(temporaryOut);
+        orderHistory.setFinePrice(price);
+        orderHistory.setFineFlag(1);
+        orderHistoryRepository.save(orderHistory);
     }
 
     /**
@@ -144,9 +168,30 @@ public class OrderInforService {
      * */
     public double CalculateFine(String orderid){
         long nowtime = new Date().getTime();
-//        Order
-        //TODO
-        return 12;
+        double fineprice =0;
+        OrderHistory orderHistory = orderHistoryRepository.findByOrderId(orderid);
+        if (orderHistory==null)
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_ERROR);
+        //已经缴纳过罚金了
+        if (orderHistory.getFineFlag()==1)
+            throw new HHTCException(CodeEnum.HHTC_ORDER_FINE_ED);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+        try {
+            long endtime =sdf.parse(orderHistory.getEndTime()).getTime();
+            //计算罚金
+            if (nowtime - endtime<=S_DATE_TIMES_HOUR && nowtime -endtime>0)
+                fineprice = S_FINE;
+            if (nowtime -endtime>S_DATE_TIMES_HOUR){
+                long t = (nowtime-endtime-S_DATE_TIMES_HOUR);
+                if (t%S_DATE_TIMES_HOURHALF==0)
+                    fineprice += (t/S_DATE_TIMES_HOURHALF)*S_FINE;
+                else
+                    fineprice += ((t/S_DATE_TIMES_HOURHALF)+1)*S_FINE;
+            }
+        } catch (ParseException e) {
+            throw new HHTCException(CodeEnum.SYSTEM_ERROR);
+        }
+        return fineprice;
     }
 
 
@@ -221,7 +266,6 @@ public class OrderInforService {
      * TOKGO 检测订单是否开始结束 （订单开始结束由系统完成）
      */
     public void CheckStartOrEndOrder() {
-        LogUtil.getQuartzLogger().info("定时任务：订单开始结束检测");
         CheckStartOrEndOrder(orderInforRepository.findAll());
     }
 

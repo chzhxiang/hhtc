@@ -60,18 +60,27 @@ public class MarketTransactionService {
             ownersOrderInfors = orderInforService.GetOwnersOrder(openid,type);
             PostOrderInfors = orderInforService.GetPostOrder(openid,type);
         }
-        loaddata(ownersOrderInfors,list,1);
-        loaddata(PostOrderInfors,list,2);
+        loaddata(ownersOrderInfors,list,1,type);
+        loaddata(PostOrderInfors,list,2,type);
         return list;
     }
 
     /**
      * TOKGO 数据装填
      * **/
-    private void loaddata(List<OrderInfor> orderInfors,List<HashMap> list,int state){
+    private void loaddata(List<OrderInfor> orderInfors,List<HashMap> list,int state,int type){
         HashMap hashMap;
+        int flag =0;
+        long nowtime = new Date().getTime();
         for (OrderInfor orderInfor:orderInfors){
             hashMap = new HashMap();
+            if (type == 1){
+                if (orderInfor.getTimeStartCalculate()-nowtime<Constants.S_ORDERCANCAL_TIME)
+                    flag=1;
+            }else if(state != 1){
+                if (orderInfor.getTimeEndCalculate() -orderInfor.getTimeStartCalculate()>=Constants.S_DATE_TIMES_MONTH)
+                    flag=1;
+            }
             if (state == 1) {
                 hashMap.put("type", "owners");
                 hashMap.put("phone",orderInfor.getPostPhoneNO());
@@ -86,7 +95,7 @@ public class MarketTransactionService {
             hashMap.put("begintime",orderInfor.getTimeStart());
             hashMap.put("endtime",orderInfor.getTimeEnd());
             hashMap.put("price",orderInfor.getTotalPrice());
-            hashMap.put("Defaultprice", orderInfor.getOutPrice());
+            hashMap.put("flag", flag);
             list.add(hashMap);
         }
     }
@@ -97,6 +106,8 @@ public class MarketTransactionService {
     public void CancelOrder(String openid,String orderid,String type){
         //获取订单
         OrderInfor orderInfor = orderInforService.GetOrder(orderid);
+        if (orderInfor == null)
+            throw new HHTCException(CodeEnum.SYSTEM_PARAM_DATA_ERROR);
         //获取当前时间
         long timenow = new Date().getTime();
         //如果小于三个小时 不能取消预约 只能申诉退单
@@ -197,17 +208,19 @@ public class MarketTransactionService {
     /**
      * TOKGO 订单结算
      * **/
-    public void OrderGetMomey(String orderid,String openid){
+    public double OrderGetMomey(String orderid,String openid){
         OrderInfor orderInfor = orderInforService.GetOrder(orderid);
         if (orderInfor == null ||!orderInfor.getPostOpenid().equals(openid) )
             throw new HHTCException(CodeEnum.SYSTEM_PARAM_ERROR);
         if (orderInfor.getOutPrice().doubleValue()<1){
             throw new HHTCException(CodeEnum.HHTC_ORDER_MONEY_NO);
         }
-        orderAsync.Penny(orderInfor.getOutPrice().doubleValue(),orderInfor);
+        double outprice = orderInfor.getOutPrice().doubleValue();
+        outprice = orderAsync.Penny(outprice,orderInfor);
         orderInfor.setTotalOutPrice(orderInfor.getTotalOutPrice().add(orderInfor.getOutPrice()));
         orderInfor.setOutPrice(new BigDecimal(0));
         orderInforService.Save(orderInfor);
+        return outprice;
     }
 
 

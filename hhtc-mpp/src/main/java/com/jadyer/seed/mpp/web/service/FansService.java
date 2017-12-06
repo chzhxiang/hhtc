@@ -236,7 +236,6 @@ public class FansService {
             MppFansInfor fans = getByOpenid(obj.getOpenid());
             obj.setNickname(fans.getNickname());
             obj.setHeadimgurl(fans.getHeadimgurl());
-            obj.setPhone(fans.getPhoneNo());
             if (tuype != 1) {
                 obj.setCommunity(fans.getCommunityName() + fans.getHouseNumber());
                 if (tuype == AUDTI_TEPY_CARNUMBER)
@@ -491,7 +490,6 @@ public class FansService {
     @Transactional(rollbackFor=Exception.class)
     public void Audit(MppUserInfo userInfo,FansInforAudit fansInforAudit,int status, String auditRemark, String appid){
         MppFansInfor fansInfor = fansInforRepository.findByOpenid(fansInforAudit.getOpenid());
-        String FirstData = null, Key1Data = null, Key2Data, RemarkData ;
         //如果是物管，先校验其审核的是否为所管理小区的注册粉丝
         if(userInfo.getType() == 2){
             List<Long> idList = new ArrayList<>();
@@ -500,19 +498,14 @@ public class FansService {
             if(!idList.contains(fansInfor.getCommunityId()))
                 throw new HHTCException(CodeEnum.SYSTEM_PERMISSIONS);
         }
-        Key2Data = auditRemark;
-        RemarkData = "请填写正确的有效信息，重新申请，谢谢！";
-        Key1Data ="管理员";
         //住房审核
         if (fansInforAudit.getType() == Constants.AUDTI_TEPY_COMMUNITY) {
             if (status == 1) {
-                FirstData = "尊敬的用户，你的地址审核通过了";
                 fansInfor.setCommunityId(fansInforAudit.getCommunityId());
                 fansInfor.setCommunityName(fansInforAudit.getCommunityName());
                 //地址改变 改变用户的相关请求 跟新状态并保存
                 ChangeAdrres(fansInfor,fansInforAudit);
             }else {
-                FirstData = "尊敬的用户，你的地址审核未通过";
                 //如果小区审核没有通过 但是其历史绑定过，则使用原来的小区
                 if (!StringUtils.isBlank(fansInfor.getCommunityName()))
                     UpdatedataInforSate(INFOR_STATE_COMMUNITY_BIT, '1', fansInfor);
@@ -524,11 +517,9 @@ public class FansService {
         //车位审核
         else if (fansInforAudit.getType() == Constants.AUDTI_TEPY_CARPARK){
             if (status == 1) {
-                FirstData = "尊敬的用户，你的车位："+fansInforAudit.getContent()+",审核通过了";
                 goodsService.AddGoods(fansInforAudit,userInfo.getId());
                 UpdatedataInforSate(INFOR_STATE_CARPARK_BIT, '1', fansInfor);
             }else {
-                FirstData = "尊敬的用户，你的车牌："+fansInforAudit.getContent()+",审核未通过";
                 if (goodsService.get(fansInfor.getOpenid()).size()==0)
                     UpdatedataInforSate(INFOR_STATE_CARPARK_BIT, '0', fansInfor);
             }
@@ -536,22 +527,15 @@ public class FansService {
         //车牌审核
         else{
             if (status == 1) {
-                FirstData = "尊敬的用户，你的车位："+fansInforAudit.getContent()+",审核通过了";
                 ownersInforServic.AddCarNumber(fansInforAudit,userInfo.getId());
                 UpdatedataInforSate(INFOR_STATE_CARNUMBE_BIT, '1', fansInfor);
             }else {
-                FirstData = "尊敬的用户，你的车牌："+fansInforAudit.getContent()+",审核未通过";
                 if (ownersInforServic.Get(fansInfor.getOpenid()).size()==0)
                     UpdatedataInforSate(INFOR_STATE_CARNUMBE_BIT, '0', fansInfor);
             }
         }
         //审核结果发送微信模板消息
-        if (status == 1)
-            weixinTemplateMsgAsync.Send(FirstData,Key1Data,Key2Data,RemarkData
-                    ,fansInfor.getOpenid(), WxMsgEnum.WX_TEST);
-        else
-            weixinTemplateMsgAsync.Send(FirstData,Key1Data,Key2Data,RemarkData
-                    ,fansInfor.getOpenid(), WxMsgEnum.WX_TEST);
+        weixinTemplateMsgAsync.SendAuditResult(fansInforAudit,status,auditRemark);
         //删除审核记录
         auditService.Delete(fansInforAudit);
     }

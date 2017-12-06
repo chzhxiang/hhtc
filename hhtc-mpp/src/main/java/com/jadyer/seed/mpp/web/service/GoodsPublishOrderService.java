@@ -112,7 +112,7 @@ public class GoodsPublishOrderService {
         //生成订单
         BuildOrder(goodsInfor,price,starttime,endtime);
         // TODO 微信发消息 给车位主 订单发布成功
-        weixinTemplateMsgAsync.Send("fistdata","ke1","ke2","remakg"
+        weixinTemplateMsgAsync.Send("订单发布成功","ke1","ke2","remakg"
                 ,openid, WxMsgEnum.WX_TEST);
     }
 
@@ -125,8 +125,8 @@ public class GoodsPublishOrderService {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             GoodsInfor goodsInfor = goodsService.get(goodsId);
-            if (sdf.parse(etime).getTime()>sdf.parse(goodsInfor.getCarUsefulEndDate()).getTime())
-                throw new HHTCException(CodeEnum.SYSTEM_ERROR);
+            if (sdf.parse(etime).getTime()>new SimpleDateFormat("yyyy-MM-dd").parse(goodsInfor.getCarUsefulEndDate()).getTime())
+                throw new HHTCException(CodeEnum.HHTC_ORDER_GOODS_TIMEOUT);
             long starttime =  sdf.parse(stime).getTime()-Constants.S_ORDERINTERVAL;
             long endtime =  sdf.parse(etime).getTime()+Constants.S_ORDERINTERVAL;
             List<GoodsPublishOrder> goodsPublishOrders = goodsPublishOrderRepository.findByGoodsIdAndOpenid(goodsId,openid);
@@ -209,7 +209,7 @@ public class GoodsPublishOrderService {
             if (enddate%Constants.S_DATE_TIMES_HOUR !=0)
                 endtime24++;
         }
-        //计算飞非整天的
+        //计算非整天的
         // 9---s----e--17
         if (starttime24 >=timeDay && endtime24<=timeNight)
             temp += (endtime24 -starttime24)*payday;
@@ -235,7 +235,6 @@ public class GoodsPublishOrderService {
         if (temp >= communityInfo.getMoneyRentFull().doubleValue())
             temp= communityInfo.getMoneyRentFull().doubleValue();
         free+=temp;
-//        free = (free *communityInfo.getRentRatioCarparker()/100.0);
         return  new BigDecimal(free);
     }
 
@@ -299,7 +298,6 @@ public class GoodsPublishOrderService {
      * TOKGO 订单到点后删除 所有订单
      * */
     public void CheckOverTime(){
-        LogUtil.getQuartzLogger().info("定时任务：订单发布超时 未接单检测");
         CheckOverTime(goodsPublishOrderRepository.findAll());
     }
     /**

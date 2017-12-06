@@ -20,7 +20,7 @@ public class WxRefundApplyController {
     private RefundApplyService refundApplyService;
 
     /**
-     * 退款申请
+     * TOKGO 退款申请
      */
     @PostMapping("/refund")
     public CommonResult refund(HttpServletRequest request){
@@ -30,7 +30,7 @@ public class WxRefundApplyController {
 
 
     /**
-     * 提现申请
+     * TOKGO 提现申请
      */
     @PostMapping("/withdraw")
     public CommonResult withdraw(BigDecimal money, HttpServletRequest request){

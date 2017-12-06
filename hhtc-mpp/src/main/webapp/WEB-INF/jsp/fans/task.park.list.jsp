@@ -24,7 +24,7 @@
             <tr>
                 <td><span><img alt="头像" src="${audit.headimgurl}" height="30px" width="30px"></span></td>
                 <td><span>${audit.nickname}</span></td>
-                <td><span>${audit.phone}</span></td>
+                <td><span>${audit.phoneNo}</span></td>
                 <td><span>${audit.communityName}</span></td>
                 <td><span>${audit.content.split("@")[0]}</span></td>
                 <td><span><fmt:formatDate value="${audit.createTime}" pattern="yyyy-MM-dd HH:mm"/></span></td>

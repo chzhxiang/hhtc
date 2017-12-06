@@ -52,14 +52,14 @@ public class MppController {
 
 
     /**
-     * 登录
+     * TOKGO 登录
      */
     @ResponseBody
     @PostMapping("/user/login")
     public CommonResult login(String username, String password, String captcha, HttpSession session){
-//        if(!StringUtils.equals(captcha, (String)session.getAttribute("rand"))){
-//            return new CommonResult(CodeEnum.SYSTEM_BUSY.getCode(), "无效的验证码");
-//        }
+        if(!StringUtils.equals(captcha, (String)session.getAttribute("rand"))){
+            return new CommonResult(CodeEnum.SYSTEM_BUSY.getCode(), "无效的验证码");
+        }
         MppUserInfo mppUserInfo = mppUserService.findByUsernameAndPassword(username, password);
         if(null == mppUserInfo){
             return new CommonResult(CodeEnum.SYSTEM_BUSY.getCode(), "无效的用户名或密码");
@@ -70,7 +70,7 @@ public class MppController {
 
 
     /**
-     * 登出
+     * TOKGO 登出
      */
     @GetMapping("/user/logout")
     public String logout(HttpSession session){

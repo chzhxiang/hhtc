@@ -41,10 +41,18 @@ public class WxOrderController {
      * TOKGO 超时补款
      * */
     @PostMapping("/overtime/repayments")
-    public CommonResult repayments(String orderid, HttpSession session){
+    public CommonResult repayments(String orderid,double fineprice ,HttpSession session){
         String openid = hhtcHelper.getWxOpenidFromSession(session);
-        orderInforService.OvertimeRepayment(openid,orderid);
+        orderInforService.OvertimeRepayment(openid,orderid,fineprice);
         return new CommonResult();
+    }
+
+    /**
+     * TOKGO 超时补款 价格计算
+     * */
+    @GetMapping("/overtime/calculat")
+    public CommonResult CalculateFine(String orderid ,HttpSession session){
+        return new CommonResult(orderInforService.CalculateFine(orderid));
     }
 
     /**

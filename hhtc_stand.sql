@@ -79,17 +79,16 @@ id                       INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
 uid                      INT            NOT NULL   COMMENT '平台用户ID，对应t_mpp_user_info#id',
 community_id             INT          NOT NULL COMMENT '小区ID，对应t_community_info#id',
 community_name          VARCHAR(99)  NOT NULL COMMENT '小区名称，对应t_community_info#name',
+phone_no                 CHAR(11)     COMMENT '粉丝的手机号',
 openid                   VARCHAR(64)   NOT NULL   COMMENT '粉丝的openid，对应t_mpp_fans_info#openid',
 type                     TINYINT(1)    NOT NULL   COMMENT '类型：1--住房地址，2--车位，3--车牌',
 content                  VARCHAR(999)  NOT NULL   COMMENT '申请内容',
 imgurl1                  VARCHAR(512)              COMMENT '申请附带图片资源1',
 imgurl2                  VARCHAR(512)              COMMENT '申请附带图片资源2',
-state                    TINYINT(1)   NOT NULL  default 0  COMMENT '属性状态 0--可用 1--不可用',
+state                    TINYINT(1) default 0   NOT NULL  COMMENT '属性状态 0--可用 1--不可用',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='审核表 TOKGO';
-
-
 
 
 
@@ -327,7 +326,7 @@ time_end      LONGTEXT     NOT NULL COMMENT '结束时间 用于计算',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
 UNIQUE INDEX unique_index_carNumber(car_number)
-)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='车牌临时出入表';
+)ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='车牌临时出入表 TOKGO';
 
 
 
@@ -379,7 +378,7 @@ from_time          VARCHAR(32)   COMMENT '订单起始时间，格式为2017-11-
 end_time           VARCHAR(32)   COMMENT '订单截止时间，格式为2017-11-27 1:18',
 total_price             DECIMAL(16,2) NOT NULL COMMENT '定单总金额',
 fine_price              DECIMAL(16,2) default 0 COMMENT '罚金金额',
-fine_flag               TINYINT(1) default 0   COMMENT '罚金是否缴纳 0--已缴纳 ，1---未缴纳',
+fine_flag               TINYINT(1) default 0   COMMENT '罚金是否缴纳 0--未缴纳 ，1--已缴纳',
 create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间'
 )ENGINE=InnoDB DEFAULT CHARSET=UTF8 COMMENT='订单历史表（存储已完成的） TOKGO';
@@ -411,7 +410,7 @@ id                  INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
 refund_apply_id     INT         NOT NULL COMMENT '退款申请ID，对应t_refund_apply#id',
 refund_apply_type   TINYINT(1)  NOT NULL COMMENT '退款申请类型：1--退款（押金），2--提现（余额），对应t_refund_apply#apply_type',
 openid              VARCHAR(64) NOT NULL COMMENT '支付订单的粉丝openid',
-
+order_id            VARCHAR(32) NOT NULL COMMENT '订单ID，对应t_order_infor#id',
 appid               VARCHAR(32) NOT NULL COMMENT 'wx-商户对应的微信公众号的appid',
 out_refund_no       VARCHAR(32) NOT NULL COMMENT 'wx-商户退款订单号',
 total_fee           INT         NOT NULL COMMENT 'wx-订单金额，单位为分',

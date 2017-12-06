@@ -85,7 +85,6 @@ public class WxMarketPostController {
      * */
     @GetMapping("/getorder")
     public CommonResult getorder(HttpSession session){
-
         String openid = hhtcHelper.getWxOpenidFromSession(session);
         return new CommonResult(goodsPublishOrderService.Getfansorder(openid));
     }

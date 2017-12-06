@@ -20,7 +20,7 @@ public class AdviceService {
     private AdviceRepository adviceRepository;
 
     /**
-     * 新增意见反馈
+     * TOKGO 新增意见反馈
      */
     @Transactional(rollbackFor=Exception.class)
     public AdviceInfor add(String openid,String img, String content){

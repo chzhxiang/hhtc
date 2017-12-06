@@ -51,6 +51,7 @@ public class AuditService {
         fansInforAudit.setOpenid(mppFansInfor.getOpenid());
         fansInforAudit.setCommunityId(communityId);
         fansInforAudit.setCommunityName(communityName);
+        fansInforAudit.setPhoneNo(mppFansInfor.getPhoneNo());
         fansInforAudit.setType(type);
         fansInforAudit.setContent(Content);
         fansInforAudit.setImgurl1(imageurl1);

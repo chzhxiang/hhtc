@@ -44,11 +44,23 @@ public interface Constants {
     long S_SMSFILEMAX = 1800000;
     //订单间隔时间（30分钟）
     long S_ORDERINTERVAL = 1800000;
+    //车牌临时出入权限时间（15分钟）
+    long S_TEMPORARYOUT_TIME = 900000;
+    //订单取消的最短时间（3小时）
+    long S_ORDERCANCAL_TIME = 10800000;
     //计算常量
     long S_DATE_TIMES_DAY = 86400000;
     //计算常量
     long S_DATE_TIMES_HOUR = 3600000;
     //计算常量
+    long S_DATE_TIMES_HOURHALF = 1800000;
+    //计算常量
     long S_DATE_TIMES_MONTH = S_DATE_TIMES_DAY*S_CALCULATEdAY;
+    //罚金计算单价
+    double S_FINE = 10.0;
+
+
+
+
 
 }

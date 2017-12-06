@@ -36,7 +36,7 @@ public class OrderAsync {
     /**
      * TOKGO  分账
      * */
-    public void Penny(double total,OrderInfor orderInfor){
+    public double Penny(double total,OrderInfor orderInfor){
         MppFansInfor mppFansInfor = fansInforRepository.findByOpenid(orderInfor.getPostOpenid());
         CommunityInfo communityInfo = communityService.get(mppFansInfor.getCommunityId());
         //给卖家 打钱
@@ -47,6 +47,7 @@ public class OrderAsync {
         double platformerent = (total*communityInfo.getRentRatioPlatform())/100.0;
         userFundsService.addMoneyBalanceForPlatform(new BigDecimal(platformerent),orderInfor.getOrderId()
                 ,"订单收款，平台分润");
+        return carparkrent;
     }
 
     /**

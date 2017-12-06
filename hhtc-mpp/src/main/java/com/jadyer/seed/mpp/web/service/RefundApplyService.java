@@ -134,7 +134,7 @@ public class RefundApplyService {
 
 
     /**
-     * 退款或提现申请
+     * TOKGO 退款或提现申请
      * @param applyType 1--退款（押金），2--提现（余额）
      * @param money     提现金额（仅applyType=2时有值）
      */
@@ -178,79 +178,6 @@ public class RefundApplyService {
         apply.setPayStatus(0);
         apply.setAuditStatus(1);
         refundApplyRepository.saveAndFlush(apply);
-        if(applyType == 1){
-            //模版CODE: SMS_86680145
-            //模版内容: 尊敬的手机尾号为${phone}的用户，您于${time}申请的押金退回业务已受理成功，平台审核通过后即可将押金退回您原支付账户。
-            String phone = fansService.getByOpenid(openid).getPhoneNo();
-            Map<String, String> paramMap = new HashMap<>();
-            paramMap.put("phone", phone.substring(7, 11));
-            paramMap.put("time", DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
-            hhtcHelper.sendSms(phone, "SMS_86680145", paramMap);
-            /*
-            {{first.DATA}}
-            申请人：{{keyword1.DATA}}
-            申请时间：{{keyword2.DATA}}
-            押金退还金额：{{keyword3.DATA}}
-            {{remark.DATA}}
-
-            您好:
-            申请人：张三
-            申请时间：20170801 22:00
-            押金退还金额：199元
-            您的退还押金申请已提交，请耐心等待平台审核。
-            */
-            WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
-            dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的用户，您好："));
-            dataItem.put("keyword1", new WeixinTemplateMsg.DItem("手机尾号为" + phone.substring(7, 11)));
-            dataItem.put("keyword2", new WeixinTemplateMsg.DItem(DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")));
-            dataItem.put("keyword3", new WeixinTemplateMsg.DItem(money.toString() + "元"));
-            dataItem.put("remark", new WeixinTemplateMsg.DItem("您的退还押金申请已提交，请耐心等待平台审核。"));
-            String url = this.hhtcContextPath + this.portalCenterUrl;
-            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+apply.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+apply.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
-            WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
-            templateMsg.setTemplate_id("icvejpeS8si4HTT8mivfGgg_xn62EjH4bRobSTPDx2U");
-            templateMsg.setUrl(url);
-            templateMsg.setTouser(apply.getOpenid());
-            templateMsg.setData(dataItem);
-            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(apply.getAppid()), templateMsg);
-        }
-        if(applyType == 2){
-            //模版CODE: SMS_86680144
-            //模版内容: 尊敬的手机尾号为${phone}的用户，您于${time}申请的${money}元的提现业务已受理成功，平台审核通过后即可向您微信账户转账汇款。
-            String phone = fansService.getByOpenid(openid).getPhoneNo();
-            Map<String, String> paramMap = new HashMap<>();
-            paramMap.put("phone", phone.substring(7, 11));
-            paramMap.put("time", DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
-            paramMap.put("money", money.toString());
-            hhtcHelper.sendSms(phone, "SMS_86680144", paramMap);
-            /*
-            {{first.DATA}}
-            申请人：{{keyword1.DATA}}
-            申请时间：{{keyword2.DATA}}
-            提现金额：{{keyword3.DATA}}
-            {{remark.DATA}}
-
-            您好:
-            申请人：张三
-            申请时间：20170801 22:00
-            提现金额：50元
-            您的提现申请已提交，请耐心等待平台审核，预计2个工作日内到账
-            */
-            WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
-            dataItem.put("first", new WeixinTemplateMsg.DItem("尊敬的用户，您好："));
-            dataItem.put("keyword1", new WeixinTemplateMsg.DItem("手机尾号为" + phone.substring(7, 11)));
-            dataItem.put("keyword2", new WeixinTemplateMsg.DItem(DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")));
-            dataItem.put("keyword3", new WeixinTemplateMsg.DItem(money.toString() + "元"));
-            dataItem.put("remark", new WeixinTemplateMsg.DItem("您的提现申请已提交，平台审核通过后即可向您微信账户转账汇款。"));
-            String url = this.hhtcContextPath + this.portalCenterUrl;
-            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+apply.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+apply.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
-            WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
-            templateMsg.setTemplate_id("cxPmkCSXAs2rXH4_xork3lbIugMN87C2mnyavJdOLu8");
-            templateMsg.setUrl(url);
-            templateMsg.setTouser(apply.getOpenid());
-            templateMsg.setData(dataItem);
-            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(apply.getAppid()), templateMsg);
-        }
     }
 
 
@@ -290,7 +217,6 @@ public class RefundApplyService {
             }
             obj.setNickname(fans.getNickname());
             obj.setHeadimgurl(fans.getHeadimgurl());
-            obj.setPhone(fans.getPhoneNo());
             obj.setCommunity(fans.getCommunityName()+fans.getHouseNumber());
         }
         return page;
@@ -306,42 +232,18 @@ public class RefundApplyService {
         apply.setAuditTime(new Date());
         apply.setAuditStatus(auditStatus);
         refundApplyRepository.saveAndFlush(apply);
-        if(auditStatus == 1){
+        if(auditStatus == 2){
             if(apply.getApplyType() == 1){
-                //TODO 微信模板消息 发送
                 //模版CODE: SMS_86520128
                 //模版内容: 尊敬的手机尾号为${phone}的用户，您申请押金退回已通过平台审核，您交付平台的押金已退回您原支付账户，预计1~7个工作日到账，请注意查收。
                 String phone = fansService.getByOpenid(apply.getOpenid()).getPhoneNo();
-//                Map<String, String> paramMap = new HashMap<>();
-//                paramMap.put("phone", phone.substring(7, 11));
-//                hhtcHelper.sendSms(phone, "SMS_86520128", paramMap);
+                Map<String, String> paramMap = new HashMap<>();
+                paramMap.put("phone", phone.substring(7, 11));
+                hhtcHelper.sendSms(phone, "SMS_86520128", paramMap);
             }
         }
-        if(auditStatus == 2){
-            /*
-            {{first.DATA}}
-            提现金额：{{keyword1.DATA}}
-            失败原因：{{keyword2.DATA}}
-            {{remark.DATA}}
+        if(auditStatus == 3){
 
-            您申请的提现业务未通过审核
-            提现金额：30元
-            失败原因：仍有未完成的订单
-            请您做出相应调整后，再申请提现。
-            */
-//            WeixinTemplateMsg.DataItem dataItem = new WeixinTemplateMsg.DataItem();
-//            dataItem.put("first", new WeixinTemplateMsg.DItem("您申请的" + (apply.getApplyType()==1?"退款":"提现") + "业务未通过审核"));
-//            dataItem.put("keyword1", new WeixinTemplateMsg.DItem(MoneyUtil.fenToYuan(apply.getRefundFee()+"") + "元"));
-//            dataItem.put("keyword2", new WeixinTemplateMsg.DItem("仍有未完成的订单或系统交易忙"));
-//            dataItem.put("remark", new WeixinTemplateMsg.DItem("请您做出相应调整后，再申请提现。"));
-//            String url = this.hhtcContextPath + this.portalCenterUrl;
-//            url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="+apply.getAppid()+"&redirect_uri="+this.hhtcContextPath+"/weixin/helper/oauth/"+apply.getAppid()+"&response_type=code&scope=snsapi_base&state="+url+"#wechat_redirect";
-//            WeixinTemplateMsg templateMsg = new WeixinTemplateMsg();
-//            templateMsg.setTemplate_id("ZhGiBnC7ugrDs-raCC0E1kJ2aaRl_i1by8bwAkBIGtA");
-//            templateMsg.setUrl(url);
-//            templateMsg.setTouser(apply.getOpenid());
-//            templateMsg.setData(dataItem);
-//            WeixinHelper.pushWeixinTemplateMsgToFans(WeixinTokenHolder.getWeixinAccessToken(apply.getAppid()), templateMsg);
         }
     }
 

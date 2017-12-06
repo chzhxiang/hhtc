@@ -30,8 +30,7 @@ public class WxAdviceController {
      * TOKGO 新增意见反馈
      */
     @PostMapping("/add")
-    public CommonResult add(String content, String img,HttpSession session){
-
+    public CommonResult add(String content, String orderid,String img,HttpSession session){
         String openid = hhtcHelper.getWxOpenidFromSession(session);
         adviceService.add(openid, content,img);
         return new CommonResult();

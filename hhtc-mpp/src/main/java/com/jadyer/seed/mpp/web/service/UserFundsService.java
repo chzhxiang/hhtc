@@ -98,7 +98,6 @@ public class UserFundsService {
         audit.setUid(mppFansInfor.getUid());
         audit.setType(type);
         audit.setOpenid(openid);
-        audit.setPhone(mppFansInfor.getPhoneNo());
         audit.setCommunityId(mppFansInfor.getCommunityId());
         audit.setCommunityName(mppFansInfor.getCommunityName());
         audit.setContent(""+amount);

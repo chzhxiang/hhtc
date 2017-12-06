@@ -77,13 +77,11 @@ public class WxMarketTransactionController {
 
     /**
      * TOKGO 订单结算
-     * TODO 名字有问题
      */
-    @PostMapping("/ordergetmoney")
-    public CommonResult orderGetMoney(String orderid,HttpSession session){
+    @PostMapping("/ordersettlement")
+    public CommonResult orderSettlement(String orderid,HttpSession session){
         String openid = hhtcHelper.getWxOpenidFromSession(session);
-        marketTransactionService.OrderGetMomey(orderid,openid);
-        return new CommonResult();
+        return new CommonResult(marketTransactionService.OrderGetMomey(orderid,openid));
     }
 
 }

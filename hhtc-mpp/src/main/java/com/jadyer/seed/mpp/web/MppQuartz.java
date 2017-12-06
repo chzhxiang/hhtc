@@ -162,7 +162,7 @@ public class MppQuartz {
     /**
      * 订单超时（5分钟一次） 测试 1分钟
      */
-    @Scheduled(cron="0 0/1 * * * ?")
+    @Scheduled(cron="0 0/5 * * * ?")
     void orderSettle(){
         goodsPublishOrderService.CheckOverTime();
     }
@@ -170,7 +170,7 @@ public class MppQuartz {
     /**
      * 订单开始 结束（5分钟一次）测试 1分钟
      */
-    @Scheduled(cron="0 0/1 * * * ?")
+    @Scheduled(cron="0 0/5 * * * ?")
     void orderBE(){
         orderInforService.CheckStartOrEndOrder();
     }

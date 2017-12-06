@@ -22,6 +22,8 @@ public class FansInforAudit extends BaseEntity<Long>{
     private long communityId;
     @Column(name="community_name")
     private String communityName;
+    @Column(name="phone_no")
+    private String phoneNo;
     private String openid;
     private int type;
     private int state;
@@ -33,8 +35,6 @@ public class FansInforAudit extends BaseEntity<Long>{
     private String nickname;
     @Transient
     private String headimgurl;
-    @Transient
-    private String phone;
     @Transient
     private String community;
     @Transient
@@ -71,12 +71,12 @@ public class FansInforAudit extends BaseEntity<Long>{
         this.communityName = communityName;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getPhoneNo() {
+        return phoneNo;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setPhoneNo(String phoneNo) {
+        this.phoneNo = phoneNo;
     }
 
     public String getCommunity() {
