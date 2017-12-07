@@ -12,6 +12,7 @@ import com.jadyer.seed.mpp.web.model.MppUserInfo;
 import com.jadyer.seed.mpp.web.model.UserFunds;
 import com.jadyer.seed.mpp.web.service.*;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -53,7 +54,13 @@ public class FansController{
         request.setAttribute("page", fansService.TaskViaPagelist(userInfo, pageNo, Constants.AUDTI_TEPY_CARNUMBER));
         return "fans/task.owner.list";
     }
-
+    /**
+     * TOKGO  用户资金管理
+     * */
+    @RequestMapping("/money/manage")
+    public String moneymanage(HttpServletRequest request){
+        return "fans/money.manage";
+    }
 
     /**
      * TOKGO 分页查询待审核的地址列表
@@ -107,7 +114,7 @@ public class FansController{
     /**
      * 获取用户资金信息
      * **/
-    @RequestMapping("/funds")
+    @GetMapping("/funds")
     public CommonResult Getfunds(String phoneNO, HttpServletRequest request){
         MppUserInfo userInfo = (MppUserInfo)request.getSession().getAttribute(Constants.WEB_SESSION_USER);
         if(userInfo.getType() != 1){

@@ -20,6 +20,7 @@ public class AdviceInfor extends BaseEntity<Long> {
     private static final long serialVersionUID = 7485548095171662418L;
     private String openid;
     private String content;
+    private String orderid;
     private String contentImg;
     private String result;
     @Column(name="audit_uid")

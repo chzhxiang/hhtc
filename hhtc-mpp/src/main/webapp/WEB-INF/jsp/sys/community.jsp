@@ -59,6 +59,7 @@
                             $("#linkMan").val(data.data.linkMan);
                             $("#linkTel").val(data.data.linkTel);
                             $("#moneyBase").val(data.data.moneyBase);
+                            $("#moneyRentMin").val(data.data.moneyRentMin);
                             $("#moneyRentDay").val(data.data.moneyRentDay);
                             $("#moneyRentNight").val(data.data.moneyRentNight);
                             $("#moneyRentFull").val(data.data.moneyRentFull);
@@ -104,6 +105,7 @@
                             $("#get_linkMan").html(data.data.linkMan);
                             $("#get_linkTel").html(data.data.linkTel);
                             $("#get_moneyBase").html(data.data.moneyBase);
+                            $("#get_moneyRentMin").html(data.data.moneyRentMin);
                             $("#get_moneyRentDay").html(data.data.moneyRentDay);
                             $("#get_moneyRentNight").html(data.data.moneyRentNight);
                             $("#get_moneyRentFull").html(data.data.moneyRentFull);
@@ -252,6 +254,7 @@
         <tr><th>联系人：</th><td id="get_linkMan"></td></tr>
         <tr><th>联系人手机号：</th><td id="get_linkTel"></td></tr>
         <tr><th>押金：</th><td id="get_moneyBase"></td></tr>
+        <tr><th>租金（起步价）：</th><td id="get_moneyRentMin"></td></tr>
         <tr><th>租金（日间）：</th><td id="get_moneyRentDay"></td></tr>
         <tr><th>租金（夜间）：</th><td id="get_moneyRentNight"></td></tr>
         <tr><th>租金（全天）：</th><td id="get_moneyRentFull"></td></tr>
@@ -321,6 +324,10 @@
                 <tr>
                     <th width="15%">押金：</th>
                     <td><input class="inpte" type="text" id="moneyBase" name="moneyBase" maxlength="8"/></td>
+                </tr>
+                <tr>
+                    <th width="15%">租金（起步价）：</th>
+                    <td><input class="inpte" type="text" id="moneyRentMin" name="moneyRentMin" maxlength="8"/></td>
                 </tr>
                 <tr>
                     <th width="15%">租金（日间）：</th>

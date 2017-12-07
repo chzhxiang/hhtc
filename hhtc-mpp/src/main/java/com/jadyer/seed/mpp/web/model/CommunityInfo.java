@@ -35,6 +35,8 @@ public class CommunityInfo extends BaseEntity<Long> {
     private String linkTel;
     @Column(name="money_base")
     private BigDecimal moneyBase;
+    @Column(name="money_rent_min")
+    private BigDecimal moneyRentMin;
     @Column(name="money_rent_day")
     private BigDecimal moneyRentDay;
     @Column(name="money_rent_night")
@@ -118,6 +120,14 @@ public class CommunityInfo extends BaseEntity<Long> {
 
     public void setLinkTel(String linkTel) {
         this.linkTel = linkTel;
+    }
+
+    public BigDecimal getMoneyRentMin() {
+        return moneyRentMin;
+    }
+
+    public void setMoneyRentMin(BigDecimal moneyRentMin) {
+        this.moneyRentMin = moneyRentMin;
     }
 
     public BigDecimal getMoneyBase() {

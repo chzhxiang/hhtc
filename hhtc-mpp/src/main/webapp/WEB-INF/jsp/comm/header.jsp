@@ -48,6 +48,8 @@
                 <a href="#"><span>业务管理</span><i></i></a>
                 <div>
                     <a href="${ctx}/goods/list"><span>车位列表</span></a>
+                    <%--TODO Cantabile 车牌列表--%>
+                    <a href="${ctx}/goods/list"><span>车牌列表</span></a>
                     <a href="${ctx}/community/list/mgr"><span>物管管理</span></a>
                     <a href="${ctx}/community/list"><span>小区管理</span></a>
                     <a href="${ctx}/community/device/list"><span>小区设备管理</span></a>
@@ -62,6 +64,8 @@
                     <a href="${ctx}/fans/task/owner/list"><span>车牌审核</span><i></i></a>
                     <a href="${ctx}/fans/list"><span>粉丝列表</span><i></i></a>
                     <a href="${ctx}/fans/advice/list"><span>意见反馈</span><i></i></a>
+                    <%--TODO Cantabile 资金管理--%>
+                    <a href="${ctx}/fans/money/manage"><span>资金管理</span><i></i></a>
                 </div>
             </li>
             <li ${currentMenu eq 'menu_funds' ? 'class="on"' : ''}>
